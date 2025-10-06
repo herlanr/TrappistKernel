@@ -10,3 +10,16 @@ C:\Users\heribeir\Desktop\BS Project\TrappistOS\TrappistOS\obj\Debug\net6.0\Trap
 C:\Users\heribeir\Desktop\BS Project\TrappistOS\TrappistOS\obj\Debug\net6.0\refint\TrappistOS.dll
 C:\Users\heribeir\Desktop\BS Project\TrappistOS\TrappistOS\obj\Debug\net6.0\TrappistOS.pdb
 C:\Users\heribeir\Desktop\BS Project\TrappistOS\TrappistOS\obj\Debug\net6.0\ref\TrappistOS.dll
+\\wsl.localhost\Ubuntu\root\programs\trappistOS\TrappistKernel\TrappistOS\TrappistOS\bin\Debug\net6.0\TrappistOS.deps.json
+\\wsl.localhost\Ubuntu\root\programs\trappistOS\TrappistKernel\TrappistOS\TrappistOS\bin\Debug\net6.0\TrappistOS.dll
+\\wsl.localhost\Ubuntu\root\programs\trappistOS\TrappistKernel\TrappistOS\TrappistOS\bin\Debug\net6.0\TrappistOS.pdb
+\\wsl.localhost\Ubuntu\root\programs\trappistOS\TrappistKernel\TrappistOS\TrappistOS\obj\Debug\net6.0\TrappistOS.csproj.AssemblyReference.cache
+\\wsl.localhost\Ubuntu\root\programs\trappistOS\TrappistKernel\TrappistOS\TrappistOS\obj\Debug\net6.0\TrappistOS.GeneratedMSBuildEditorConfig.editorconfig
+\\wsl.localhost\Ubuntu\root\programs\trappistOS\TrappistKernel\TrappistOS\TrappistOS\obj\Debug\net6.0\TrappistOS.AssemblyInfoInputs.cache
+\\wsl.localhost\Ubuntu\root\programs\trappistOS\TrappistKernel\TrappistOS\TrappistOS\obj\Debug\net6.0\TrappistOS.AssemblyInfo.cs
+\\wsl.localhost\Ubuntu\root\programs\trappistOS\TrappistKernel\TrappistOS\TrappistOS\obj\Debug\net6.0\TrappistOS.csproj.CoreCompileInputs.cache
+\\wsl.localhost\Ubuntu\root\programs\trappistOS\TrappistKernel\TrappistOS\TrappistOS\obj\Debug\net6.0\TrappistOS.sourcelink.json
+\\wsl.localhost\Ubuntu\root\programs\trappistOS\TrappistKernel\TrappistOS\TrappistOS\obj\Debug\net6.0\TrappistOS.dll
+\\wsl.localhost\Ubuntu\root\programs\trappistOS\TrappistKernel\TrappistOS\TrappistOS\obj\Debug\net6.0\refint\TrappistOS.dll
+\\wsl.localhost\Ubuntu\root\programs\trappistOS\TrappistKernel\TrappistOS\TrappistOS\obj\Debug\net6.0\TrappistOS.pdb
+\\wsl.localhost\Ubuntu\root\programs\trappistOS\TrappistKernel\TrappistOS\TrappistOS\obj\Debug\net6.0\ref\TrappistOS.dll
