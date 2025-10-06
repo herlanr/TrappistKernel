@@ -61,3 +61,5 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+/TrappistOS/TrappistOS/obj/Debug/net6.0/TrappistOS.sourcelink.json
+/TrappistOS/TrappistOS/obj/Debug/net6.0/TrappistOS.AssemblyInfoInputs.cache
