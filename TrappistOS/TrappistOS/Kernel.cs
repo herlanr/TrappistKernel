@@ -26,7 +26,7 @@ namespace TrappistOS
             userInfo = new UserLogin();
             ProgramMemory[0] = userInfo;
             Console.WriteLine("Cosmos booted successfully. Type a line of text to get it echoed back.");
-            userInfo.Run();   
+            userInfo.BeforeRun();
         }
 
         protected override void Run()
@@ -37,6 +37,7 @@ namespace TrappistOS
 
             Console.Write($"{UserLogin.currentUser.username}:Input: ");
             Console.Write($"{userInfo.currentUser.username}:Input: ");
+            Console.Write($"{userInfo.get_name}:Input: ");
             var input = Console.ReadLine();
 
             string[] args = input.Split(' ');
@@ -183,6 +184,9 @@ namespace TrappistOS
                     }
 
             }
+            userInfo.Run();
+            Console.Write("Text typed: ");
+            Console.WriteLine(input);
         }
     }
 
