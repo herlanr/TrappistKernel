@@ -14,6 +14,7 @@ namespace TrappistOS
         ProgramClass[] ProgramMemory = new ProgramClass[6];
         FileSystemManager fsManager;
 
+        UserLogin userInfo;
         protected override void BeforeRun()
         {
             fsManager = new FileSystemManager();
@@ -21,8 +22,9 @@ namespace TrappistOS
             Sys.KeyboardManager.SetKeyLayout(new DE_Standard());
             Console.Clear();
             Console.WriteLine("TrappistOS booted up!");
+            userInfo = new UserLogin();
             Console.WriteLine("Cosmos booted successfully. Type a line of text to get it echoed back.");
-            UserLogin.currentUser = UserLogin.VisitorLogin();
+            userInfo.VisitorLogin();   
         }
 
         protected override void Run()
@@ -32,6 +34,7 @@ namespace TrappistOS
             Console.ForegroundColor = ConsoleColor.White;
 
             Console.Write($"{UserLogin.currentUser.username}:Input: ");
+            Console.Write($"{userInfo.currentUser.username}:Input: ");
             var input = Console.ReadLine();
 
             string[] args = input.Split(' ');
