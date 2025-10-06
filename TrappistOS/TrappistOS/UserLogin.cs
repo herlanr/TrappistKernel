@@ -2,11 +2,12 @@
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using Sys = Cosmos.System;
 
 namespace TrappistOS
 {
     
-    internal class UserLogin
+    internal class UserLogin : ProgramClass
     {
         string filePath = "users.json";
         public User currentUser = null;
@@ -22,6 +23,11 @@ namespace TrappistOS
                 this.username = username;
                 this.password = password;
             }
+        }
+
+        public override void Run()
+        {
+            System.Console.WriteLine("3 +4 = 7");
         }
 
         public int get_id()
