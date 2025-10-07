@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Timers;
+using System.IO;
 using Sys = Cosmos.System;
 
 namespace TrappistOS
@@ -25,8 +27,9 @@ namespace TrappistOS
             Console.WriteLine("TrappistOS booted up!");
             userInfo = new UserLogin();
             ProgramMemory[0] = userInfo;
-            Console.WriteLine("Cosmos booted successfully. Type a line of text to get it echoed back.");
             userInfo.BeforeRun();
+            Console.WriteLine("Cosmos booted successfully. Type a line of text to get it echoed back.");
+            
         }
 
         protected override void Run()
@@ -38,6 +41,8 @@ namespace TrappistOS
             Console.Write($"{UserLogin.currentUser.username}:Input: ");
             Console.Write($"{userInfo.currentUser.username}:Input: ");
             Console.Write($"{userInfo.get_name}:Input: ");
+            Console.WriteLine(File.ReadAllText("users.json"));
+            //Console.Write($"{userInfo.get_name}:Input: ");
             var input = Console.ReadLine();
 
             string[] args = input.Split(' ');
@@ -185,6 +190,10 @@ namespace TrappistOS
 
             }
             userInfo.Run();
+            if (input == "shutdown")
+            {
+                Sys.Power.Shutdown();
+            }
             Console.Write("Text typed: ");
             Console.WriteLine(input);
         }

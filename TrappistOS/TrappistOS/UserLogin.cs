@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
-using System.Text.Json;
 using Sys = Cosmos.System;
 using System;
 
@@ -26,9 +25,15 @@ namespace TrappistOS
             }
         }
 
+        public UserLogin()
+        {
+            Identifier = "UserLogin";
+        }
+
         public void BeforeRun()
         {
-            Console.WriteLine("test");
+            //VisitorLogin();
+            Console.WriteLine("File.ReadAllText(filePath)");
         }
 
         public override void Run()
@@ -40,7 +45,7 @@ namespace TrappistOS
             
             var user = Login(username, password);
             
-            //currentUser = user;
+            currentUser = user;
         }
 
         private UserClass Login(string name, string pw)
@@ -91,15 +96,16 @@ namespace TrappistOS
 
         private void WriteJsonToFile(string filePath, List<UserClass> users)
         {
-            string json = JsonSerializer.Serialize(users, new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(filePath, json);
+            //string json = JsonSerializer.Serialize(users, new JsonSerializerOptions { WriteIndented = true });
+            //File.WriteAllText(filePath, json);
         }
 
         // Method to read data from a JSON file
         private List<UserClass> ReadJsonFromFile(string filePath)
         {
             string json = File.ReadAllText(filePath);
-            return JsonSerializer.Deserialize<List<UserClass>>(json);
+            Console.WriteLine(json);
+            return null;// JsonSerializer.Deserialize<List<UserClass>>(json);
         }
     }
 }
