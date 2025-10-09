@@ -10,3 +10,16 @@ C:\Users\heribeir\Desktop\BS Project\TrappistOS\TrappistOS\obj\Debug\net6.0\Trap
 C:\Users\heribeir\Desktop\BS Project\TrappistOS\TrappistOS\obj\Debug\net6.0\refint\TrappistOS.dll
 C:\Users\heribeir\Desktop\BS Project\TrappistOS\TrappistOS\obj\Debug\net6.0\TrappistOS.pdb
 C:\Users\heribeir\Desktop\BS Project\TrappistOS\TrappistOS\obj\Debug\net6.0\ref\TrappistOS.dll
+C:\Users\semiz\Source\Repos\TrappistKernel\TrappistOS\TrappistOS\bin\Debug\net6.0\TrappistOS.deps.json
+C:\Users\semiz\Source\Repos\TrappistKernel\TrappistOS\TrappistOS\bin\Debug\net6.0\TrappistOS.dll
+C:\Users\semiz\Source\Repos\TrappistKernel\TrappistOS\TrappistOS\bin\Debug\net6.0\TrappistOS.pdb
+C:\Users\semiz\Source\Repos\TrappistKernel\TrappistOS\TrappistOS\obj\Debug\net6.0\TrappistOS.csproj.AssemblyReference.cache
+C:\Users\semiz\Source\Repos\TrappistKernel\TrappistOS\TrappistOS\obj\Debug\net6.0\TrappistOS.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\semiz\Source\Repos\TrappistKernel\TrappistOS\TrappistOS\obj\Debug\net6.0\TrappistOS.AssemblyInfoInputs.cache
+C:\Users\semiz\Source\Repos\TrappistKernel\TrappistOS\TrappistOS\obj\Debug\net6.0\TrappistOS.AssemblyInfo.cs
+C:\Users\semiz\Source\Repos\TrappistKernel\TrappistOS\TrappistOS\obj\Debug\net6.0\TrappistOS.csproj.CoreCompileInputs.cache
+C:\Users\semiz\Source\Repos\TrappistKernel\TrappistOS\TrappistOS\obj\Debug\net6.0\TrappistOS.sourcelink.json
+C:\Users\semiz\Source\Repos\TrappistKernel\TrappistOS\TrappistOS\obj\Debug\net6.0\TrappistOS.dll
+C:\Users\semiz\Source\Repos\TrappistKernel\TrappistOS\TrappistOS\obj\Debug\net6.0\refint\TrappistOS.dll
+C:\Users\semiz\Source\Repos\TrappistKernel\TrappistOS\TrappistOS\obj\Debug\net6.0\TrappistOS.pdb
+C:\Users\semiz\Source\Repos\TrappistKernel\TrappistOS\TrappistOS\obj\Debug\net6.0\ref\TrappistOS.dll
