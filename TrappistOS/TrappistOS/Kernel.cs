@@ -10,6 +10,8 @@ namespace TrappistOS
 {
     public class Kernel : Sys.Kernel
     {
+        // each program needs one space here
+        ProgramClass[] ProgramMemory = new ProgramClass[6];
         FileSystemManager fsManager;
 
         protected override void BeforeRun()
