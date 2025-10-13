@@ -175,18 +175,30 @@ namespace TrappistOS
         
         public void moveFile(string filename, string dest)
         {
-            string file = currentDir + @"\" + filename;
+
+            dest.Replace(@"\", "/");
+            filename.Replace(@"\", "/");
+
+            string filePath = currentDir + @"\" + filename;
             string newPath = @"0:\" + dest;
 
-            try
-            {
-                File.Copy(file, newPath);
-                File.Delete(file);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-            }
+                if (File.Exists(filePath) && Directory.Exists(newPath))
+                {
+                    try
+                    {
+                        File.Copy(filePath, newPath);
+                        File.Delete(filePath);
+                        return;
+                    } catch (Exception ex) 
+                    {
+                        Console.WriteLine(ex.ToString());
+                    }
+                } 
+                else 
+                {
+                    Console.WriteLine("File or Dir doesn't exist");
+                }
+
         }
 
         public string getCurrentDir()
