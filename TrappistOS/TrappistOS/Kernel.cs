@@ -12,6 +12,11 @@ namespace TrappistOS
 {
     public class Kernel : Sys.Kernel
     {
+        // each program needs one space here
+        ProgramClass[] ProgramMemory = new ProgramClass[6];
+        protected override void BeforeRun()
+        {
+            Console.WriteLine("Cosmos booted successfully. Type a line of text to get it echoed back.");
         private static Sys.FileSystem.CosmosVFS FS;
         public static string file;
 
