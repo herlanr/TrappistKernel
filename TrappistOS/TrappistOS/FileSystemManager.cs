@@ -37,13 +37,17 @@ namespace TrappistOS
                 foreach(var dir in dirs)
                 {
                     var dirInfo = new DirectoryInfo(dir);
+                    Console.ForegroundColor = ConsoleColor.Cyan;
                     Console.WriteLine(@"\" + dirInfo.Name + @"\");
+                    Console.ForegroundColor = ConsoleColor.White;
                 }
 
                 foreach (var file in files)
                 {
+                    Console.ForegroundColor = ConsoleColor.Green;
                     var fileInfo = new DirectoryInfo(file);
                     Console.WriteLine(fileInfo.Name);
+                    Console.ForegroundColor = ConsoleColor.White;
                 }
             }
             catch (Exception e)
@@ -61,7 +65,6 @@ namespace TrappistOS
                 if (!File.Exists(path))
                 {
                     File.WriteAllText(path, "");
-                    Console.WriteLine("File created: " + path);
                 }
                 else
                 {
@@ -83,7 +86,6 @@ namespace TrappistOS
                 if (!File.Exists(path))
                 {
                     Directory.CreateDirectory(path);
-                    Console.WriteLine("Directory created: " + path);
                 }
                 else
                 {

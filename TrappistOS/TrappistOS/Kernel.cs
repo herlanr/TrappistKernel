@@ -24,8 +24,10 @@ namespace TrappistOS
 
         protected override void Run()
         {
-
+            Console.ForegroundColor = ConsoleColor.Magenta;
             Console.Write(fsManager.getCurrentDir() + "> ");
+            Console.ForegroundColor = ConsoleColor.White;
+
             var input = Console.ReadLine();
 
             string[] args = input.Split(' ');
@@ -45,7 +47,7 @@ namespace TrappistOS
                         }
                         else
                         {
-                            Console.WriteLine("Use: createfile <file_name>");
+                            Console.WriteLine("Use: touch <file_name>");
                         }
                         break;
                     }
@@ -57,7 +59,7 @@ namespace TrappistOS
                         }
                         else
                         {
-                            Console.WriteLine("Use: createdirectory <file_name>");
+                            Console.WriteLine("Use: mkdir <dir_name>");
                         }
                         break;
                     }
