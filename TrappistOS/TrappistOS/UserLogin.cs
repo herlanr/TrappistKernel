@@ -1,8 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using Cosmos.System.Graphics.Fonts;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
 using Sys = Cosmos.System;
-using System;
 
 namespace TrappistOS
 {
@@ -63,6 +64,103 @@ namespace TrappistOS
             return user.id < maxAdminID;
         }
 
+        public void Logout()
+        {
+            currentUser = VisitorLogin();
+        }
+
+        public void Changepassword()
+        {
+            List<string> new_users = new List<string>();
+            Console.Write("Please put in your password:");
+            string password = null; //hides the input
+            while (true)
+            {
+                var key = System.Console.ReadKey(true);
+                if (key.Key == ConsoleKey.Enter)
+                    break;
+                password += key.KeyChar;
+            }
+            Console.WriteLine();
+            if (password != currentUser.password)
+            {
+                Console.WriteLine("invalid Password");
+                return;
+            }
+            while (true)
+            {
+                Console.Write("Password: ");
+                password = null;
+                while (true)
+                {
+                    var key = System.Console.ReadKey(true);
+                    //if (key.Key == Console.)
+                    if (key.Key == ConsoleKey.Enter)
+                        break;
+                    password += key.KeyChar;
+                }
+                Console.WriteLine();
+                Console.Write("Confirm Password: ");
+                string repeatPassword = null;
+                while (true)
+                {
+                    var key = System.Console.ReadKey(true);
+                    if (key.Key == ConsoleKey.Enter)
+                        break;
+                    repeatPassword += key.KeyChar;
+                }
+                Console.WriteLine();
+                if (password == repeatPassword)
+                { break; }
+                Console.WriteLine("Passwords don't match");
+            } //make sure password is correct
+            string[] users = File.ReadAllLines(filepath);
+            foreach (string user in users) // move up every user by the amount added, to stop users from becomng admins
+            {
+                string[] elements = user.Split(' '); //Arrangement: id name password
+                if (elements.Length != 3)
+                {
+                    if (elements.Length == 0)
+                    {
+                        continue;
+                    }
+                    Console.Write("Invalid user");
+                    if (elements.Length >= 1)
+                    {
+                        Console.Write(" with id" + elements[0]);
+                    }
+                    Console.WriteLine();
+                    continue;
+                } // list of users with new ids
+                if (elements[1] != currentUser.username)
+                {
+                    new_users.Add(elements[0] + " " + elements[1] + " " + elements[2]);
+                }
+                else
+                {
+                    new_users.Add(elements[0] + " " + elements[1] + " " + password); // change password
+                }
+            }
+            char confimation = ' ';
+            Console.WriteLine($"Are you sure you want to Change you Password? (y)es/(n)o");
+            do
+            { confimation = Console.ReadKey(true).KeyChar; }
+            while (confimation != 'y' && confimation != 'n');
+            if (confimation == 'y')
+            {
+                File.WriteAllLines(filepath, new_users.ToArray()); //overwrite old users
+                currentUser.password = password;
+                Console.WriteLine($"Change successful");
+            }
+            else
+            {
+                Console.WriteLine("Change aborted");
+            }
+
+            
+
+        }
+
         public void Login()
         {
             Console.Write("username: ");
@@ -98,8 +196,7 @@ namespace TrappistOS
         public void DeleteUser(string username)
         {
             List<string> new_users = new List<string>();
-            Console.ReadKey(true);
-
+            bool found = false;
             string[] users = File.ReadAllLines(filepath);
             foreach (string user in users) // move up every user by the amount added, to stop users from becomng admins
             {
@@ -122,17 +219,37 @@ namespace TrappistOS
                 {
                     new_users.Add(elements[0] + " " + elements[1] + " " + elements[2]);
                 }
+                else
+                {
+                    found = true;
+                }
             }
-            File.WriteAllLines(filepath, new_users.ToArray()); //overwrite old users
-            Console.WriteLine("increase successful");
+            if (found)
+            {
+                char confimation = ' ';
+                Console.WriteLine($"Are you sure you want to delete {username}? (y)es/(n)o");
+                do
+                { confimation = Console.ReadKey(true).KeyChar; }
+                while (confimation != 'y' && confimation != 'n');
+                if (confimation == 'y')
+                {
+                    File.WriteAllLines(filepath, new_users.ToArray()); //overwrite old users
+                    Console.WriteLine($"successfully deleted {username}");
+                }
+                else
+                {
+                    Console.WriteLine("deletion aborted");
+                }
+            }
+            else { 
+                Console.WriteLine($"{username} does not exist"); 
+            }
         }
 
         public void IncreaseAdminRange(int count)
         {
             maxAdminID += count; //TODO: move into systemfile
             List<string> new_users = new List<string>();
-            Console.ReadKey(true);
-
             string[] users = File.ReadAllLines(filepath);
             foreach (string user in users) // move up every user by the amount added, to stop users from becomng admins
             {
@@ -273,7 +390,7 @@ namespace TrappistOS
             }
             if (isAdmin)
             {
-                File.AppendAllText(filepath, Convert.ToString(adminNumbers[0]) + username + password);
+                File.AppendAllText(filepath, Convert.ToString(adminNumbers[0]) + " " + username + " " + password);
                 return true;
             }
             Random rnd = new Random();

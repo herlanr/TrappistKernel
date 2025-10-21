@@ -184,12 +184,26 @@ namespace TrappistOS
                         {
                             Console.WriteLine("Usage: Login");
                             Console.WriteLine("Description: Login to Account");
-                            Console.WriteLine("Available Arguments:\n -h. help");
+                            Console.WriteLine("Available Arguments:\n -h: help");
                         }
                         break;
                     }
-                case "deleteUser":
-                case "delUsr":
+                case "logout":
+                    {
+                        if (args.Length == 1)
+                        {
+                            userInfo.Logout();
+                        }
+                        else
+                        {
+                            Console.WriteLine("Usage: Logout");
+                            Console.WriteLine("Description: Logout of your Account");
+                            Console.WriteLine("Available Arguments:\n -h: help");
+                        }
+                        break;
+                    }
+                case "deleteuser":
+                case "delusr":
                     {
                         if (args.Length == 2 && args[1] != "-h")
                         {
@@ -205,7 +219,7 @@ namespace TrappistOS
                                     Console.WriteLine("Cannot delete User you are logged in with");
                                 }
                                 userInfo.DeleteUser(args[1]);
-                                Console.WriteLine($"successfully deleted {args[1]}");
+                                
                             } else
                             {
                                 Console.WriteLine("You need to be an admin to do this");
@@ -213,16 +227,15 @@ namespace TrappistOS
                         }
                         else
                         {
-
                             Console.WriteLine("Usage: deleteUser [username] / delUsr [username]");
                             Console.WriteLine("Description: delete a User (only available to admins)");
-                            Console.WriteLine("Available Arguments: \n -h help");
+                            Console.WriteLine("Available Arguments: \n -h: help");
 
                         }
                         break;
                     }
-                case "createUser":
-                case "mkUsr":
+                case "createuser":
+                case "mkusr":
                     {
                         if (args.Length == 1)
                         {  
@@ -243,7 +256,7 @@ namespace TrappistOS
                             {
                                 Console.WriteLine("Usage: createUser / mkUsr");
                                 Console.WriteLine("Description: Create a new User");
-                                Console.WriteLine("Available Arguments: \n -h help \n -a create Admin (Only Admins can crate Admins)");
+                                Console.WriteLine("Available Arguments: \n -h: help \n -a: create Admin (Only Admins can crate Admins)");
                             }
                         }
                         break;
@@ -259,6 +272,20 @@ namespace TrappistOS
                         }
                         break;
                     }*/
+                case "changepwd":
+                    {
+                        if (!(userInfo.get_name() == "Visitor"))
+                        { 
+                            userInfo.Changepassword(); 
+                        }
+                        else
+                        {
+                            Console.WriteLine("Can't change Password of Visitor");
+                        }
+                        break;
+                    }
+                case "":
+                    { break; }
                 default:
                     {
                         Console.WriteLine("Not a valid command");
@@ -268,7 +295,22 @@ namespace TrappistOS
             }
             
         }
+        protected static void myHandler(object sender, ConsoleCancelEventArgs args)
+        {
+            Console.WriteLine("\nThe read operation has been interrupted.");
 
+            Console.WriteLine($"  Key pressed: {args.SpecialKey}");
+
+            Console.WriteLine($"  Cancel property: {args.Cancel}");
+
+            // Set the Cancel property to true to prevent the process from terminating.
+            Console.WriteLine("Setting the Cancel property to true...");
+            args.Cancel = true;
+
+            // Announce the new value of the Cancel property.
+            Console.WriteLine($"  Cancel property: {args.Cancel}");
+            Console.WriteLine("The read operation will resume...\n");
+        }
 
     }
 
