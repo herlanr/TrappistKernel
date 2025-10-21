@@ -1,7 +1,10 @@
-﻿using Cosmos.System.ScanMaps;
+﻿using Cosmos.System.Graphics;
+using Cosmos.System.ScanMaps;
+using Cosmos.System.ScanMaps;
 using MIV;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -14,23 +17,171 @@ namespace TrappistOS
     {
         // each program needs one space here
         ProgramClass[] ProgramMemory = new ProgramClass[6];
-            private static Sys.FileSystem.CosmosVFS FS;
-            public static string file;
+        FileSystemManager fsManager;
 
-            protected override void BeforeRun() {
-                FS = new Sys.FileSystem.CosmosVFS(); Sys.FileSystem.VFS.VFSManager.RegisterVFS(FS); FS.Initialize(true);
-                Console.Clear();
-                Console.WriteLine("TrappistOS booted successfully. Welcome. Type \"miv\" to access the text editor.");
-                Sys.KeyboardManager.SetKeyLayout(new DE_Standard());
-            }
+        protected override void BeforeRun()
+        {
+            fsManager = new FileSystemManager();
+            fsManager.fsInitialize();
+            Sys.KeyboardManager.SetKeyLayout(new DE_Standard());
+            Console.Clear();
+            Console.WriteLine("TrappistOS booted up!");
+        }
 
-            protected override void Run() {
-                Console.Write("Input: ");
-                var input = Console.ReadLine();
+        protected override void Run()
+        {
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.Write(fsManager.getCurrentDir() + "> ");
+            Console.ForegroundColor = ConsoleColor.White;
 
-                if (input == "miv") {
-                    MIV.MIV.StartMIV();
-                }
+            var input = Console.ReadLine();
+
+            string[] args = input.Split(' ');
+
+            switch (args[0])
+            {
+                case "freespace":
+                    {
+                        if(args.Length > 1)
+                        {
+                            if (args[1] == "-h")
+                            {
+                                Console.WriteLine("Usage: freespace");
+                                Console.WriteLine("Description: Get available free space.");
+                                Console.WriteLine("Avaiable Arguments: \n-h: help");
+                                break;
+                            }
+                        }
+
+                        fsManager.showFreeSpace();
+                        break;
+                    }
+                case "touch":
+                    {
+                        if (args.Length < 2 || args[1] == "-h")
+                        {
+                            Console.WriteLine("Usage: touch <file name> ");
+                            Console.WriteLine("Description: Creates a new file");
+                            Console.WriteLine("Avaiable Arguments: \n-h: help");
+                            break;
+                        }
+                        
+                        fsManager.createFile(args[1]);
+                        break;
+                    }
+                case "mkdir":
+                    {
+                        if (args.Length < 2 || args[1] == "-h")
+                        {
+                            Console.WriteLine("Usage: mkdir <directory name> ");
+                            Console.WriteLine("Description: Creates a new directory");
+                            Console.WriteLine("Avaiable Arguments: \n-h: help");
+                            break;
+                        }
+                        fsManager.createDirectory(args[1]);
+                        break;
+                    }
+
+                case "ls":
+                    {
+                        if (args.Length > 1)
+                        {
+                            if (args[1] == "-h")
+                            {
+                                Console.WriteLine("Usage: ls");
+                                Console.WriteLine("Description: List all the files in a directory");
+                                Console.WriteLine("Avaiable Arguments: \n-h: help");
+                                break;
+                            }
+                        }
+                        fsManager.listFiles();
+                        break;
+                    }
+
+                case "mv":
+                    {
+                        if (args.Length < 3 || args[1] == "-h")
+                        {
+                                Console.WriteLine("Usage: mv <file path> <dest path>");
+                                Console.WriteLine("Description: List all the files in a directory");
+                                Console.WriteLine("Avaiable Arguments: \n-h: help");
+                                break;
+
+                        }
+                        fsManager.moveFile(args[1], args[2]);
+                        break;
+                    }
+
+                case "cat":
+                    {
+                        if (args.Length < 2 || args[1] == "-h")
+                        {
+                            Console.WriteLine("Usage: cat <file name>");
+                            Console.WriteLine("Description: Opens a text file, reads all the text in the file, and then closes the file.");
+                            Console.WriteLine("Avaiable Arguments: \n-h: help");
+                            break;
+                        }
+
+                        fsManager.readFromFile(args[1]);
+                        break;
+                    }
+
+                case "rm":
+                    {
+                        if (args.Length < 2 || args[1] == "-h")
+                        {
+                            Console.WriteLine("Usage: rm <file name OR directory name>");
+                            Console.WriteLine("Description: Deletes the specified file or dir");
+                            Console.WriteLine("Avaiable Arguments: \n-h: help");
+                            break;
+                        }
+
+                        fsManager.deleteFileOrDir(args[1]);
+                        break;
+                    }
+                case "cd":
+                    {
+                        if (args.Length < 2 || args[1] == "-h")
+                        {
+                            Console.WriteLine("Usage: cd <directory path>");
+                            Console.WriteLine("Description: Changes your current directory to the specified one.");
+                            Console.WriteLine("Avaiable Arguments: \n-h: help");
+                            break;
+                        }
+
+                        fsManager.changeDirectory(args[1]);
+                        break;
+                    }
+
+                case "pwd":
+                    {
+                        Console.WriteLine("You are here: " + fsManager.getCurrentDir());
+                        break;
+                    }
+                case "clear":
+                    {
+                        Console.Clear();
+                        break;
+                    }
+                case "shutdown":
+                    {
+                        Sys.Power.Shutdown();
+                        break;
+                    }
+                case "reboot":
+                    {
+                        Sys.Power.Reboot();
+                        break;
+                    }
+                default:
+                    {
+                        Console.WriteLine("Not a valid command");
+                        break;
+                    }
+
             }
         }
     }
+
+
+}
