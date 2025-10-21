@@ -58,13 +58,15 @@ namespace TrappistOS
 
         public void createFile(string filename)
         {
-            string path = currentDir + @"\" + filename;
+            string path = Path.Combine(currentDir, filename);
 
             try
             {
                 if (!File.Exists(path))
                 {
-                    File.WriteAllText(path, "");
+                    File.Create(path);
+                    Console.WriteLine("File successfully created: " + path);
+                    return;
                 }
                 else
                 {
@@ -86,6 +88,8 @@ namespace TrappistOS
                 if (!File.Exists(path))
                 {
                     Directory.CreateDirectory(path);
+                    Console.WriteLine("Directory successfully created: " + path);
+                    return;
                 }
                 else
                 {
@@ -178,19 +182,20 @@ namespace TrappistOS
         public void moveFile(string filename, string dest)
         {
 
-            dest.Replace(@"\", "/");
-            filename.Replace(@"\", "/");
+            string formatedFileName = filename.Replace("/", @"\");
+            string formatedDestName = dest.Replace("/", @"\");
 
-            string filePath = currentDir + @"\" + filename;
-            string newPath = @"0:\" + dest;
+            string filePath = filename.StartsWith(@"0:\") ? formatedFileName : Path.Combine(currentDir, formatedFileName);
+            string newPath = dest.StartsWith(@"0:\") ? formatedDestName : Path.Combine(@"0:\", formatedDestName);
 
-                if (File.Exists(filePath) && Directory.Exists(newPath))
+            if (File.Exists(filePath) && Directory.Exists(newPath))
                 {
                     try
                     {
                         File.Copy(filePath, newPath);
                         File.Delete(filePath);
-                        return;
+                        Console.WriteLine("File: " + filePath + " moved to " + newPath);
+                    return;
                     } catch (Exception ex) 
                     {
                         Console.WriteLine(ex.ToString());
@@ -198,7 +203,7 @@ namespace TrappistOS
                 } 
                 else 
                 {
-                    Console.WriteLine("File or Dir doesn't exist");
+                    Console.WriteLine("File or Dir doesn't exist. File: " + filePath + ". New Path: " + newPath);
                 }
 
         }
