@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Timers;
-using System.IO;
 using Sys = Cosmos.System;
 
 namespace TrappistOS
@@ -17,7 +16,6 @@ namespace TrappistOS
         FileSystemManager fsManager;
 
         UserLogin userInfo;
-        ProgramClass[] ProgramMemory = new ProgramClass[6];
         protected override void BeforeRun()
         {
             fsManager = new FileSystemManager();
@@ -35,15 +33,8 @@ namespace TrappistOS
         protected override void Run()
         {
             Console.ForegroundColor = ConsoleColor.Magenta;
-            Console.Write(fsManager.getCurrentDir() + "> ");
+            Console.Write($"{userInfo.get_name()}>{fsManager.getCurrentDir()}> ");
             Console.ForegroundColor = ConsoleColor.White;
-
-            Console.Write($"{UserLogin.currentUser.username}:Input: ");
-            Console.Write($"{userInfo.currentUser.username}:Input: ");
-            Console.Write($"{userInfo.get_name}:Input: ");
-            Console.WriteLine(File.ReadAllText("users.json"));
-            //Console.Write($"{userInfo.get_name}:Input: ");
-            Console.Write($"{userInfo.get_name}:Input: ");
             var input = Console.ReadLine();
 
             string[] args = input.Split(' ');
@@ -183,6 +174,91 @@ namespace TrappistOS
                         Sys.Power.Reboot();
                         break;
                     }
+                case "login":
+                    {        
+                        if (args.Length == 1)
+                        {
+                            userInfo.Login();
+                        }
+                        else
+                        {
+                            Console.WriteLine("Usage: Login");
+                            Console.WriteLine("Description: Login to Account");
+                            Console.WriteLine("Available Arguments:\n -h. help");
+                        }
+                        break;
+                    }
+                case "deleteUser":
+                case "delUsr":
+                    {
+                        if (args.Length == 2 && args[1] != "-h")
+                        {
+                            if (userInfo.IsAdmin())
+                            {
+                                if (args[1] == "Visitor" || args[1] == "Admin")
+                                {
+                                    Console.WriteLine($"Cannot delete {args[1]}");
+                                    break;
+                                }
+                                if (args[1] == userInfo.get_name())
+                                {
+                                    Console.WriteLine("Cannot delete User you are logged in with");
+                                }
+                                userInfo.DeleteUser(args[1]);
+                                Console.WriteLine($"successfully deleted {args[1]}");
+                            } else
+                            {
+                                Console.WriteLine("You need to be an admin to do this");
+                            }
+                        }
+                        else
+                        {
+
+                            Console.WriteLine("Usage: deleteUser [username] / delUsr [username]");
+                            Console.WriteLine("Description: delete a User (only available to admins)");
+                            Console.WriteLine("Available Arguments: \n -h help");
+
+                        }
+                        break;
+                    }
+                case "createUser":
+                case "mkUsr":
+                    {
+                        if (args.Length == 1)
+                        {  
+                            userInfo.CreateUser(false); 
+                        }
+                        else if (args.Length >= 2)
+                        {
+                            if (args[1] == "-a")
+                                if (userInfo.IsAdmin())
+                                {
+                                    userInfo.CreateUser(true);
+                                }
+                                else
+                                {
+                                    Console.WriteLine("Only Admins can create Admins");
+                                }
+                            else
+                            {
+                                Console.WriteLine("Usage: createUser / mkUsr");
+                                Console.WriteLine("Description: Create a new User");
+                                Console.WriteLine("Available Arguments: \n -h help \n -a create Admin (Only Admins can crate Admins)");
+                            }
+                        }
+                        break;
+                    }/*
+                case "increaseAdminRange":
+                case "incAdmRange":
+                    {
+                        if (args.Length == 1 || args[1] == "-h")
+                        {
+                            Console.WriteLine("Usage: increaseAdminRange [count] / incAdmRange [count]");
+                            Console.WriteLine("Descrition: increase the Amount off possible Admins by this amount (reducing is not possible");
+                            Console.WriteLine("Available Arguments: \n -h help");
+                        }
+                        break;
+                    }*/
                 default:
                     {
                         Console.WriteLine("Not a valid command");
@@ -190,15 +266,10 @@ namespace TrappistOS
                     }
 
             }
-            userInfo.Run();
-            if (input == "shutdown")
-            {
-                Sys.Power.Shutdown();
-            }
             
-            Console.Write("Text typed: ");
-            Console.WriteLine(input);
         }
+
+
     }
 
 

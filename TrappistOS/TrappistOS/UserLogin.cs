@@ -3,8 +3,6 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using Sys = Cosmos.System;
 using System;
-using Microsoft.Data.Sqlite;
-using System.Linq;
 
 namespace TrappistOS
 {
@@ -12,7 +10,7 @@ namespace TrappistOS
     
     internal class UserLogin : ProgramClass
     {
-        private int maxAdminID = 20;
+        private int maxAdminID = 20; //TODO: move into systemfile
         private string filepath = @"0:\users";
         private UserClass currentUser = null;
         private class UserClass
@@ -21,7 +19,7 @@ namespace TrappistOS
             public string username { get; private set; }
             public string password { get; set; }
 
-            public UserClass(string username, int id, string password = "visitor")
+            public UserClass(string username, int id, string password)
             {
                 this.id = id;
                 this.username = username;
@@ -29,25 +27,34 @@ namespace TrappistOS
             }
         }
 
-        public UserLogin()
+        public UserLogin() //for Program Class
         {
             Identifier = "UserLogin";
         }
 
-        public void BeforeRun()
+        public void BeforeRun() //intitialize and login into Visitor
         {
             if (!File.Exists(filepath))
             {
-                string[] intitial_users = { "200 Visitor Visitor", "1 Admin Admin", Environment.NewLine}
+                string[] intitial_users = { $"{maxAdminID+200} Visitor Visitor", "1 Admin Admin"}
             ;
                 File.WriteAllLines(filepath, intitial_users);
             }
-            VisitorLogin();
+            currentUser = VisitorLogin();
             Console.WriteLine("File.ReadAllText(filePath)");
         }
 
-        public bool IsAdmin()
+        public override void Run() //for child of Progrmmclass, maybe move decision here in future
         {
+            Console.WriteLine("inavild login run call");
+        }
+
+        public bool IsAdmin() //Admincheck
+        {
+            if (currentUser == null)
+            {
+                currentUser = VisitorLogin();
+            }
             return currentUser.id < maxAdminID;
         }
 
@@ -58,31 +65,45 @@ namespace TrappistOS
 
         public void Login()
         {
-            Console.WriteLine("username: ");
+            Console.Write("username: ");
             string username = Console.ReadLine();
-            Console.WriteLine("Password: ");
-            string password = Console.ReadLine();
-            
+            if (username == "Visitor")
+            {
+                currentUser = VisitorLogin();
+                return;
+            }
+            Console.Write("Password: ");
+            string password = null; //hides the input
+            while (true)
+            {
+                var key = System.Console.ReadKey(true);
+                if (key.Key == ConsoleKey.Enter)
+                    break;
+                password += key.KeyChar;
+            }
+            Console.WriteLine();
+
             var user = _Login(username, password);
 
             if (user != null)
             {
                 currentUser = user;
                 Console.WriteLine("Login successful");
+                return;
             }
             Console.WriteLine("Login failed");
+            return;
         }
 
-        public void IncreaseAdminRange(int count)
+        public void DeleteUser(string username)
         {
-            maxAdminID += count;
-            string[] new_users = null;
-
+            List<string> new_users = new List<string>();
+            Console.ReadKey(true);
 
             string[] users = File.ReadAllLines(filepath);
-            foreach (string user in users)
+            foreach (string user in users) // move up every user by the amount added, to stop users from becomng admins
             {
-                string[] elements = user.Split(' ');
+                string[] elements = user.Split(' '); //Arrangement: id name password
                 if (elements.Length != 3)
                 {
                     if (elements.Length == 0)
@@ -96,29 +117,66 @@ namespace TrappistOS
                     }
                     Console.WriteLine();
                     continue;
+                } // list of users with new ids
+                if (elements[1] != username)
+                {
+                    new_users.Add(elements[0] + " " + elements[1] + " " + elements[2]);
                 }
-                new_users.Append(Convert.ToString(Convert.ToInt32(elements[0] + count)) + elements[1] + elements[2]);
             }
-            File.WriteAllLines(filepath, new_users);
+            File.WriteAllLines(filepath, new_users.ToArray()); //overwrite old users
+            Console.WriteLine("increase successful");
+        }
+
+        public void IncreaseAdminRange(int count)
+        {
+            maxAdminID += count; //TODO: move into systemfile
+            List<string> new_users = new List<string>();
+            Console.ReadKey(true);
+
+            string[] users = File.ReadAllLines(filepath);
+            foreach (string user in users) // move up every user by the amount added, to stop users from becomng admins
+            {
+                string[] elements = user.Split(' '); //Arrangement: id name password
+                if (elements.Length != 3)
+                {
+                    if (elements.Length == 0)
+                    {
+                        continue;
+                    }
+                    Console.Write("Invalid user");
+                    if (elements.Length >= 1)
+                    {
+                        Console.Write(" with id" + elements[0]);
+                    }
+                    Console.WriteLine();
+                    continue;
+                } // list of users with new ids
+                new_users.Add(Convert.ToString(Convert.ToInt32(elements[0] + count)) + " " + elements[1] + " " + elements[2]);
+            }
+            File.WriteAllLines(filepath, new_users.ToArray()); //overwrite old users
             Console.WriteLine("increase successful");
         }
 
         public void CreateUser(bool isAdmin)
         {
-            Console.WriteLine("username: ");
+            Console.Write("username: ");
             string username = Console.ReadLine();
-            Console.WriteLine("Password: ");
+            
             string password = null;
             while (true)
             {
+                Console.Write("Password: ");
+                password = null;
                 while (true)
                 {
                     var key = System.Console.ReadKey(true);
+                    //if (key.Key == Console.)
                     if (key.Key == ConsoleKey.Enter)
                         break;
                     password += key.KeyChar;
                 }
-                Console.WriteLine("Confirm Password: ");
+                Console.WriteLine();
+                Console.Write("Confirm Password: ");
                 string repeatPassword = null;
                 while (true)
                 {
@@ -127,25 +185,37 @@ namespace TrappistOS
                         break;
                     repeatPassword += key.KeyChar;
                 }
+                Console.WriteLine();
                 if (password == repeatPassword)
                 { break; }
                 Console.WriteLine("Passwords don't match");
-            }
+            } //make sure password is correct
 
             bool success = SaveUser(username, password,isAdmin);
 
             if (success)
             {
                 Console.WriteLine("Creation successful");
+                return;
             }
             Console.WriteLine("Creation failed");
         }
 
         private bool SaveUser(string username, string password, bool isAdmin)
         {
-            if (username.Contains(" "))
+            if (username == "")
+            {
+                Console.WriteLine("empty username");
+                return false;
+            }
+            if (username.Contains(" ")) //spaces mess with username saving
             {
                 Console.WriteLine("Error, Username Contains Space");
+                return false;
+            }
+            if (password == "")
+            {
+                Console.WriteLine("empty password");
                 return false;
             }
             if (password.Contains(" "))
@@ -153,22 +223,21 @@ namespace TrappistOS
                 Console.WriteLine("Error, Password Contains Space");
                 return false;
             }
-
             int[] adminNumbers = null;
-            int[] usedNumbers = null;
-
-            for (int i=1; i<=maxAdminID; i++)
+            List<int>  usedNumbers = new List<int>();
+            List<int> adminNumList = new List<int>();
+            for (int i = 1; i <= maxAdminID; i++)
             {
-                adminNumbers.Append(i);
+                adminNumList.Add(i);
             }
-
+            adminNumbers = adminNumList.ToArray();
             string[] users = File.ReadAllLines(filepath);
             foreach (string user in users)
             {
                 string[] elements = user.Split(' ');
                 if (elements.Length != 3)
                 {
-                    if (elements.Length == 0)
+                    if (elements.Length == 0 || elements[0] == "")
                     {
                         continue;
                     }
@@ -176,22 +245,30 @@ namespace TrappistOS
                     if (elements.Length >= 1)
                     {
                         Console.Write(" with id" + elements[0]);
-                        usedNumbers.Append(Convert.ToInt32(elements[0]));
+                        usedNumbers.Add(Convert.ToInt32(elements[0]));
                     }
                     Console.WriteLine();
                     continue;
                 }
-                usedNumbers.Append(Convert.ToInt32(elements[0]));
+                usedNumbers.Add(Convert.ToInt32(elements[0]));
                 if (elements[1] == username) //id name password
                 {
                     Console.WriteLine("Username already taken");
                     return false;
                 }
-                adminNumbers = adminNumbers.Where(val => val != Convert.ToInt32(elements[0])).ToArray();
+                List<int> new_admin = new List<int>();
+                for (int i = 1; i < adminNumbers.Length; i++)
+                {
+                    if (adminNumbers[i] != Convert.ToInt32(elements[0]))
+                    {
+                        new_admin.Add(adminNumbers[i]);
+                    }
+                }
+                adminNumbers = new_admin.ToArray();
             }
             if (isAdmin && adminNumbers.Length == 0)
             {
-                Console.WriteLine("No Adminnubers free, increase range with 'increaseAdminRange'");
+                Console.WriteLine("No AdminIds free, increase range with 'increaseAdminRange'");
                 return false;
             }
             if (isAdmin)
@@ -203,20 +280,23 @@ namespace TrappistOS
             int cnt = 0;
             int new_id = 0;
             while (true)
-            {
-                new_id = rnd.Next(maxAdminID + 1, 10000);
-                if (!usedNumbers.Contains(new_id))
-                {
-                    break;
+            {// user that isn't admin needs to get matcing ID
+                new_id = rnd.Next(maxAdminID + 1, 10000+maxAdminID);
+                foreach (int number in usedNumbers) {
+                    if (number == new_id)
+                    {
+                        cnt++;
+                        if (cnt > 500) //Contingency for too long a loop
+                        {
+                            Console.WriteLine("Couldn't find new valid id, try again");
+                            return false;
+                        }
+                        continue; 
+                    }
                 }
-                cnt++;
-                if (cnt > 500)
-                {
-                    Console.WriteLine("Couldn't find new valid id");
-                    return false;
-                }
+                break;
             }
-            File.AppendAllText(filepath, Convert.ToString(new_id) + username + password);
+            File.AppendAllText(filepath, Convert.ToString(new_id) + " " + username + " " + password+ Environment.NewLine);//create new user
             return true;
         }
 
@@ -226,7 +306,7 @@ namespace TrappistOS
             if (user == null)
             {
                 Console.WriteLine($"{name} is not registered.");
-                return VisitorLogin();
+                return null;
             }
             if (user.password == pw)
             {
@@ -240,27 +320,39 @@ namespace TrappistOS
 
         public int get_id()
         {
+            if (currentUser == null)
+            {
+                currentUser = VisitorLogin();
+            }
             return currentUser.id;
         }
 
         public string get_name()
         {
+            if (currentUser == null)
+            {
+                currentUser = VisitorLogin();
+            }
             return currentUser.username;
         }
 
         private UserClass VisitorLogin()
         {
-            return GetUser("visitor");
+            return new UserClass("Visitor", 200 + maxAdminID,"Visitor");
         }
 
         private UserClass GetUser(string username)
         {
+
             string[] users = File.ReadAllLines(filepath);
-            foreach (string user in users)
+            
+            foreach (string user in users) //look through file for user
             {
                 string[] elements = user.Split(' ');
                 if (elements.Length != 3) {
-                    Console.Write("Invalid user");
+                    if (elements[0] == "")
+                    { continue; }
+                    Console.Write($"Invalid user with amount of elements: {elements.Length}");
                     if (elements.Length >= 1)
                     {
                         Console.Write(" with id" + elements[0]);
@@ -270,12 +362,31 @@ namespace TrappistOS
                 }
                 if (elements[1] == username) //id name password
                 {
-                    return new UserClass(elements[1], Convert.ToInt32(elements[0]), elements[3]);
+                    int id = Convert.ToInt32(((string)elements[0]).Trim());
+                    UserClass result = new UserClass(elements[1], id, elements[2]);
+                    return result;
                 }
             }
-
             return null;
+        }
+
+        protected static void Interrupthandler(object sender, ConsoleCancelEventArgs args)
+        {
+            Console.WriteLine("\nThe read operation has been interrupted.");
+
+            Console.WriteLine($"  Key pressed: {args.SpecialKey}");
+
+            Console.WriteLine($"  Cancel property: {args.Cancel}");
+
+            // Set the Cancel property to true to prevent the process from terminating.
+            Console.WriteLine("Setting the Cancel property to true...");
+            args.Cancel = true;
+
+            // Announce the new value of the Cancel property.
+            Console.WriteLine($"  Cancel property: {args.Cancel}");
+            
         }
 
     }
 }
+
