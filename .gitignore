@@ -27,6 +27,27 @@ yarn-error.log
 !.vscode/launch.json
 !.vscode/extensions.json
 .history/*
+.vs/
+*.suo
+*.user
+*.userosscache
+*.slnx.sqlite
+*.cache
+*.db
+
+# Build results
+bin/
+obj/
+*.dll
+*.exe
+*.pdb
+*.log
+*.iso
+*.cdb
+*.asm
+*.img
+*.vsidx
+
 
 # Miscellaneous
 /.angular/cache
@@ -40,3 +61,5 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+*.vsidx
+/TrappistOS/TrappistOS/obj/Debug/net6.0/TrappistOS.AssemblyInfoInputs.cache
