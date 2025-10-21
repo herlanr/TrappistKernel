@@ -43,6 +43,7 @@ namespace TrappistOS
             Console.Write($"{userInfo.get_name}:Input: ");
             Console.WriteLine(File.ReadAllText("users.json"));
             //Console.Write($"{userInfo.get_name}:Input: ");
+            Console.Write($"{userInfo.get_name}:Input: ");
             var input = Console.ReadLine();
 
             string[] args = input.Split(' ');
@@ -194,6 +195,7 @@ namespace TrappistOS
             {
                 Sys.Power.Shutdown();
             }
+            
             Console.Write("Text typed: ");
             Console.WriteLine(input);
         }
