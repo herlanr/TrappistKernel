@@ -270,21 +270,18 @@ namespace MIV
         {
             for (int i = 0; i < time; i++) ;
         }
-        public static void StartMIV()
+        public static void StartMIV(string file)
         {
-            Console.WriteLine("Enter file's filename to open:");
-            Console.WriteLine("If the specified file does not exist, it will be created.");
-            TrappistOS.Kernel.file = Console.ReadLine();
             try
             {
-                if (File.Exists(@"0:\" + TrappistOS.Kernel.file))
+                if (File.Exists(file))
                 {
                     Console.WriteLine("Found file!");
                 }
-                else if (!File.Exists(@"0:\" + TrappistOS.Kernel.file))
+                else if (!File.Exists(file))
                 {
                     Console.WriteLine("Creating file!");
-                    File.Create(@"0:\" + TrappistOS.Kernel.file);
+                    File.Create(file);
                 }
                 Console.Clear();
             }
@@ -294,10 +291,10 @@ namespace MIV
             }
 
             String text = String.Empty;
-            Console.WriteLine("Do you want to open " + TrappistOS.Kernel.file+ " content? (Yes/No)");
+            Console.WriteLine("Do you want to open " + file + " content? (Yes/No)");
             if (Console.ReadLine().ToLower() == "yes" || Console.ReadLine().ToLower() == "y")
             {
-                text = miv(File.ReadAllText(@"0:\" + TrappistOS.Kernel.file));
+                text = miv(File.ReadAllText(file));
             }
             else
             {
@@ -308,8 +305,8 @@ namespace MIV
 
             if (text != null)
             {
-                File.WriteAllText(@"0:\" + TrappistOS.Kernel.file, text);
-                Console.WriteLine("Content has been saved to " + TrappistOS.Kernel.file);
+                File.WriteAllText(@"0:\" + file, text);
+                Console.WriteLine("Content has been saved to " + file);
             }
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey(true);

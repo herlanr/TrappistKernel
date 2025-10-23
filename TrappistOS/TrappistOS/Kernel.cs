@@ -173,6 +173,12 @@ namespace TrappistOS
                         Sys.Power.Reboot();
                         break;
                     }
+                case "miv":
+                    {
+                        string filePath = Path.Combine(fsManager.getCurrentDir(), args[1]);
+                        MIV.MIV.StartMIV(filePath);
+                        break;
+                    }
                 default:
                     {
                         Console.WriteLine("Not a valid command");
