@@ -35,7 +35,9 @@ namespace TrappistOS
             Console.ForegroundColor = ConsoleColor.Magenta;
             Console.Write($"{userInfo.get_name()}>{fsManager.getCurrentDir()}> ");
             Console.ForegroundColor = ConsoleColor.White;
-            var input = Console.ReadLine();
+            
+            var cmd = new CommandHistory();
+            var input = cmd.ReadLine(fsManager.getCurrentDir());
 
             string[] args = input.Split(' ');
 
