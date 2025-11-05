@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Cosmos.System.FileSystem.VFS;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -21,9 +22,9 @@ namespace TrappistOS
 
         public int MaxHistory { get; set; } = 200;
 
-        public string ReadLine(string currentDir)
+        public string ReadLine(string userName, string currentDir)
         {
-            _prompt = currentDir + "> ";
+            _prompt = $"{userName}>{currentDir}> ";
             _buffer.Clear();
             _cursor = 0;
             _prevBufferLen = 0;

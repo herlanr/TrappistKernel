@@ -32,12 +32,9 @@ namespace TrappistOS
 
         protected override void Run()
         {
-            Console.ForegroundColor = ConsoleColor.Magenta;
-            Console.Write($"{userInfo.get_name()}>{fsManager.getCurrentDir()}> ");
-            Console.ForegroundColor = ConsoleColor.White;
-            
+
             var cmd = new CommandHistory();
-            var input = cmd.ReadLine(fsManager.getCurrentDir());
+            var input = cmd.ReadLine(userInfo.get_name(), fsManager.getCurrentDir());
 
             string[] args = input.Split(' ');
 
