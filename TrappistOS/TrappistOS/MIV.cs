@@ -4,6 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
+using Cosmos.System;
+using Cosmos.System.FileSystem.VFS;
+using Console = System.Console;
+using System.Runtime.ExceptionServices;
 
 namespace MIV
 {
@@ -27,9 +31,10 @@ namespace MIV
             Console.WriteLine("~");
             Console.WriteLine("~");
             Console.WriteLine("~");
-            Console.WriteLine("~");
-            Console.WriteLine("~");
-            Console.WriteLine("~");
+            Console.WriteLine("~                     type :help<Enter>          for information");
+            Console.WriteLine("~                     type :q<Enter>             to exit");
+            Console.WriteLine("~                     type :wq<Enter>            save to file and exit");
+            Console.WriteLine("~                     press i                    to write");
             Console.WriteLine("~");
             Console.WriteLine("~");
             Console.WriteLine("~");
@@ -292,22 +297,27 @@ namespace MIV
 
             String text = String.Empty;
             Console.WriteLine("Do you want to open " + file + " content? (Yes/No)");
-            if (Console.ReadLine().ToLower() == "yes" || Console.ReadLine().ToLower() == "y")
+            if (Console.ReadLine().ToLower() != "yes" || Console.ReadLine().ToLower() != "y")
             {
-                text = miv(File.ReadAllText(file));
+                Console.WriteLine("yes/y/no/n");
+                return;
             }
-            else
-            {
-                text = miv(null);
-            }
+            text = miv(File.ReadAllText(file));
 
             Console.Clear();
 
-            if (text != null)
+            if (text != null && File.Exists(file))
             {
-                File.WriteAllText(@"0:\" + file, text);
+                //string fullpath = Path.Combine(file);
+                File.WriteAllText(file, text);
                 Console.WriteLine("Content has been saved to " + file);
             }
+            else
+            {
+                Console.WriteLine("No changes were made to " + file + " or invalid path");
+                
+            }
+
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey(true);
         }
