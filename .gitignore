@@ -80,3 +80,9 @@ Thumbs.db
 /.git/refs/stash
 /TrappistOS/TrappistOS/obj/TrappistOS.csproj.nuget.dgspec.json
 /TrappistOS/TrappistOS/obj/Debug/net6.0/TrappistOS.AssemblyInfoInputs.cache
+/TrappistOS/TrappistOS/bin/Debug/net6.0/TrappistOS.cdb
+/TrappistOS/TrappistOS/bin/Debug/net6.0/TrappistOS.iso
+/TrappistOS/.vs/TrappistOS/CopilotIndices/17.14.1231.31060/CodeChunks.db-shm
+/TrappistOS/.vs/TrappistOS/CopilotIndices/17.14.1231.31060/CodeChunks.db-wal
+/TrappistOS/.vs/TrappistOS/CopilotIndices/17.14.1231.31060/SemanticSymbols.db-shm
+/TrappistOS/.vs/TrappistOS/CopilotIndices/17.14.1231.31060/SemanticSymbols.db-wal
