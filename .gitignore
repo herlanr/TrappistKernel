@@ -90,3 +90,6 @@ Thumbs.db
 /TrappistOS/.gitignore
 /.gitattributes
 /.gitignore
+/TrappistOS/TrappistOS.sln
+/TrappistOS/TrappistOS/TrappistOS.sln
+/.gitignore
