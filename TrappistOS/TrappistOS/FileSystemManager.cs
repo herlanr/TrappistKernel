@@ -62,7 +62,7 @@ namespace TrappistOS
 
             try
             {
-                if (!File.Exists(path))
+                if (!File.Exists(path) && !Directory.Exists(path))
                 {
                     File.Create(path);
                     Console.WriteLine("File successfully created: " + path);
@@ -70,7 +70,13 @@ namespace TrappistOS
                 }
                 else
                 {
-                    Console.WriteLine("File already exist: " + path);
+                    if (Directory.Exists(path))
+                    {
+                        Console.WriteLine("There is already a file or directory with this name.");
+                    } else
+                    {
+                        Console.WriteLine("File already exist: " + path);
+                    }
                 }
             }
             catch (Exception e)
@@ -85,7 +91,7 @@ namespace TrappistOS
 
             try
             {
-                if (!Directory.Exists(path))
+                if (!Directory.Exists(path) && !File.Exists(path))
                 {
                     Directory.CreateDirectory(path);
                     Console.WriteLine("Directory successfully created: " + path);
@@ -93,7 +99,13 @@ namespace TrappistOS
                 }
                 else
                 {
-                    Console.WriteLine("Directory already exist: " + path);
+                    if (File.Exists(path))
+                    {
+                        Console.WriteLine("There is already a file or directory with this name.");
+                    } else
+                    {
+                        Console.WriteLine("Directory already exist or " + path);
+                    }
                 }
             }
             catch (Exception e)
@@ -101,9 +113,9 @@ namespace TrappistOS
                 Console.WriteLine("Error creating directory: " + e.Message);
             }
         }
-        public void deleteFileOrDir(string name)    
-        {
 
+        public void deleteFile(string name)
+        {
             string path = currentDir + @"\" + name;
 
             try
@@ -115,7 +127,24 @@ namespace TrappistOS
                     return;
                 }
 
+                else
+                {
+                    Console.WriteLine("File doesn't exist");
+                }
+            }
 
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
+        }
+        public void deleteDir(string name)    
+        {
+
+            string path = currentDir + @"\" + name;
+
+            try
+            {
                 if (Directory.Exists(path))
                 {
                     Directory.Delete(path);
@@ -125,7 +154,7 @@ namespace TrappistOS
 
                 else 
                 {
-                    Console.WriteLine("Directory or file doesn't exist");
+                    Console.WriteLine("Directory doesn't exist");
                 }
             }
 

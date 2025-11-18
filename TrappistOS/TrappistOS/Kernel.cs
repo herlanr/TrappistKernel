@@ -126,17 +126,30 @@ namespace TrappistOS
                         break;
                     }
 
-                case "rm":
+                case "rmfile":
                     {
                         if (args.Length < 2 || args[1] == "-h")
                         {
-                            Console.WriteLine("Usage: rm <file name OR directory name>");
-                            Console.WriteLine("Description: Deletes the specified file or dir");
+                            Console.WriteLine("Usage: rm <file name>");
+                            Console.WriteLine("Description: Deletes the specified file");
                             Console.WriteLine("Avaiable Arguments: \n-h: help");
                             break;
                         }
 
-                        fsManager.deleteFileOrDir(args[1]);
+                        fsManager.deleteFile(args[1]);
+                        break;
+                    }
+                case "rmdir":
+                    {
+                        if (args.Length < 2 || args[1] == "-h")
+                        {
+                            Console.WriteLine("Usage: rm <directory name>");
+                            Console.WriteLine("Description: Deletes the specified dir");
+                            Console.WriteLine("Avaiable Arguments: \n-h: help");
+                            break;
+                        }
+
+                        fsManager.deleteDir(args[1]);
                         break;
                     }
                 case "cd":

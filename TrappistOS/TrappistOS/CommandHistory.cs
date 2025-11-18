@@ -32,7 +32,7 @@ namespace TrappistOS
 
             Console.ForegroundColor = ConsoleColor.Magenta;
             Console.Write(_prompt);
-            Console.ForegroundColor = ConsoleColor.White;
+            Console.ResetColor();
 
             while (true)
             {
@@ -140,7 +140,12 @@ namespace TrappistOS
             string full = _prompt + text;
 
             // 1) an Zeilenanfang springen, alles neu ausgeben
-            Console.Write("\r" + full);
+            Console.Write("\r");
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.Write(_prompt);
+            Console.ResetColor();
+            Console.Write(text);
+
 
             // 2) falls die neue Zeile kürzer ist: den "Rest" mit Spaces überschreiben
             int leftover = Math.Max(0, _prevBufferLen - full.Length);
