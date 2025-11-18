@@ -86,3 +86,7 @@ Thumbs.db
 /TrappistOS/.vs/TrappistOS/CopilotIndices/17.14.1231.31060/CodeChunks.db-wal
 /TrappistOS/.vs/TrappistOS/CopilotIndices/17.14.1231.31060/SemanticSymbols.db-shm
 /TrappistOS/.vs/TrappistOS/CopilotIndices/17.14.1231.31060/SemanticSymbols.db-wal
+/TrappistOS/TrappistOS/obj/Debug/net6.0/TrappistOS.sourcelink.json
+/TrappistOS/.gitignore
+/.gitattributes
+/.gitignore
