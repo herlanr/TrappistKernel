@@ -1,0 +1,509 @@
+﻿using Cosmos.System.Graphics.Fonts;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Runtime.CompilerServices;
+using Sys = Cosmos.System;
+
+namespace TrappistOS
+{
+    
+    
+    internal class UserLogin : ProgramClass
+    {
+        private int maxAdminID = 20; //TODO: move into systemfile
+        private string filepath = @"0:\users";
+        private UserClass currentUser = null;
+        private class UserClass
+        {
+            public int id { get; private set; }
+            public string username { get; private set; }
+            public string password { get; set; }
+
+            public UserClass(string username, int id, string password)
+            {
+                this.id = id;
+                this.username = username;
+                this.password = password;
+            }
+        }
+
+        public UserLogin() //for Program Class
+        {
+            Identifier = "UserLogin";
+        }
+
+        public void BeforeRun() //intitialize and login into Visitor
+        {
+            if (!File.Exists(filepath))
+            {
+                string[] intitial_users = { $"{maxAdminID+200} Visitor Visitor", "1 Admin Admin"}
+            ;
+                File.WriteAllLines(filepath, intitial_users);
+            }
+            currentUser = VisitorLogin();
+            Console.WriteLine("File.ReadAllText(filePath)");
+        }
+
+        public override void Run() //for child of Progrmmclass, maybe move decision here in future
+        {
+            Console.WriteLine("inavild login run call");
+        }
+
+        public bool IsAdmin() //Admincheck
+        {
+            if (currentUser == null)
+            {
+                currentUser = VisitorLogin();
+            }
+            return currentUser.id < maxAdminID;
+        }
+
+        private bool UserIsAdmin(UserClass user)
+        {
+            return user.id < maxAdminID;
+        }
+
+        public void Logout()
+        {
+            currentUser = VisitorLogin();
+        }
+
+        public void Changepassword()
+        {
+            List<string> new_users = new List<string>();
+            Console.Write("Please put in your password:");
+            string password = null; //hides the input
+            while (true)
+            {
+                var key = System.Console.ReadKey(true);
+                if (key.Key == ConsoleKey.Enter)
+                    break;
+                password += key.KeyChar;
+            }
+            Console.WriteLine();
+            if (password != currentUser.password)
+            {
+                Console.WriteLine("invalid Password");
+                return;
+            }
+            while (true)
+            {
+                Console.Write("Password: ");
+                password = null;
+                while (true)
+                {
+                    var key = System.Console.ReadKey(true);
+                    //if (key.Key == Console.)
+                    if (key.Key == ConsoleKey.Enter)
+                        break;
+                    password += key.KeyChar;
+                }
+                Console.WriteLine();
+                Console.Write("Confirm Password: ");
+                string repeatPassword = null;
+                while (true)
+                {
+                    var key = System.Console.ReadKey(true);
+                    if (key.Key == ConsoleKey.Enter)
+                        break;
+                    repeatPassword += key.KeyChar;
+                }
+                Console.WriteLine();
+                if (password == repeatPassword)
+                { break; }
+                Console.WriteLine("Passwords don't match");
+            } //make sure password is correct
+            string[] users = File.ReadAllLines(filepath);
+            foreach (string user in users) // move up every user by the amount added, to stop users from becomng admins
+            {
+                string[] elements = user.Split(' '); //Arrangement: id name password
+                if (elements.Length != 3)
+                {
+                    if (elements.Length == 0)
+                    {
+                        continue;
+                    }
+                    Console.Write("Invalid user");
+                    if (elements.Length >= 1)
+                    {
+                        Console.Write(" with id" + elements[0]);
+                    }
+                    Console.WriteLine();
+                    continue;
+                } // list of users with new ids
+                if (elements[1] != currentUser.username)
+                {
+                    new_users.Add(elements[0] + " " + elements[1] + " " + elements[2]);
+                }
+                else
+                {
+                    new_users.Add(elements[0] + " " + elements[1] + " " + password); // change password
+                }
+            }
+            char confimation = ' ';
+            Console.WriteLine($"Are you sure you want to Change you Password? (y)es/(n)o");
+            do
+            { confimation = Console.ReadKey(true).KeyChar; }
+            while (confimation != 'y' && confimation != 'n');
+            if (confimation == 'y')
+            {
+                File.WriteAllLines(filepath, new_users.ToArray()); //overwrite old users
+                currentUser.password = password;
+                Console.WriteLine($"Change successful");
+            }
+            else
+            {
+                Console.WriteLine("Change aborted");
+            }
+
+            
+
+        }
+
+        public void Login()
+        {
+            Console.Write("username: ");
+            string username = Console.ReadLine();
+            if (username == "Visitor")
+            {
+                currentUser = VisitorLogin();
+                return;
+            }
+            Console.Write("Password: ");
+            string password = null; //hides the input
+            while (true)
+            {
+                var key = System.Console.ReadKey(true);
+                if (key.Key == ConsoleKey.Enter)
+                    break;
+                password += key.KeyChar;
+            }
+            Console.WriteLine();
+
+            var user = _Login(username, password);
+
+            if (user != null)
+            {
+                currentUser = user;
+                Console.WriteLine("Login successful");
+                return;
+            }
+            Console.WriteLine("Login failed");
+            return;
+        }
+
+        public void DeleteUser(string username)
+        {
+            List<string> new_users = new List<string>();
+            bool found = false;
+            string[] users = File.ReadAllLines(filepath);
+            foreach (string user in users) // move up every user by the amount added, to stop users from becomng admins
+            {
+                string[] elements = user.Split(' '); //Arrangement: id name password
+                if (elements.Length != 3)
+                {
+                    if (elements.Length == 0)
+                    {
+                        continue;
+                    }
+                    Console.Write("Invalid user");
+                    if (elements.Length >= 1)
+                    {
+                        Console.Write(" with id" + elements[0]);
+                    }
+                    Console.WriteLine();
+                    continue;
+                } // list of users with new ids
+                if (elements[1] != username)
+                {
+                    new_users.Add(elements[0] + " " + elements[1] + " " + elements[2]);
+                }
+                else
+                {
+                    found = true;
+                }
+            }
+            if (found)
+            {
+                char confimation = ' ';
+                Console.WriteLine($"Are you sure you want to delete {username}? (y)es/(n)o");
+                do
+                { confimation = Console.ReadKey(true).KeyChar; }
+                while (confimation != 'y' && confimation != 'n');
+                if (confimation == 'y')
+                {
+                    File.WriteAllLines(filepath, new_users.ToArray()); //overwrite old users
+                    Console.WriteLine($"successfully deleted {username}");
+                }
+                else
+                {
+                    Console.WriteLine("deletion aborted");
+                }
+            }
+            else { 
+                Console.WriteLine($"{username} does not exist"); 
+            }
+        }
+
+        public void IncreaseAdminRange(int count)
+        {
+            maxAdminID += count; //TODO: move into systemfile
+            List<string> new_users = new List<string>();
+            string[] users = File.ReadAllLines(filepath);
+            foreach (string user in users) // move up every user by the amount added, to stop users from becomng admins
+            {
+                string[] elements = user.Split(' '); //Arrangement: id name password
+                if (elements.Length != 3)
+                {
+                    if (elements.Length == 0)
+                    {
+                        continue;
+                    }
+                    Console.Write("Invalid user");
+                    if (elements.Length >= 1)
+                    {
+                        Console.Write(" with id" + elements[0]);
+                    }
+                    Console.WriteLine();
+                    continue;
+                } // list of users with new ids
+                new_users.Add(Convert.ToString(Convert.ToInt32(elements[0] + count)) + " " + elements[1] + " " + elements[2]);
+            }
+            File.WriteAllLines(filepath, new_users.ToArray()); //overwrite old users
+            Console.WriteLine("increase successful");
+        }
+
+        public void CreateUser(bool isAdmin)
+        {
+            Console.Write("username: ");
+            string username = Console.ReadLine();
+            
+            string password = null;
+            while (true)
+            {
+                Console.Write("Password: ");
+                password = null;
+                while (true)
+                {
+                    var key = System.Console.ReadKey(true);
+                    //if (key.Key == Console.)
+                    if (key.Key == ConsoleKey.Enter)
+                        break;
+                    password += key.KeyChar;
+                }
+                Console.WriteLine();
+                Console.Write("Confirm Password: ");
+                string repeatPassword = null;
+                while (true)
+                {
+                    var key = System.Console.ReadKey(true);
+                    if (key.Key == ConsoleKey.Enter)
+                        break;
+                    repeatPassword += key.KeyChar;
+                }
+                Console.WriteLine();
+                if (password == repeatPassword)
+                { break; }
+                Console.WriteLine("Passwords don't match");
+            } //make sure password is correct
+
+            bool success = SaveUser(username, password,isAdmin);
+
+            if (success)
+            {
+                Console.WriteLine("Creation successful");
+                return;
+            }
+            Console.WriteLine("Creation failed");
+        }
+
+        private bool SaveUser(string username, string password, bool isAdmin)
+        {
+            if (username == "")
+            {
+                Console.WriteLine("empty username");
+                return false;
+            }
+            if (username.Contains(" ")) //spaces mess with username saving
+            {
+                Console.WriteLine("Error, Username Contains Space");
+                return false;
+            }
+            if (password == "")
+            {
+                Console.WriteLine("empty password");
+                return false;
+            }
+            if (password.Contains(" "))
+            {
+                Console.WriteLine("Error, Password Contains Space");
+                return false;
+            }
+            int[] adminNumbers = null;
+            List<int>  usedNumbers = new List<int>();
+            List<int> adminNumList = new List<int>();
+            for (int i = 1; i <= maxAdminID; i++)
+            {
+                adminNumList.Add(i);
+            }
+            adminNumbers = adminNumList.ToArray();
+            string[] users = File.ReadAllLines(filepath);
+            foreach (string user in users)
+            {
+                string[] elements = user.Split(' ');
+                if (elements.Length != 3)
+                {
+                    if (elements.Length == 0 || elements[0] == "")
+                    {
+                        continue;
+                    }
+                    Console.Write("Invalid user");
+                    if (elements.Length >= 1)
+                    {
+                        Console.Write(" with id" + elements[0]);
+                        usedNumbers.Add(Convert.ToInt32(elements[0]));
+                    }
+                    Console.WriteLine();
+                    continue;
+                }
+                usedNumbers.Add(Convert.ToInt32(elements[0]));
+                if (elements[1] == username) //id name password
+                {
+                    Console.WriteLine("Username already taken");
+                    return false;
+                }
+                List<int> new_admin = new List<int>();
+                for (int i = 1; i < adminNumbers.Length; i++)
+                {
+                    if (adminNumbers[i] != Convert.ToInt32(elements[0]))
+                    {
+                        new_admin.Add(adminNumbers[i]);
+                    }
+                }
+                adminNumbers = new_admin.ToArray();
+            }
+            if (isAdmin && adminNumbers.Length == 0)
+            {
+                Console.WriteLine("No AdminIds free, increase range with 'increaseAdminRange'");
+                return false;
+            }
+            if (isAdmin)
+            {
+                File.AppendAllText(filepath, Convert.ToString(adminNumbers[0]) + " " + username + " " + password);
+                return true;
+            }
+            Random rnd = new Random();
+            int cnt = 0;
+            int new_id = 0;
+            while (true)
+            {// user that isn't admin needs to get matcing ID
+                new_id = rnd.Next(maxAdminID + 1, 10000+maxAdminID);
+                foreach (int number in usedNumbers) {
+                    if (number == new_id)
+                    {
+                        cnt++;
+                        if (cnt > 500) //Contingency for too long a loop
+                        {
+                            Console.WriteLine("Couldn't find new valid id, try again");
+                            return false;
+                        }
+                        continue; 
+                    }
+                }
+                break;
+            }
+            File.AppendAllText(filepath, Convert.ToString(new_id) + " " + username + " " + password+ Environment.NewLine);//create new user
+            return true;
+        }
+
+        private UserClass _Login(string name, string pw)
+        {
+            UserClass user = GetUser(name);
+            if (user == null)
+            {
+                Console.WriteLine($"{name} is not registered.");
+                return null;
+            }
+            if (user.password == pw)
+            {
+                Console.WriteLine($"Password Correct, welcome {name}");
+                return user;
+            }
+            Console.WriteLine("Password incorrect");
+            return null;
+        }
+
+
+        public int get_id()
+        {
+            if (currentUser == null)
+            {
+                currentUser = VisitorLogin();
+            }
+            return currentUser.id;
+        }
+
+        public string get_name()
+        {
+            if (currentUser == null)
+            {
+                currentUser = VisitorLogin();
+            }
+            return currentUser.username;
+        }
+
+        private UserClass VisitorLogin()
+        {
+            return new UserClass("Visitor", 200 + maxAdminID,"Visitor");
+        }
+
+        private UserClass GetUser(string username)
+        {
+
+            string[] users = File.ReadAllLines(filepath);
+            
+            foreach (string user in users) //look through file for user
+            {
+                string[] elements = user.Split(' ');
+                if (elements.Length != 3) {
+                    if (elements[0] == "")
+                    { continue; }
+                    Console.Write($"Invalid user with amount of elements: {elements.Length}");
+                    if (elements.Length >= 1)
+                    {
+                        Console.Write(" with id" + elements[0]);
+                    }
+                    Console.WriteLine();
+                    continue;
+                }
+                if (elements[1] == username) //id name password
+                {
+                    int id = Convert.ToInt32(((string)elements[0]).Trim());
+                    UserClass result = new UserClass(elements[1], id, elements[2]);
+                    return result;
+                }
+            }
+            return null;
+        }
+
+        protected static void Interrupthandler(object sender, ConsoleCancelEventArgs args)
+        {
+            Console.WriteLine("\nThe read operation has been interrupted.");
+
+            Console.WriteLine($"  Key pressed: {args.SpecialKey}");
+
+            Console.WriteLine($"  Cancel property: {args.Cancel}");
+
+            // Set the Cancel property to true to prevent the process from terminating.
+            Console.WriteLine("Setting the Cancel property to true...");
+            args.Cancel = true;
+
+            // Announce the new value of the Cancel property.
+            Console.WriteLine($"  Cancel property: {args.Cancel}");
+            
+        }
+
+    }
+}
+

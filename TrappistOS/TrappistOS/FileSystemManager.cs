@@ -85,7 +85,7 @@ namespace TrappistOS
 
             try
             {
-                if (!File.Exists(path))
+                if (!Directory.Exists(path))
                 {
                     Directory.CreateDirectory(path);
                     Console.WriteLine("Directory successfully created: " + path);
