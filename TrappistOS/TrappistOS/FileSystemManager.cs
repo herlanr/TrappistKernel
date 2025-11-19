@@ -42,7 +42,7 @@ namespace TrappistOS
                 foreach (var file in files)
                 {
                     Console.ForegroundColor = ConsoleColor.Green;
-                    var fileInfo = new DirectoryInfo(file);
+                    var fileInfo = new FileInfo(file);
                     Console.WriteLine(fileInfo.Name);
                     Console.ForegroundColor = ConsoleColor.White;
                 }
@@ -67,7 +67,10 @@ namespace TrappistOS
             {
                 if (!File.Exists(path) && !Directory.Exists(path))
                 {
-                    File.Create(path);
+                    FileStream newfile = File.Create(path);
+
+
+
                     Console.WriteLine("File successfully created: " + path);
                     return true;
                 }

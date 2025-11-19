@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using Sys = Cosmos.System;
 
@@ -9,7 +10,7 @@ namespace TrappistOS
 {
     
     
-    internal class UserLogin : ProgramClass
+    internal class UserLogin
     {
         private int maxAdminID = 20; //TODO: move into systemfile
         private string filepath = @"0:\users";
@@ -27,12 +28,6 @@ namespace TrappistOS
                 this.password = password;
             }
         }
-
-        public UserLogin() //for Program Class
-        {
-            Identifier = "UserLogin";
-        }
-
         public void BeforeRun() //intitialize and login into Visitor
         {
             if (!File.Exists(filepath))
@@ -43,11 +38,6 @@ namespace TrappistOS
             }
             currentUser = VisitorLogin();
             Console.WriteLine(File.ReadAllText(filepath));
-        }
-
-        public override void Run() //for child of Progrmmclass, maybe move decision here in future
-        {
-            Console.WriteLine("inavild login run call");
         }
 
         public bool IsAdmin() //Admincheck
@@ -64,12 +54,13 @@ namespace TrappistOS
             return user.id < maxAdminID;
         }
 
-        public void Logout()
+        public bool Logout()
         {
             currentUser = VisitorLogin();
+            return true;
         }
 
-        public void Changepassword()
+        public bool Changepassword()
         {
             List<string> new_users = new List<string>();
             Console.Write("Please put in your password:");
@@ -84,8 +75,8 @@ namespace TrappistOS
             Console.WriteLine();
             if (password != currentUser.password)
             {
-                Console.WriteLine("invalid Password");
-                return;
+                Console.WriteLine("wrong Password");
+                return false;
             }
             while (true)
             {
@@ -120,16 +111,6 @@ namespace TrappistOS
                 string[] elements = user.Split(' '); //Arrangement: id name password
                 if (elements.Length != 3)
                 {
-                    if (elements.Length == 0)
-                    {
-                        continue;
-                    }
-                    Console.Write("Invalid user");
-                    if (elements.Length >= 1)
-                    {
-                        Console.Write(" with id" + elements[0]);
-                    }
-                    Console.WriteLine();
                     continue;
                 } // list of users with new ids
                 if (elements[1] != currentUser.username)
@@ -151,24 +132,21 @@ namespace TrappistOS
                 File.WriteAllLines(filepath, new_users.ToArray()); //overwrite old users
                 currentUser.password = password;
                 Console.WriteLine($"Change successful");
-            }
-            else
-            {
-                Console.WriteLine("Change aborted");
+                return true;
             }
 
-            
-
+            Console.WriteLine("Change aborted");
+            return false;
         }
 
-        public void Login()
+        public bool Login()
         {
             Console.Write("username: ");
             string username = Console.ReadLine();
             if (username == "Visitor")
             {
                 currentUser = VisitorLogin();
-                return;
+                return true;
             }
             Console.Write("Password: ");
             string password = null; //hides the input
@@ -187,13 +165,13 @@ namespace TrappistOS
             {
                 currentUser = user;
                 Console.WriteLine("Login successful");
-                return;
+                return true;
             }
             Console.WriteLine("Login failed");
-            return;
+            return false;
         }
 
-        public void DeleteUser(string username)
+        public bool DeleteUser(string username)
         {
             List<string> new_users = new List<string>();
             bool found = false;
@@ -235,18 +213,21 @@ namespace TrappistOS
                 {
                     File.WriteAllLines(filepath, new_users.ToArray()); //overwrite old users
                     Console.WriteLine($"successfully deleted {username}");
+                    return true;
                 }
                 else
                 {
                     Console.WriteLine("deletion aborted");
+                    return false;
                 }
             }
             else { 
-                Console.WriteLine($"{username} does not exist"); 
+                Console.WriteLine($"{username} does not exist");
+                return false;
             }
         }
 
-        public void IncreaseAdminRange(int count)
+        public bool IncreaseAdminRange(int count)
         {
             maxAdminID += count; //TODO: move into systemfile
             List<string> new_users = new List<string>();
@@ -272,13 +253,20 @@ namespace TrappistOS
             }
             File.WriteAllLines(filepath, new_users.ToArray()); //overwrite old users
             Console.WriteLine("increase successful");
+            return true;
         }
 
-        public void CreateUser(bool isAdmin)
+        public bool CreateUser(bool isAdmin)
         {
             Console.Write("username: ");
             string username = Console.ReadLine();
             
+            if (GetUser(username) != null)
+            {
+                Console.WriteLine($"{username} is already exists");
+                return false;
+            }
+
             string password = null;
             while (true)
             {
@@ -313,9 +301,10 @@ namespace TrappistOS
             if (success)
             {
                 Console.WriteLine("Creation successful");
-                return;
+                return true;
             }
             Console.WriteLine("Creation failed");
+            return false;
         }
 
         private bool SaveUser(string username, string password, bool isAdmin)
@@ -504,6 +493,27 @@ namespace TrappistOS
             
         }
 
+        public string[] GetAllUsers()
+        {
+            string[] users = File.ReadAllLines(filepath);
+            string[] result = Array.Empty<string>();
+
+            foreach (string user in users) //look through file for user
+            {
+                string[] elements = user.Split(' ');
+
+                if (elements.Length != 3)
+                {
+                    if (elements[0] == "")
+                    { continue; }
+                    Console.WriteLine();
+                    continue;
+                }
+
+                result.Append(elements[0]);
+            }
+            return result;
+        }
     }
 }
 

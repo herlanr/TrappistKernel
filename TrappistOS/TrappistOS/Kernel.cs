@@ -7,10 +7,9 @@ namespace TrappistOS
 {
     public class Kernel : Sys.Kernel
     {
-        // each program needs one space here
-        ProgramClass[] ProgramMemory = new ProgramClass[6];
         FileSystemManager fsManager;
 
+        FilePermissions permManager;
         UserLogin userInfo;
         protected override void BeforeRun()
         {
@@ -18,6 +17,11 @@ namespace TrappistOS
             fsManager.fsInitialize();
             Sys.KeyboardManager.SetKeyLayout(new DE_Standard());
             Console.Clear();
+            
+            userInfo = new UserLogin();
+            userInfo.BeforeRun();
+            
+            
 
             // Print system info
             Console.WriteLine(" _____                     _     _   _____ _____ \r\n|_   _|                   (_)   | | |  _  /  ___|\r\n  | |_ __ __ _ _ __  _ __  _ ___| |_| | | \\ `--. \r\n  | | '__/ _` | '_ \\| '_ \\| / __| __| | | |`--. \\\r\n  | | | | (_| | |_) | |_) | \\__ \\ |_\\ \\_/ /\\__/ /\r\n  \\_/_|  \\__,_| .__/| .__/|_|___/\\__|\\___/\\____/ \r\n              | |   | |                          \r\n              |_|   |_|                          ");
@@ -335,6 +339,21 @@ namespace TrappistOS
                         }
                         break;
                     }*/
+                case "init_perms":
+                    {
+                        string[] allusers = userInfo.GetAllUsers();
+
+                        //supress outputs of fsmanager
+                        TextWriter  _oldOut = Console.Out;
+                        TextWriter  _oldError = Console.Error;
+                        Console.SetOut(TextWriter.Null);
+                        Console.SetError(TextWriter.Null);
+
+
+                        Console.SetOut(_oldOut);
+                        Console.SetError(_oldError);
+                        break;
+                    }
                 case "changepwd":
                     {
                         if (!(userInfo.get_name() == "Visitor"))
