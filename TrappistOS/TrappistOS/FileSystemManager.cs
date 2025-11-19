@@ -2,6 +2,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace TrappistOS
 {
@@ -23,7 +26,7 @@ namespace TrappistOS
             Console.WriteLine("Available Free Space: " + available_space);
         }
 
-        public void listFiles()
+        public bool listFiles()
         {
 
             var dirs = Directory.GetDirectories(currentDir);
@@ -46,14 +49,16 @@ namespace TrappistOS
                     Console.WriteLine(fileInfo.Name);
                     Console.ForegroundColor = ConsoleColor.White;
                 }
+                return true;
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.ToString());
+                return false;
             }
         }
 
-        public bool createFile(string filename)
+        public string createFile(string filename)
         {
             string path = Path.Combine(currentDir, filename);
 
@@ -72,29 +77,29 @@ namespace TrappistOS
 
 
                     Console.WriteLine("File successfully created: " + path);
-                    return true;
+                    return path;
                 }
                 else
                 {
                     if (Directory.Exists(path))
                     {
                         Console.WriteLine("There is already a file or directory with this name.");
-                        return false;
+                        return null;
                     } else
                     {
                         Console.WriteLine("File already exist: " + path);
-                        return false;
+                        return null;
                     }
                 }
             }
             catch (Exception e)
             {
                 Console.WriteLine("Error creating file: " + e.Message);
-                return false;
+                return null;
             }
         }
 
-        public bool createDirectory(string dirName)
+        public string createDirectory(string dirName)
         {
             string path = currentDir + @"\" + dirName;
 
@@ -104,26 +109,26 @@ namespace TrappistOS
                 {
                     Directory.CreateDirectory(path);
                     Console.WriteLine("Directory successfully created: " + path);
-                    return true;
+                    return path;
                 }
                 else
                 {
                     if (File.Exists(path))
                     {
                         Console.WriteLine("There is already a file or directory with this name.");
-                        return false;
+                        return null;
 
                     } else
                     {
                         Console.WriteLine("Directory already exist or " + path);
-                        return false;
+                        return null;
                     }
                 }
             }
             catch (Exception e)
             {
                 Console.WriteLine("Error creating directory: " + e.Message);
-                return false;
+                return null;
             }
         }
 
