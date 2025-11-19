@@ -18,7 +18,6 @@ namespace TrappistOS
         protected override void BeforeRun()
         {
             Console.WriteLine("TrappistOS booting");
-            Cosmos.HAL.Global.PIT.Wait((uint)10000);
             
             fsManager = new FileSystemManager();
             fsManager.fsInitialize();
@@ -380,7 +379,7 @@ namespace TrappistOS
                         }
                         break;
                     }*/
-                case "init_perms":
+                case "initperms":
                     {
                         if (!userInfo.IsAdmin())
                         {
@@ -409,6 +408,24 @@ namespace TrappistOS
                         }
                         //Console.SetOut(_oldOut);
                         //Console.SetError(_oldError);
+                        break;
+                    }
+                case "fileowner":
+                    {
+                        if (args.Length < 2 || args[1] == "-h")
+                        {
+                            Console.WriteLine("Usage: fileowner <file name>");
+                            Console.WriteLine("Description: Shows the owner of a File.");
+                            Console.WriteLine("Avaiable Arguments: \n-h: help");
+                            break;
+                        }
+                        string path = fsManager.getFilePath(args[1]);
+                        if (path is null) {
+                            Console.WriteLine("File/Directory does not exist");
+                            break;
+                        }
+                        int ownerID = permManager.GetOwnerID(path);
+                        Console.WriteLine(args[1] + " is owned by " + userInfo.GetUserName(ownerID));
                         break;
                     }
                 case "changepwd":

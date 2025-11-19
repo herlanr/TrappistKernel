@@ -28,15 +28,13 @@ namespace TrappistOS
 
 
         Hashtable fileRightTable;
-        string filepath = @"0:\sysperms";
+        string filepath = @"0:\filePerms";
         public bool PermInit(UserLogin user, string[] requiredSystemPaths) 
         {
             requiredSystemPaths.Append(filepath);
             fileRightTable = new Hashtable();
-            bool createdNew = false;
             if (!File.Exists(filepath))
             {
-                createdNew = true;
                 try
                 {
                     File.Create(filepath);

@@ -58,6 +58,16 @@ namespace TrappistOS
             }
         }
 
+        public string getFilePath(string filename)
+        {
+            string path = Path.Combine(currentDir, filename);
+            if (!File.Exists(path) && !Directory.Exists(path))
+            {
+                return null;
+            }
+            return path;
+        }
+
         public string createFile(string filename)
         {
             string path = Path.Combine(currentDir, filename);

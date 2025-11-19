@@ -456,6 +456,39 @@ namespace TrappistOS
             return thisUser.id;
         }
 
+        public string GetUserName(int userID)
+        {
+            string[] users = File.ReadAllLines(filepath);
+
+            if (userID == 0)
+            {
+                return "system";
+            }
+
+            foreach (string user in users) //look through file for user
+            {
+                string[] elements = user.Split(' ');
+                if (elements.Length != 3)
+                {
+                    if (elements[0] == "")
+                    { continue; }
+                    Console.Write($"Invalid user with amount of elements: {elements.Length}");
+                    if (elements.Length >= 1)
+                    {
+                        Console.Write(" with id" + elements[0]);
+                    }
+                    Console.WriteLine();
+                    continue;
+                }
+                if (elements[0] == userID.ToString()) //id name password
+                {
+                    int id = Convert.ToInt32(((string)elements[0]).Trim());
+                    return elements[1];
+                }
+            }
+            return "unknown";
+        }
+
         private UserClass VisitorLogin()
         {
             return new UserClass("Visitor", visitorid + maxAdminID,"Visitor");
