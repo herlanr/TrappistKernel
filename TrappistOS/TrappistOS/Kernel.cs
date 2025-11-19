@@ -3,23 +3,36 @@ using System;
 using System.IO;
 using Sys = Cosmos.System;
 
+//wait function: Cosmos.HAL.Global.PIT.Wait((uint)10000);
+
 namespace TrappistOS
 {
     public class Kernel : Sys.Kernel
     {
+        string userpath = @"0:\users";
+
         FileSystemManager fsManager;
 
-        FilePermissions permManager;
         UserLogin userInfo;
+        FilePermissions permManager;
         protected override void BeforeRun()
         {
+            Console.WriteLine("TrappistOS booting");
+            Cosmos.HAL.Global.PIT.Wait((uint)10000);
+            
             fsManager = new FileSystemManager();
             fsManager.fsInitialize();
             Sys.KeyboardManager.SetKeyLayout(new DE_Standard());
-            Console.Clear();
+            Console.WriteLine("Filesystem initialized");
             
             userInfo = new UserLogin();
-            userInfo.BeforeRun();
+            userInfo.BeforeRun(userpath);
+            Console.WriteLine("Usermanagement intiialized");
+            
+            permManager = new FilePermissions();
+            permManager.PermInit(userInfo,new[] { userpath } );
+            Console.WriteLine("Filepermissions initialized");
+            Console.Clear();
             
             
 
@@ -74,7 +87,7 @@ namespace TrappistOS
         {
 
             var cmd = new CommandHistory();
-            var input = cmd.ReadLine(userInfo.get_name(), fsManager.getCurrentDir());
+            var input = cmd.ReadLine(userInfo.GetName(), fsManager.getCurrentDir());
 
             string[] args = input.Split(' ');
 
@@ -233,12 +246,40 @@ namespace TrappistOS
                     }
                 case "shutdown":
                     {
+                        permManager.SavePermissions();
                         Sys.Power.Shutdown();
                         break;
                     }
                 case "reboot":
                     {
+                        permManager.SavePermissions();
                         Sys.Power.Reboot();
+                        break;
+                    }
+                case "force-shutdown":
+                    {
+                        Console.WriteLine($"Are you sure you want to forcecfully shutdown? Not all changes will be saved. (y)es/(n)o");
+                        char confimation = ' ';
+                        do
+                        { confimation = Console.ReadKey(true).KeyChar; }
+                        while (confimation != 'y' && confimation != 'n');
+                        if (confimation == 'y')
+                        {
+                            Sys.Power.Shutdown();
+                        }
+                        break;
+                    }
+                case "force-reboot":
+                    {
+                        Console.WriteLine($"Are you sure you want to forcecfully reboot? Not all changes will be saved. (y)es/(n)o");
+                        char confimation = ' ';
+                        do
+                        { confimation = Console.ReadKey(true).KeyChar; }
+                        while (confimation != 'y' && confimation != 'n');
+                        if (confimation == 'y')
+                        {
+                            Sys.Power.Reboot();
+                        }
                         break;
                     }
                 case "login":
@@ -281,7 +322,7 @@ namespace TrappistOS
                                     Console.WriteLine($"Cannot delete {args[1]}");
                                     break;
                                 }
-                                if (args[1] == userInfo.get_name())
+                                if (args[1] == userInfo.GetName())
                                 {
                                     Console.WriteLine("Cannot delete User you are logged in with");
                                 }
@@ -341,22 +382,38 @@ namespace TrappistOS
                     }*/
                 case "init_perms":
                     {
-                        string[] allusers = userInfo.GetAllUsers();
+                        if (!userInfo.IsAdmin())
+                        {
+                            Console.WriteLine("Only Admins can run this command");
+                            break;
+                        }
+                        if (fsManager.getCurrentDir() != @"0:\")
+                        {
+                            Console.WriteLine("Command can only get run in home directory");
+                            break; 
+                        }
+                        string[] allUsers = userInfo.GetAllUsers();
 
                         //supress outputs of fsmanager
+                        /*
                         TextWriter  _oldOut = Console.Out;
                         TextWriter  _oldError = Console.Error;
                         Console.SetOut(TextWriter.Null);
-                        Console.SetError(TextWriter.Null);
-
-
-                        Console.SetOut(_oldOut);
-                        Console.SetError(_oldError);
+                        Console.SetError(TextWriter.Null);*/
+                        foreach (string user in allUsers)
+                        {
+                            string dirpath = fsManager.createDirectory(user);
+                            permManager.SetOwner(dirpath, userInfo.GetUserID(user));
+                            permManager.SetWriter(dirpath, userInfo.GetUserID(user));
+                            permManager.SetReader(dirpath, userInfo.GetUserID(user));
+                        }
+                        //Console.SetOut(_oldOut);
+                        //Console.SetError(_oldError);
                         break;
                     }
                 case "changepwd":
                     {
-                        if (!(userInfo.get_name() == "Visitor"))
+                        if (!(userInfo.GetName() == "Visitor"))
                         { 
                             userInfo.Changepassword(); 
                         }

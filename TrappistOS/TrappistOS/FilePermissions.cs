@@ -29,14 +29,23 @@ namespace TrappistOS
 
         Hashtable fileRightTable;
         string filepath = @"0:\sysperms";
-        FilePermissions() 
+        public bool PermInit(UserLogin user, string[] requiredSystemPaths) 
         {
+            requiredSystemPaths.Append(filepath);
             fileRightTable = new Hashtable();
             bool createdNew = false;
             if (!File.Exists(filepath))
             {
                 createdNew = true;
-                File.Create(filepath);
+                try
+                {
+                    File.Create(filepath);
+                }
+                catch
+                {
+                    Console.WriteLine("Error in File Permission loading, please restart your machine with the \"force-shutdown\" or \"force-reboot\" Option");
+                    return false;
+                }
             }
             string[] filePermissions = File.ReadAllLines(filepath);
             foreach (string line in filePermissions)
@@ -79,19 +88,25 @@ namespace TrappistOS
                     Console.WriteLine("Duplicate File " + permissionDetails[3] + " in filepermissions. Permissions for that File might not be correct.");
                 }
             }
-            if (createdNew || !fileRightTable.ContainsKey(filepath))
-            {
-                if (fileRightTable[filepath].GetType() != typeof(FileRights))
-                { Console.WriteLine("Error in file Permission Hashtable, please restart the machine. If this message appears again, please contact an Administrator.");}
-                else
+
+            foreach (string path in requiredSystemPaths)
+            { 
+                if (!fileRightTable.ContainsKey(path))
                 {
                     int[] system = { 0 };
-                    ((FileRights)fileRightTable[filepath]).writer = system;
-                    ((FileRights)fileRightTable[filepath]).owner = system[0];
-                    ((FileRights)fileRightTable[filepath]).reader = system;
+                    FileRights SystemFile = new FileRights(system[0], system, system);
+                    fileRightTable.Add(path,SystemFile);  
                 }
-                    
             }
+
+            if (!fileRightTable.ContainsKey(@"0:\"))
+            {
+                int[] visitor = { user.maxAdminID + user.visitorid };
+                FileRights rootFile = new FileRights(visitor[0], visitor, visitor);
+                fileRightTable.Add(@"0:\", rootFile);
+            }
+
+            return true;
         }
 
         public bool SetWriter(string path, int userID)

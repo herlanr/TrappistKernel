@@ -8,12 +8,13 @@ using Sys = Cosmos.System;
 
 namespace TrappistOS
 {
-    
-    
+
+
     internal class UserLogin
     {
-        private int maxAdminID = 20; //TODO: move into systemfile
-        private string filepath = @"0:\users";
+        public int maxAdminID { private set; get; } = 20; //TODO: move into systemfile
+        public int visitorid { private set; get; } = 200;
+        private string filepath;
         private UserClass currentUser = null;
         private class UserClass
         {
@@ -28,8 +29,11 @@ namespace TrappistOS
                 this.password = password;
             }
         }
-        public void BeforeRun() //intitialize and login into Visitor
+
+
+        public void BeforeRun(string userpath) //intitialize and login into Visitor
         {
+            this.filepath = userpath;
             if (!File.Exists(filepath))
             {
                 string[] intitial_users = { $"{maxAdminID+200} Visitor Visitor", "1 Admin Admin"}
@@ -37,7 +41,7 @@ namespace TrappistOS
                 File.WriteAllLines(filepath, intitial_users);
             }
             currentUser = VisitorLogin();
-            Console.WriteLine(File.ReadAllText(filepath));
+            Console.WriteLine("File.ReadAllText(filePath)");
         }
 
         public bool IsAdmin() //Admincheck
@@ -424,7 +428,7 @@ namespace TrappistOS
         }
 
 
-        public int get_id()
+        public int GetId()
         {
             if (currentUser == null)
             {
@@ -433,7 +437,7 @@ namespace TrappistOS
             return currentUser.id;
         }
 
-        public string get_name()
+        public string GetName()
         {
             if (currentUser == null)
             {
@@ -442,9 +446,19 @@ namespace TrappistOS
             return currentUser.username;
         }
 
+        public int GetUserID(string username)
+        {
+            UserClass thisUser = GetUser(username);
+            if (thisUser is null)
+            {
+                return visitorid + maxAdminID;
+            }
+            return thisUser.id;
+        }
+
         private UserClass VisitorLogin()
         {
-            return new UserClass("Visitor", 200 + maxAdminID,"Visitor");
+            return new UserClass("Visitor", visitorid + maxAdminID,"Visitor");
         }
 
         private UserClass GetUser(string username)
@@ -492,7 +506,7 @@ namespace TrappistOS
             Console.WriteLine($"  Cancel property: {args.Cancel}");
             
         }
-
+        
         public string[] GetAllUsers()
         {
             string[] users = File.ReadAllLines(filepath);
