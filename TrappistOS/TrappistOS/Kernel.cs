@@ -152,6 +152,21 @@ namespace TrappistOS
                         fsManager.deleteDir(args[1]);
                         break;
                     }
+
+                case "rename":
+                    {
+                        if (args.Length < 3 || args[1] == "-h")
+                        {
+                            Console.WriteLine("Usage: rename <directory or file> <new name>");
+                            Console.WriteLine("Description: It Renames the selected directory or file.");
+                            Console.WriteLine("Avaiable Arguments: \n-h: help");
+                            break;
+                        }
+
+                        fsManager.renameFileOrDir(args[1], args[2]);
+                        break;
+                    }
+
                 case "cd":
                     {
                         if (args.Length < 2 || args[1] == "-h")
