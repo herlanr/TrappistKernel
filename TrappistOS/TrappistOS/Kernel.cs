@@ -23,11 +23,11 @@ namespace TrappistOS
             fsManager.fsInitialize();
             Sys.KeyboardManager.SetKeyLayout(new DE_Standard());
             Console.WriteLine("Filesystem initialized");
-            
+
             userInfo = new UserLogin();
             userInfo.BeforeRun(userpath);
-            Console.WriteLine("Usermanagement intiialized");
-            
+            Console.WriteLine("Usermanagement intialized");
+
             permManager = new FilePermissions();
             permManager.PermInit(userInfo,new[] { userpath } );
             Console.WriteLine("Filepermissions initialized");
@@ -87,6 +87,7 @@ namespace TrappistOS
 
             var cmd = new CommandHistory();
             var input = cmd.ReadLine(userInfo.GetName(), fsManager.getCurrentDir());
+            
 
             string[] args = input.Split(' ');
 
@@ -118,7 +119,8 @@ namespace TrappistOS
                             break;
                         }
                         
-                        fsManager.createFile(args[1]);
+                        string path = fsManager.createFile(args[1]);
+                        permManager.InitPermissions(path, userInfo.GetId());
                         break;
                     }
                 case "mkdir":
@@ -130,7 +132,8 @@ namespace TrappistOS
                             Console.WriteLine("Avaiable Arguments: \n-h: help");
                             break;
                         }
-                        fsManager.createDirectory(args[1]);
+                        string path = fsManager.createDirectory(args[1]);
+                        permManager.InitPermissions(path, userInfo.GetId());
                         break;
                     }
 
@@ -155,7 +158,7 @@ namespace TrappistOS
                         if (args.Length < 3 || args[1] == "-h")
                         {
                                 Console.WriteLine("Usage: mv <file path> <dest path>");
-                                Console.WriteLine("Description: List all the files in a directory");
+                                Console.WriteLine("Description: Move file between directories");
                                 Console.WriteLine("Avaiable Arguments: \n-h: help");
                                 break;
 
@@ -169,7 +172,7 @@ namespace TrappistOS
                         if (args.Length < 2 || args[1] == "-h")
                         {
                             Console.WriteLine("Usage: cat <file name>");
-                            Console.WriteLine("Description: Opens a text file, reads all the text in the file, and then closes the file.");
+                            Console.WriteLine("Description: Opens a text file, reads all the text in the file,\nand then closes the file.");
                             Console.WriteLine("Avaiable Arguments: \n-h: help");
                             break;
                         }
@@ -257,7 +260,7 @@ namespace TrappistOS
                     }
                 case "force-shutdown":
                     {
-                        Console.WriteLine($"Are you sure you want to forcecfully shutdown? Not all changes will be saved. (y)es/(n)o");
+                        Console.WriteLine($"Are you sure you want to forcecfully shutdown? Not all changes will be saved.\n(y)es/(n)o");
                         char confimation = ' ';
                         do
                         { confimation = Console.ReadKey(true).KeyChar; }
@@ -270,7 +273,7 @@ namespace TrappistOS
                     }
                 case "force-reboot":
                     {
-                        Console.WriteLine($"Are you sure you want to forcecfully reboot? Not all changes will be saved. (y)es/(n)o");
+                        Console.WriteLine($"Are you sure you want to forcecfully reboot? Not all changes will be saved.\n(y)es/(n)o");
                         char confimation = ' ';
                         do
                         { confimation = Console.ReadKey(true).KeyChar; }
@@ -379,8 +382,15 @@ namespace TrappistOS
                         }
                         break;
                     }*/
-                case "initperms":
+                case "initfperms":
                     {
+                        if (args.Length != 1)
+                        { 
+                            Console.WriteLine("Usage: initfperms");
+                            Console.WriteLine("Description: initialize Fiilepermissions");
+                            Console.WriteLine("Available Arguments:\n -h: help");
+                            break;
+                        }
                         if (!userInfo.IsAdmin())
                         {
                             Console.WriteLine("Only Admins can run this command");
@@ -410,11 +420,12 @@ namespace TrappistOS
                         //Console.SetError(_oldError);
                         break;
                     }
-                case "fileowner":
+                case "gfo":
+                case "getfileowner":
                     {
                         if (args.Length < 2 || args[1] == "-h")
                         {
-                            Console.WriteLine("Usage: fileowner <file name>");
+                            Console.WriteLine("Usage: gfo/getfileowner <file name>");
                             Console.WriteLine("Description: Shows the owner of a File.");
                             Console.WriteLine("Avaiable Arguments: \n-h: help");
                             break;
@@ -428,8 +439,30 @@ namespace TrappistOS
                         Console.WriteLine(args[1] + " is owned by " + userInfo.GetUserName(ownerID));
                         break;
                     }
+                case "sfp":
+                case "savefperms":
+                    {
+                        if (args.Length == 1)
+                        {
+                            permManager.SavePermissions();
+                        }
+                        else
+                        {
+                            Console.WriteLine("Usage: sfp/savefperms");
+                            Console.WriteLine("Description: Save Permissions");
+                            Console.WriteLine("Available Arguments:\n -h: help");
+                        }
+                        break;
+                    }
                 case "changepwd":
                     {
+                        if(args.Length != 1)
+                        {
+                            Console.WriteLine("Usage: changepwd");
+                            Console.WriteLine("Description: Change password");
+                            Console.WriteLine("Available Arguments:\n -h: help");
+                            break;
+                        }
                         if (!(userInfo.GetName() == "Visitor"))
                         { 
                             userInfo.Changepassword(); 
@@ -458,12 +491,200 @@ namespace TrappistOS
                         } 
                         break;
                     }
-                default:
+                case "help":
                     {
-                        Console.WriteLine("Not a valid command");
+                        int pagecount = 7;
+                        int currentPage = 0;
+                        Console.ForegroundColor = ConsoleColor.Magenta;
+                        Console.WriteLine("Usage: freespace");
+                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.WriteLine("Description: Get available free space.");
+                        Console.WriteLine("Avaiable Arguments: \n-h: help");
+                        Console.WriteLine();
+                        
+                        Console.ForegroundColor = ConsoleColor.Magenta;
+                        Console.WriteLine("Usage: mkdir <directory name> ");
+                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.WriteLine("Description: Creates a new directory");
+                        Console.WriteLine("Avaiable Arguments: \n-h: help");
+                        Console.WriteLine();
+                        
+                        Console.ForegroundColor = ConsoleColor.Magenta;
+                        Console.WriteLine("Usage: mkdir <directory name> ");
+                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.WriteLine("Description: Creates a new directory");
+                        Console.WriteLine("Avaiable Arguments: \n-h: help");
+                        Console.WriteLine();
+                        
+                        currentPage++;
+                        Console.WriteLine("Page "+ currentPage.ToString() +" out of " + pagecount.ToString() + " Continue with enter, exit with esc");
+                        if(!WaitForResponse()) { break; } //wait for enter or escape
+                        Console.WriteLine();
+
+                        Console.ForegroundColor = ConsoleColor.Magenta;
+                        Console.WriteLine("Usage: ls");
+                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.WriteLine("Description: List all the files in a directory");
+                        Console.WriteLine("Avaiable Arguments: \n-h: help");
+                        Console.WriteLine();
+
+                        Console.ForegroundColor = ConsoleColor.Magenta;
+                        Console.WriteLine("Usage: mv <file path> <dest path>");
+                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.WriteLine("Description: Move file between directories");
+                        Console.WriteLine("Avaiable Arguments: \n-h: help");
+                        Console.WriteLine();
+
+                        Console.ForegroundColor = ConsoleColor.Magenta;
+                        Console.WriteLine("Usage: cat <file name>");
+                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.WriteLine("Description: Opens a text file, reads all the text in the file,\nand then closes the file.");
+                        Console.WriteLine("Avaiable Arguments: \n-h: help");
+                        Console.WriteLine();
+                        
+                        currentPage++;
+                        Console.WriteLine("Page " + currentPage.ToString() +" out of " + pagecount.ToString() + " Continue with enter, exit with esc");
+                        if (!WaitForResponse()) { break; } //wait for enter or escape
+                        Console.WriteLine();
+
+                        Console.ForegroundColor = ConsoleColor.Magenta;
+                        Console.WriteLine("Usage: rm <file name OR directory name>");
+                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.WriteLine("Description: Deletes the specified file or dir");
+                        Console.WriteLine("Avaiable Arguments: \n-h: help");
+                        Console.WriteLine();
+
+                        Console.ForegroundColor = ConsoleColor.Magenta;
+                        Console.WriteLine("Usage: cd <directory path>");
+                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.WriteLine("Description: Changes your current directory to the specified one.");
+                        Console.WriteLine("Avaiable Arguments: \n-h: help");
+                        Console.WriteLine();
+
+                        Console.ForegroundColor = ConsoleColor.Magenta;
+                        Console.WriteLine("Usage: pwd");
+                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.WriteLine("Description: Get current working directory");
+                        Console.WriteLine();
+
+                        Console.ForegroundColor = ConsoleColor.Magenta;
+                        Console.WriteLine("Usage: clear");
+                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.WriteLine("Description: clear command log");
+                        Console.WriteLine();
+                        
+                        currentPage++;
+                        Console.WriteLine("Page "+ currentPage.ToString() +" out of " + pagecount.ToString() + " Continue with enter, exit with esc");
+                        if (!WaitForResponse()) { break; } //wait for enter or escape
+                        Console.WriteLine();
+
+                        Console.ForegroundColor = ConsoleColor.Magenta;
+                        Console.WriteLine("Usage: shutdown");
+                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.WriteLine("Description: Shut the Computer down");
+                        Console.WriteLine();
+
+                        Console.ForegroundColor = ConsoleColor.Magenta;
+                        Console.WriteLine("Usage: reboot");
+                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.WriteLine("Description: Reboot the Computer");
+                        Console.WriteLine();
+
+                        Console.ForegroundColor = ConsoleColor.Magenta;
+                        Console.WriteLine("Usage: force-shutdown");
+                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.WriteLine("Description: Force a shutdown without proper exit protocols.\nWarning: not all changes made will be saved!");
+                        Console.WriteLine();
+
+                        Console.ForegroundColor = ConsoleColor.Magenta;
+                        Console.WriteLine("Usage: force-reboot");
+                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.WriteLine("Description: Force a reboot without proper exit protocols.\nWarning: not all changes made will be saved!");
+                        Console.WriteLine();
+                        
+                        currentPage++;
+                        Console.WriteLine("Page " + currentPage.ToString() + " out of " + pagecount.ToString() + " Continue with enter, exit with esc");
+                        if (!WaitForResponse()) { break; } //wait for enter or escape
+                        Console.WriteLine();
+
+                        Console.ForegroundColor = ConsoleColor.Magenta;
+                        Console.WriteLine("Usage: Login");
+                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.WriteLine("Description: Login to Account");
+                        Console.WriteLine("Available Arguments:\n -h: help");
+                        Console.WriteLine();
+
+                        Console.ForegroundColor = ConsoleColor.Magenta;
+                        Console.WriteLine("Usage: Logout");
+                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.WriteLine("Description: Logout of your Account");
+                        Console.WriteLine("Available Arguments:\n -h: help");
+                        Console.WriteLine();
+
+                        Console.ForegroundColor = ConsoleColor.Magenta;
+                        Console.WriteLine("Usage: createUser / mkUsr");
+                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.WriteLine("Description: Create a new User");
+                        Console.WriteLine("Available Arguments: \n -h: help \n -a: create Admin (Only Admins can crate Admins)");
+                        Console.WriteLine();
+                        
+                        currentPage++;
+                        Console.WriteLine("Page " + currentPage.ToString() + " out of " + pagecount.ToString() + " Continue with enter, exit with esc");
+                        if (!WaitForResponse()) { break; } //wait for enter or escape
+                        Console.WriteLine();
+
+                        Console.ForegroundColor = ConsoleColor.Magenta;
+                        Console.WriteLine("Usage: deleteUser [username] / delUsr [username]");
+                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.WriteLine("Description: delete a User (only available to admins)");
+                        Console.WriteLine("Available Arguments: \n -h: help");
+                        Console.WriteLine();
+
+                        Console.ForegroundColor = ConsoleColor.Magenta;
+                        Console.WriteLine("Usage: initfperms");
+                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.WriteLine("Description: initialize Fiilepermissions");
+                        Console.WriteLine("Available Arguments:\n -h: help");
+                        Console.WriteLine();
+
+                        Console.ForegroundColor = ConsoleColor.Magenta;
+                        Console.WriteLine("Usage: gfo/getfileowner <file name>");
+                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.WriteLine("Description: Shows the owner of a File.");
+                        Console.WriteLine("Avaiable Arguments: \n-h: help");
+                        Console.WriteLine();
+                        
+                        currentPage++;
+                        Console.WriteLine("Page " + currentPage.ToString() + " out of " + pagecount.ToString() + " Continue with enter, exit with esc");
+                        if (!WaitForResponse()) { break; } //wait for enter or escape
+                        Console.WriteLine();
+
+                        Console.ForegroundColor = ConsoleColor.Magenta;
+                        Console.WriteLine("Usage: sfp/savefperms");
+                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.WriteLine("Description: Save File Permissions");
+                        Console.WriteLine("Available Arguments:\n -h: help");
+                        Console.WriteLine();
+
+                        Console.ForegroundColor = ConsoleColor.Magenta;
+                        Console.WriteLine("Usage: changepwd");
+                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.WriteLine("Description: Change password");
+                        Console.WriteLine("Available Arguments:\n -h: help");
+                        Console.WriteLine();
+                        
+                        currentPage++;
+                        Console.WriteLine("Page " + currentPage.ToString() + " out of " + pagecount.ToString() + " Continue with enter, exit with esc");
+                        if (!WaitForResponse()) { break; } //wait for enter or escape
+                        Console.WriteLine();
                         break;
                     }
-
+                default:
+                    {
+                        Console.WriteLine("Not a valid command use \"help\" for list of commands");
+                        break;
+                    }
+                
             }
             
         }
@@ -482,6 +703,19 @@ namespace TrappistOS
             // Announce the new value of the Cancel property.
             Console.WriteLine($"  Cancel property: {args.Cancel}");
             Console.WriteLine("The read operation will resume...\n");
+        }
+
+        internal bool WaitForResponse()
+        //waits for enter (true) or escape (false);
+        {
+            while (true)
+            {
+                var key = System.Console.ReadKey(true);
+                if (key.Key == ConsoleKey.Enter)
+                    return true;
+                if (key.Key == ConsoleKey.Escape)
+                { return false; }
+            }
         }
 
     }

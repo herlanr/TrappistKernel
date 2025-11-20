@@ -441,6 +441,7 @@ namespace TrappistOS
         {
             if (currentUser == null)
             {
+                Console.WriteLine("Invalid logged in user");
                 currentUser = VisitorLogin();
             }
             return currentUser.username;

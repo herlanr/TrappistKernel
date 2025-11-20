@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Sys = Cosmos.System;
@@ -26,22 +27,27 @@ namespace TrappistOS
             }
         }
 
-
+        private int visitorID;
         Hashtable fileRightTable;
-        string filepath = @"0:\filePerms";
+        string filepath = @"0:\filePerm";
         public bool PermInit(UserLogin user, string[] requiredSystemPaths) 
         {
-            requiredSystemPaths.Append(filepath);
-            fileRightTable = new Hashtable();
+            Array.Resize(ref requiredSystemPaths, requiredSystemPaths.Length + 1);
+            requiredSystemPaths[requiredSystemPaths.Length - 1] = filepath;
+
+            fileRightTable = new Hashtable(); 
+            //Console.WriteLine("Checking if " + filepath + " exists");
             if (!File.Exists(filepath))
             {
+                //Console.WriteLine("Trying to create File " + filepath);
                 try
                 {
                     File.Create(filepath);
                 }
-                catch
+                catch (Exception e)
                 {
-                    Console.WriteLine("Error in File Permission loading, please restart your machine with the \"force-shutdown\" or \"force-reboot\" Option");
+                    Console.WriteLine("Error in File Permission loading:" + e.Message + "\nPlease restart your machine with the \"force-shutdown\" or \"force-reboot\" Option");
+                    Cosmos.HAL.Global.PIT.Wait((uint)3000);
                     return false;
                 }
             }
@@ -49,7 +55,8 @@ namespace TrappistOS
             foreach (string line in filePermissions)
             {
                 string[] permissionDetails = line.Split(' ');
-
+                if (permissionDetails.Length < 4)
+                { continue; }
                 if (!File.Exists(permissionDetails[3]) || Directory.Exists(permissionDetails[3]))
                 {
                     continue;
@@ -58,12 +65,13 @@ namespace TrappistOS
                 int owner = 0;
                 if (int.TryParse(permissionDetails[0], out owner)){ }
                 else { continue; }
-                
+
                 int[] readRights = Array.Empty<int>();
                 string[] readerList = permissionDetails[1].Split(",");
                 foreach (string reader in readerList)
                 {
-                    if (int.TryParse(reader, out readRights[readRights.Length])) { }
+                    Array.Resize(ref readRights, readRights.Length + 1);
+                    if (int.TryParse(reader, out readRights[readRights.Length-1])) { }
                     else { continue; }
                 }
 
@@ -71,7 +79,8 @@ namespace TrappistOS
                 string[] writerList = permissionDetails[1].Split(",");
                 foreach (string writer in writerList)
                 {
-                    if (int.TryParse(writer, out writeRights[writeRights.Length])) { }
+                    Array.Resize(ref writeRights, writeRights.Length + 1);
+                    if (int.TryParse(writer, out writeRights[writeRights.Length-1])) { }
                     else { continue; }
                 }
 
@@ -88,23 +97,40 @@ namespace TrappistOS
             }
 
             foreach (string path in requiredSystemPaths)
-            { 
-                if (!fileRightTable.ContainsKey(path))
+            {
+                
+                if (!fileRightTable.ContainsKey(path) || ((FileRights)fileRightTable[path]).owner != 0)
                 {
+                    //Console.WriteLine(path);
+                    //Cosmos.HAL.Global.PIT.Wait((uint)3000);
                     int[] system = { 0 };
                     FileRights SystemFile = new FileRights(system[0], system, system);
                     fileRightTable.Add(path,SystemFile);  
                 }
             }
-
+            visitorID = user.maxAdminID + user.visitorid;
             if (!fileRightTable.ContainsKey(@"0:\"))
             {
-                int[] visitor = { user.maxAdminID + user.visitorid };
+                int[] visitor = { visitorID };
                 FileRights rootFile = new FileRights(visitor[0], visitor, visitor);
                 fileRightTable.Add(@"0:\", rootFile);
             }
 
             return true;
+        }
+
+        public bool InitPermissions(string path, int userID)
+        {
+            try
+            {
+                FileRights SystemFile = new FileRights(userID,new[] { userID }, new[] { userID });
+                fileRightTable.Add(path, SystemFile);
+                return true;
+            }
+            catch (Exception e) {
+                Console.WriteLine("Error when creating filepermissions " + e.Message);
+                return false; 
+            };
         }
 
         public bool SetWriter(string path, int userID)
@@ -196,6 +222,12 @@ namespace TrappistOS
 
         public int GetOwnerID(string path)
         {
+            if (!fileRightTable.ContainsKey(path))
+            {
+                Console.WriteLine("unknown permissions, creating new");
+                fileRightTable.Add(path,new FileRights(visitorID, new[] { visitorID}, new[] { visitorID }));
+                return visitorID;
+            }
             if (fileRightTable[filepath].GetType() != typeof(FileRights))
             {
                 Console.WriteLine("Error in file Permission Hashtable, please restart the machine. If this message appears again, please contact an Administrator.");
@@ -203,7 +235,7 @@ namespace TrappistOS
             }
             else
             {
-                return ((FileRights)fileRightTable[filepath]).owner;
+                return ((FileRights)fileRightTable[path]).owner;
             }
         }
 
@@ -238,8 +270,18 @@ namespace TrappistOS
         public bool SavePermissions()
         {
             try
-            { 
+            {
+                //Console.WriteLine("Trying to delete File: " + filepath);
+                if (File.Exists(filepath))
+                {
+                    //Console.WriteLine("Trying to delete existing File: " + filepath);
+                    File.Delete(filepath);
+                    //Console.WriteLine("Deleted file: " + filepath);
+                }
+                //Console.WriteLine("Trying to create file: " + filepath);
                 File.Create(filepath);
+                //Console.WriteLine("Created file: " + filepath);
+
                 foreach (DictionaryEntry file in fileRightTable)
                 {
                     int[] writers = ((FileRights)file.Value).writer;
@@ -247,28 +289,33 @@ namespace TrappistOS
                     int owner = ((FileRights)file.Value).owner;
 
                     File.AppendAllText(filepath, Convert.ToString(owner) + ' ');
-                    int last = writers.Last();
-                    foreach(int  writer in writers)
+                    //Console.WriteLine(" added " + Convert.ToString(owner) + ' ' + " to " + filepath);
+                    for(int i = 0; i < writers.Length; i++)
                     {
-                        if (writer == last)
+                        int writer = writers[i];
+                        if (i > writers.Length-1)
                         {
                             File.AppendAllText(filepath, Convert.ToString(writer) + ',');
+                            //Console.WriteLine(" added " + Convert.ToString(writer) + ',' + " to " + filepath);
                         }
                         else
                         {
                             File.AppendAllText(filepath, Convert.ToString(writer) + ' ');
+                            //Console.WriteLine(" added " + Convert.ToString(writer) + ' ' + " to " + filepath);
                         }
                     }
-                    last = readers.Last();
-                    foreach (int reader in readers)
+                    for (int i = 0; i < readers.Length; i++)
                     {
-                        if (reader == last)
+                        int reader = readers[i];
+                        if (i < readers.Length - 1)
                         {
                             File.AppendAllText(filepath, Convert.ToString(reader) + ',');
+                            //Console.WriteLine(" added " + Convert.ToString(reader) + ',' + " to " + filepath);
                         }
                         else
                         {
                             File.AppendAllText(filepath, Convert.ToString(reader) + ' ');
+                            //Console.WriteLine(" added " + Convert.ToString(reader) + ' ' + " to " + filepath);
                         }
                     }
                     File.AppendAllText(filepath,file.Key.ToString() + Environment.NewLine);
