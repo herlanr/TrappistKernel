@@ -41,7 +41,6 @@ namespace TrappistOS
                 File.WriteAllLines(filepath, intitial_users);
             }
             currentUser = VisitorLogin();
-            Console.WriteLine("File.ReadAllText(filePath)");
         }
 
         public bool IsAdmin() //Admincheck

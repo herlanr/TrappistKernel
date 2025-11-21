@@ -59,15 +59,18 @@ namespace TrappistOS
             {
                 string[] permissionDetails = line.Split(' ');
                 if (permissionDetails.Length < 4)
-                { continue; }
-                if (!File.Exists(permissionDetails[3]) || Directory.Exists(permissionDetails[3]))
                 {
-                    continue;
+                    Console.WriteLine(line + "too short");
+                    continue; 
                 }
 
                 int owner = 0;
                 if (int.TryParse(permissionDetails[0], out owner)){ }
-                else { continue; }
+                else 
+                {
+                    Console.WriteLine(line + " owner not int " + permissionDetails[0]);
+                    continue; 
+                }
 
                 int[] readRights = Array.Empty<int>();
                 string[] readerList = permissionDetails[1].Split(",");
@@ -75,7 +78,11 @@ namespace TrappistOS
                 {
                     Array.Resize(ref readRights, readRights.Length + 1);
                     if (int.TryParse(reader, out readRights[readRights.Length-1])) { }
-                    else { continue; }
+                    else 
+                    {
+                        Console.WriteLine(line + " reader not int: " + reader);
+                        continue; 
+                    }
                 }
 
                 int[] writeRights = Array.Empty<int>();
@@ -84,7 +91,11 @@ namespace TrappistOS
                 {
                     Array.Resize(ref writeRights, writeRights.Length + 1);
                     if (int.TryParse(writer, out writeRights[writeRights.Length-1])) { }
-                    else { continue; }
+                    else 
+                    {
+                        Console.WriteLine(line + " writer not int: " + writer);
+                        continue; 
+                    }
                 }
 
                 FileRights currentFileRights = new FileRights(owner,readRights,writeRights);
@@ -98,6 +109,7 @@ namespace TrappistOS
                     Console.WriteLine("Duplicate File " + permissionDetails[3] + " in filepermissions. Permissions for that File might not be correct.");
                 }
             }
+            //Cosmos.HAL.Global.PIT.Wait((uint)5000);
             foreach (string path in requiredSystemPaths)
             {
                 
@@ -246,7 +258,8 @@ namespace TrappistOS
             }
             else
             {
-                InitPermissions(Directory.GetParent(path).FullName, userID);
+                Console.WriteLine($"parent directory {Directory.GetParent(path).FullName} has no rights, creating new...");
+                InitPermissions(Directory.GetParent(path).FullName);
                 if (!IsReader(Directory.GetParent(path).FullName, userID))
                 {
                     SetReader(Directory.GetParent(path).FullName, userID);
@@ -398,6 +411,7 @@ namespace TrappistOS
         {
             if (path == null)
             {
+                Console.WriteLine("Invalid path.");
                 return false;
             }
             if (!File.Exists(path) && !Directory.Exists(path))
@@ -543,7 +557,7 @@ namespace TrappistOS
             if (!fileRightTable.ContainsKey(path.ToLower()))
             {
                 Console.WriteLine($"unknown permissions for " + path + ", creating new");
-                fileRightTable.Add(path.ToLower(),new FileRights(visitorID, new[] { visitorID}, new[] { visitorID }));
+                InitPermissions(path);
                 return visitorID;
             }
             if (fileRightTable[path.ToLower()].GetType() != typeof(FileRights))
@@ -571,7 +585,7 @@ namespace TrappistOS
             if (!fileRightTable.ContainsKey(path.ToLower()))
             {
                 Console.WriteLine($"unknown permissions for " + path + ", creating new");
-                fileRightTable.Add(path.ToLower(), new FileRights(visitorID, new[] { visitorID }, new[] { visitorID }));
+                InitPermissions(path);
                 return new[] { visitorID };
             }
             if (fileRightTable[path.ToLower()].GetType() != typeof(FileRights))
@@ -610,7 +624,7 @@ namespace TrappistOS
             if (!fileRightTable.ContainsKey(path.ToLower()))
             {
                 Console.WriteLine($"unknown permissions for " + path + ", creating new");
-                fileRightTable.Add(path.ToLower(), new FileRights(visitorID, new[] { visitorID }, new[] { visitorID }));
+                InitPermissions(path);
                 return new[] { visitorID };
             }
             if (fileRightTable[path.ToLower()].GetType() != typeof(FileRights))
@@ -692,7 +706,6 @@ namespace TrappistOS
                 return false; 
             }
         }
-
 
 
     }

@@ -112,6 +112,11 @@ namespace TrappistOS
                             Console.WriteLine("Avaiable Arguments: \n-h: help \n-o: give yourself complete ownership.\n    If not set, it will inherent the ownership of the Current directory.");
                             break;
                         }
+                        if(!permManager.IsWriter(fsManager.getCurrentDir(),userInfo.GetId()))
+                        {
+                            Console.WriteLine("You do not have permission to create files here.");
+                            break;
+                        }
                         if (args[1] == "-o")
                         {
                             string path = fsManager.createFile(args[2]);
@@ -131,6 +136,12 @@ namespace TrappistOS
                             Console.WriteLine("Usage: mkdir [-o] <directory name> ");
                             Console.WriteLine("Description: Creates a new directory");
                             Console.WriteLine("Avaiable Arguments: \n-h: help \n-o: give yourself complete ownership.\n    If not set, it will inherent the ownership of the Current directory.");
+                            break;
+                        }
+
+                        if (!permManager.IsWriter(fsManager.getCurrentDir(), userInfo.GetId()))
+                        {
+                            Console.WriteLine("You do not have permission to create directories here.");
                             break;
                         }
                         if (args[1] == "-o")
@@ -306,7 +317,7 @@ namespace TrappistOS
                             Console.WriteLine("You do not have the right to change ownership.");
                             break;
                         }
-                        Console.WriteLine($"Do you want to give Ownership of {args[1]} to {args[2]}?\nThis action is not reversable.\n(Y)es/(N)o");
+                        Console.WriteLine($"Do you want to give Ownership of {args[1]} to {args[2]}?\nThis action is not reversable.\n(y)es/(n)o");
                         char confirmation = ' ';
                         do
                         { confirmation = Console.ReadKey(true).KeyChar; }
@@ -314,6 +325,11 @@ namespace TrappistOS
                         if (confirmation == 'y')
                         {
                             permManager.SetOwner(fsManager.getFullPath(args[1]), userInfo.GetUserID(args[2]));
+                            Console.WriteLine("Successfully changed Owner to" + args[2]);
+                        }
+                        else
+                        {
+                            Console.WriteLine("Change aborted.");
                         }
                         break;
                     }

@@ -60,11 +60,32 @@ namespace TrappistOS
 
         public string getFullPath(string filename)
         {
-            string formatedFileName = filename.Replace("/", @"\");
-            string path = Path.Combine(currentDir, formatedFileName);
-            if (!File.Exists(path) && !Directory.Exists(path))
+            filename = filename.Replace('/','\\');
+            string path = Path.Combine(currentDir, filename);
+
+
+            int backLocation = 0;       // .. resolution
+            int preLocation = 0;
+            backLocation = path.IndexOf(@"..");
+            while (backLocation != -1)
             {
-                return null;
+                while (path.IndexOf(@"\", preLocation+1)< backLocation-1)
+                {
+                    preLocation = path.IndexOf(@"\", preLocation);
+                }
+                if (preLocation == -1 || preLocation == 0)
+                {
+                    Console.WriteLine("You are already in the home directory");
+                    return null;
+                }
+                path = path.Remove(preLocation+1, (backLocation - preLocation) + 1);
+                
+                while (path.Contains(@"\\"))
+                {
+                    path = path.Replace(@"\\", @"\");
+                }
+                
+                backLocation = path.IndexOf(@"..");
             }
             return path.ToLower();
         }
@@ -95,7 +116,7 @@ namespace TrappistOS
 
         public string createFile(string filename)
         {
-            string path = Path.Combine(currentDir, filename);
+            string path = getFullPath(filename);
 
             if (filename.Length > 8)
             {
@@ -136,7 +157,7 @@ namespace TrappistOS
 
         public string createDirectory(string dirName)
         {
-            string path = Path.Combine(currentDir, dirName);
+            string path = getFullPath(dirName);
 
             try
             {
@@ -169,7 +190,7 @@ namespace TrappistOS
 
         public bool deleteFile(string name)
         {
-            string path = Path.Combine(currentDir, name);
+            string path = getFullPath(name);
 
             try
             {
@@ -196,7 +217,7 @@ namespace TrappistOS
         public bool deleteDir(string name)    
         {
 
-            string path = Path.Combine(currentDir, name);
+            string path = getFullPath(name);
 
             try
             {
@@ -223,7 +244,7 @@ namespace TrappistOS
 
         public bool readFromFile(String filename)
         {
-            string path = currentDir + @"\" + filename;
+            string path = getFullPath(filename);
 
             try
             {
@@ -240,7 +261,7 @@ namespace TrappistOS
 
         public bool changeDirectory(string newDir)
         {
-
+            /*
             if(newDir == "..")
             {
                 if (dirHistory.Count > 0) 
@@ -254,8 +275,8 @@ namespace TrappistOS
                     return false;
                 }
             }
-
-            string path = Path.Combine(currentDir, newDir);
+            */
+            string path = getFullPath(newDir);
 
             if (Directory.Exists(path))
             {
@@ -310,9 +331,7 @@ namespace TrappistOS
                 Console.WriteLine("File or Directory name can't be longer than 8 characters");
                 return false;
             }
-
-            string formatedFileName = filename.Replace("/", @"\");
-            string path = filename.StartsWith(@"0:\") ? formatedFileName : Path.Combine(currentDir, formatedFileName);
+            string path = getFullPath(filename);
 
             try
             {
