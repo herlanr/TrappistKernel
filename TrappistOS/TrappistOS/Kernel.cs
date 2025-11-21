@@ -182,12 +182,12 @@ namespace TrappistOS
                         }
                         break;
                     }
-
+                case "rmf":
                 case "rmfile":
                     {
                         if (args.Length < 2 || args[1] == "-h")
                         {
-                            Console.WriteLine("Usage: rmfile <file name>");
+                            Console.WriteLine("Usage: rmf / rmfile <file name>");
                             Console.WriteLine("Description: Deletes the specified file");
                             Console.WriteLine("Avaiable Arguments: \n-h: help");
                             break;
@@ -196,11 +196,12 @@ namespace TrappistOS
                         fsManager.deleteFile(args[1]);
                         break;
                     }
+                case "rmd":
                 case "rmdir":
                     {
                         if (args.Length < 2 || args[1] == "-h")
                         {
-                            Console.WriteLine("Usage: rmdir <directory name>");
+                            Console.WriteLine("Usage: rmd / rmdir <directory name>");
                             Console.WriteLine("Description: Deletes the specified dir");
                             Console.WriteLine("Avaiable Arguments: \n-h: help");
                             break;
@@ -667,14 +668,14 @@ namespace TrappistOS
             Console.WriteLine();
 
             Console.ForegroundColor = ConsoleColor.Magenta;
-            Console.WriteLine("Usage: rmfile <file name>");
+            Console.WriteLine("Usage: rmf / rmfile <file name>");
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine("Description: Deletes the specified file");
             Console.WriteLine("Avaiable Arguments: \n-h: help");
             Console.WriteLine();
 
             Console.ForegroundColor = ConsoleColor.Magenta;
-            Console.WriteLine("Usage: rmdir <directory name>");
+            Console.WriteLine("Usage: rmd / rmdir <directory name>");
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine("Description: Deletes the specified dir");
             Console.WriteLine("Avaiable Arguments: \n-h: help");
@@ -684,6 +685,7 @@ namespace TrappistOS
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine("Description: It Renames the selected directory or file.");
             Console.WriteLine("Avaiable Arguments: \n-h: help");
+            Console.WriteLine();
 
             currentPage++;
             Console.WriteLine("Page " + currentPage.ToString() + " out of " + pagecount.ToString() + " Continue with enter, exit with esc");
