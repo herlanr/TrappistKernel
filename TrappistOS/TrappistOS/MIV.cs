@@ -1,9 +1,14 @@
-﻿using System;
+﻿using Cosmos.System;
+using Cosmos.System.FileSystem.VFS;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Threading.Tasks;
-using System.IO;
+using static System.Net.Mime.MediaTypeNames;
+using Console = System.Console;
 
 namespace MIV
 {
@@ -19,18 +24,19 @@ namespace MIV
             Console.WriteLine("~");
             Console.WriteLine("~");
             Console.WriteLine("~");
-            Console.WriteLine("~                               MIV - MInimalistic Vi");
             Console.WriteLine("~");
-            Console.WriteLine("~                                  version 1.2");
-            Console.WriteLine("~                             by Denis Bartashevich");
-            Console.WriteLine("~                            Minor additions by CaveSponge");
-            Console.WriteLine("~                    MIV is open source and freely distributable");
+            Console.WriteLine("~");
+            Console.WriteLine("~");
+            Console.WriteLine("~");
+            Console.WriteLine("~");
+            Console.WriteLine("~");
+            Console.WriteLine("~");
             Console.WriteLine("~");
             Console.WriteLine("~                     type :help<Enter>          for information");
             Console.WriteLine("~                     type :q<Enter>             to exit");
-            Console.WriteLine("~                     type :wq<Enter>            save to file and exit");
-            Console.WriteLine("~                     press i                    to write");
-            Console.WriteLine("~");
+            Console.WriteLine("~                     type :wq<Enter>            to save file and exit");
+            Console.WriteLine("~                     press i                    to enter writing mode");
+            Console.WriteLine("~                     press escape               to exit file options mode");
             Console.WriteLine("~");
             Console.WriteLine("~");
             Console.WriteLine("~");
@@ -291,25 +297,21 @@ namespace MIV
             }
 
             String text = String.Empty;
-            Console.WriteLine("Do you want to open " + file + " content? (Yes/No)");
-            if (Console.ReadLine().ToLower() == "yes" || Console.ReadLine().ToLower() == "y")
+            text = miv(File.ReadAllText(file));
+
+            if (text != null && File.Exists(file))
             {
-                text = miv(File.ReadAllText(file));
+                File.WriteAllText(file, text);
+                Console.Clear();
+                Console.WriteLine("Content has been saved to " + file);
             }
             else
             {
-                text = miv(null);
+                Console.Clear();
+                Console.WriteLine("No changes were made to " + file + " or invalid path");
+                
             }
-
-            Console.Clear();
-
-            if (text != null)
-            {
-                File.WriteAllText(@"0:\" + file, text);
-                Console.WriteLine("Content has been saved to " + file);
-            }
-            Console.WriteLine("Press any key to continue...");
-            Console.ReadKey(true);
+            return;
         }
     }
 }

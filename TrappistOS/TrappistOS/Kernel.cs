@@ -9,6 +9,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using System.Timers;
 using Sys = Cosmos.System;
 
 namespace TrappistOS
@@ -19,6 +20,7 @@ namespace TrappistOS
         ProgramClass[] ProgramMemory = new ProgramClass[6];
         FileSystemManager fsManager;
 
+        UserLogin userInfo;
         protected override void BeforeRun()
         {
             fsManager = new FileSystemManager();
@@ -26,15 +28,18 @@ namespace TrappistOS
             Sys.KeyboardManager.SetKeyLayout(new DE_Standard());
             Console.Clear();
             Console.WriteLine("TrappistOS booted up!");
+            userInfo = new UserLogin();
+            ProgramMemory[0] = userInfo;
+            userInfo.BeforeRun();
+            Console.WriteLine("Cosmos booted successfully. Type a line of text to get it echoed back.");
+            
         }
 
         protected override void Run()
         {
-            Console.ForegroundColor = ConsoleColor.Magenta;
-            Console.Write(fsManager.getCurrentDir() + "> ");
-            Console.ForegroundColor = ConsoleColor.White;
 
-            var input = Console.ReadLine();
+            var cmd = new CommandHistory();
+            var input = cmd.ReadLine(userInfo.get_name(), fsManager.getCurrentDir());
 
             string[] args = input.Split(' ');
 
@@ -173,10 +178,128 @@ namespace TrappistOS
                         Sys.Power.Reboot();
                         break;
                     }
+                case "login":
+                    {        
+                        if (args.Length == 1)
+                        {
+                            userInfo.Login();
+                        }
+                        else
+                        {
+                            Console.WriteLine("Usage: Login");
+                            Console.WriteLine("Description: Login to Account");
+                            Console.WriteLine("Available Arguments:\n -h: help");
+                        }
+                        break;
+                    }
+                case "logout":
+                    {
+                        if (args.Length == 1)
+                        {
+                            userInfo.Logout();
+                        }
+                        else
+                        {
+                            Console.WriteLine("Usage: Logout");
+                            Console.WriteLine("Description: Logout of your Account");
+                            Console.WriteLine("Available Arguments:\n -h: help");
+                        }
+                        break;
+                    }
+                case "deleteuser":
+                case "delusr":
+                    {
+                        if (args.Length == 2 && args[1] != "-h")
+                        {
+                            if (userInfo.IsAdmin())
+                            {
+                                if (args[1] == "Visitor" || args[1] == "Admin")
+                                {
+                                    Console.WriteLine($"Cannot delete {args[1]}");
+                                    break;
+                                }
+                                if (args[1] == userInfo.get_name())
+                                {
+                                    Console.WriteLine("Cannot delete User you are logged in with");
+                                }
+                                userInfo.DeleteUser(args[1]);
+                                
+                            } else
+                            {
+                                Console.WriteLine("You need to be an admin to do this");
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("Usage: deleteUser [username] / delUsr [username]");
+                            Console.WriteLine("Description: delete a User (only available to admins)");
+                            Console.WriteLine("Available Arguments: \n -h: help");
+
+                        }
+                        break;
+                    }
+                case "createuser":
+                case "mkusr":
+                    {
+                        if (args.Length == 1)
+                        {  
+                            userInfo.CreateUser(false); 
+                        }
+                        else if (args.Length >= 2)
+                        {
+                            if (args[1] == "-a")
+                                if (userInfo.IsAdmin())
+                                {
+                                    userInfo.CreateUser(true);
+                                }
+                                else
+                                {
+                                    Console.WriteLine("Only Admins can create Admins");
+                                }
+                            else
+                            {
+                                Console.WriteLine("Usage: createUser / mkUsr");
+                                Console.WriteLine("Description: Create a new User");
+                                Console.WriteLine("Available Arguments: \n -h: help \n -a: create Admin (Only Admins can crate Admins)");
+                            }
+                        }
+                        break;
+                    }/*
+                case "increaseAdminRange":
+                case "incAdmRange":
+                    {
+                        if (args.Length == 1 || args[1] == "-h")
+                        {
+                            Console.WriteLine("Usage: increaseAdminRange [count] / incAdmRange [count]");
+                            Console.WriteLine("Descrition: increase the Amount off possible Admins by this amount (reducing is not possible");
+                            Console.WriteLine("Available Arguments: \n -h help");
+                        }
+                        break;
+                    }*/
+                case "changepwd":
+                    {
+                        if (!(userInfo.get_name() == "Visitor"))
+                        { 
+                            userInfo.Changepassword(); 
+                        }
+                        else
+                        {
+                            Console.WriteLine("Can't change Password of Visitor");
+                        }
+                        break;
+                    }
+                case "":
+                    { break; }
                 case "miv":
                     {
-                        string filePath = Path.Combine(fsManager.getCurrentDir(), args[1]);
-                        MIV.MIV.StartMIV(filePath);
+                        if (args.Length == 2)
+                        {
+                            string filePath = Path.Combine(fsManager.getCurrentDir(), args[1]);
+                            MIV.MIV.StartMIV(filePath);
+                        }
+                        else {
+                            Console.WriteLine("miv + path");
+                        } 
                         break;
                     }
                 default:
@@ -186,7 +309,25 @@ namespace TrappistOS
                     }
 
             }
+            
         }
+        protected static void myHandler(object sender, ConsoleCancelEventArgs args)
+        {
+            Console.WriteLine("\nThe read operation has been interrupted.");
+
+            Console.WriteLine($"  Key pressed: {args.SpecialKey}");
+
+            Console.WriteLine($"  Cancel property: {args.Cancel}");
+
+            // Set the Cancel property to true to prevent the process from terminating.
+            Console.WriteLine("Setting the Cancel property to true...");
+            args.Cancel = true;
+
+            // Announce the new value of the Cancel property.
+            Console.WriteLine($"  Cancel property: {args.Cancel}");
+            Console.WriteLine("The read operation will resume...\n");
+        }
+
     }
 
 
