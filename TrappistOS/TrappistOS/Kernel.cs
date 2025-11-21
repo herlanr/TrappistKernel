@@ -1,10 +1,5 @@
-﻿using Cosmos.System.Graphics;
-using Cosmos.System.ScanMaps;
+﻿using Cosmos.System.ScanMaps;
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using System.Timers;
 using Sys = Cosmos.System;
 
 namespace TrappistOS
@@ -22,12 +17,51 @@ namespace TrappistOS
             fsManager.fsInitialize();
             Sys.KeyboardManager.SetKeyLayout(new DE_Standard());
             Console.Clear();
-            Console.WriteLine("TrappistOS booted up!");
-            userInfo = new UserLogin();
-            ProgramMemory[0] = userInfo;
-            userInfo.BeforeRun();
-            Console.WriteLine("Cosmos booted successfully. Type a line of text to get it echoed back.");
-            
+
+            // Print system info
+            Console.WriteLine("========== TrappistOS Boot ==========");
+            Console.WriteLine("Version: 1.0");
+            Console.WriteLine("Kernel: Cosmos");
+            Console.WriteLine("Current Directory: " + fsManager.getCurrentDir());
+            Console.WriteLine("Memory: " + Cosmos.Core.CPU.GetAmountOfRAM() + " MB");
+            Console.WriteLine("Autors: Erik Wenk");
+            Console.WriteLine("        Herlan Rodrigo Ribeiro Rocha");
+            Console.WriteLine("        Nurettin Fatih Semiz");  
+            Console.WriteLine("        Timo Andreas Paetsch");  
+            Console.WriteLine("=====================================");
+            Console.WriteLine();
+
+            Console.WriteLine("Please press ENTER to go to the terminal...");
+            Console.WriteLine("Or press ESC to exit...");
+
+            while (true)
+            {
+                ConsoleKeyInfo keyInfo = Console.ReadKey(true);
+
+                if (keyInfo.Key == ConsoleKey.Enter)
+                {
+                    Console.WriteLine("\nStarting terminal...");
+                    userInfo = new UserLogin();
+                    ProgramMemory[0] = userInfo;
+                    userInfo.BeforeRun();
+                    Console.Clear();
+                    Console.WriteLine("TrappistOS booted up!");
+                    break;
+                }
+                else if (keyInfo.Key == ConsoleKey.Escape)
+                {
+                    Console.WriteLine("\nExiting system...");
+                    Sys.Power.Shutdown();
+                    return;
+                }
+                else
+                {
+                    Console.WriteLine("\nInvalid key. Press ENTER or ESC.");
+                }
+            }
+
+
+
         }
 
         protected override void Run()

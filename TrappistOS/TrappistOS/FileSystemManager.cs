@@ -2,9 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace TrappistOS
 {
@@ -56,9 +53,15 @@ namespace TrappistOS
             }
         }
 
-        public void createFile(string filename)
+        public bool createFile(string filename)
         {
             string path = Path.Combine(currentDir, filename);
+
+            if (filename.Length > 8)
+            {
+                Console.WriteLine("File or Directory name can't be longer than 8 characters");
+                return false;
+            }
 
             try
             {
@@ -66,26 +69,29 @@ namespace TrappistOS
                 {
                     File.Create(path);
                     Console.WriteLine("File successfully created: " + path);
-                    return;
+                    return true;
                 }
                 else
                 {
                     if (Directory.Exists(path))
                     {
                         Console.WriteLine("There is already a file or directory with this name.");
+                        return false;
                     } else
                     {
                         Console.WriteLine("File already exist: " + path);
+                        return false;
                     }
                 }
             }
             catch (Exception e)
             {
                 Console.WriteLine("Error creating file: " + e.Message);
+                return false;
             }
         }
 
-        public void createDirectory(string dirName)
+        public bool createDirectory(string dirName)
         {
             string path = currentDir + @"\" + dirName;
 
@@ -95,28 +101,32 @@ namespace TrappistOS
                 {
                     Directory.CreateDirectory(path);
                     Console.WriteLine("Directory successfully created: " + path);
-                    return;
+                    return true;
                 }
                 else
                 {
                     if (File.Exists(path))
                     {
                         Console.WriteLine("There is already a file or directory with this name.");
+                        return false;
+
                     } else
                     {
                         Console.WriteLine("Directory already exist or " + path);
+                        return false;
                     }
                 }
             }
             catch (Exception e)
             {
                 Console.WriteLine("Error creating directory: " + e.Message);
+                return false;
             }
         }
 
-        public void deleteFile(string name)
+        public bool deleteFile(string name)
         {
-            string path = currentDir + @"\" + name;
+            string path = Path.Combine(currentDir, name);
 
             try
             {
@@ -124,24 +134,26 @@ namespace TrappistOS
                 {
                     File.Delete(path);
                     Console.WriteLine("File " + path + " deleted");
-                    return;
+                    return true;
                 }
 
                 else
                 {
                     Console.WriteLine("File doesn't exist");
+                    return false;
                 }
             }
 
             catch (Exception e)
             {
                 Console.WriteLine(e.ToString());
+                return false;
             }
         }
-        public void deleteDir(string name)    
+        public bool deleteDir(string name)    
         {
 
-            string path = currentDir + @"\" + name;
+            string path = Path.Combine(currentDir, name);
 
             try
             {
@@ -149,36 +161,41 @@ namespace TrappistOS
                 {
                     Directory.Delete(path);
                     Console.WriteLine("Directory " + path + " deleted");
-                    return;
+                    return true;
                 }
 
                 else 
                 {
                     Console.WriteLine("Directory doesn't exist");
+                    return false;
                 }
             }
 
             catch (Exception e)
             {
                 Console.WriteLine(e.ToString());
+                return false;
             }
         }
 
-        public void readFromFile(String filename)
+        public bool readFromFile(String filename)
         {
             string path = currentDir + @"\" + filename;
 
             try
             {
                 Console.WriteLine(File.ReadAllText(path));
+                return true;
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.ToString());
+                return false;
+
             }
         }
 
-        public void changeDirectory(string newDir)
+        public bool changeDirectory(string newDir)
         {
 
             if(newDir == "..")
@@ -186,11 +203,12 @@ namespace TrappistOS
                 if (dirHistory.Count > 0) 
                 {
                     currentDir = dirHistory.Pop();
-                    return;
+                    return true;
                 }
                 else
                 {
                     Console.WriteLine("You are on the home directory");
+                    return false;
                 }
             }
 
@@ -200,15 +218,17 @@ namespace TrappistOS
             {
                 dirHistory.Push(currentDir);
                 currentDir = path;
+                return true;
             }
             else
             {
                 Console.WriteLine("Directory doesn't exist");
+                return false;
             }
 
         }
         
-        public void moveFile(string filename, string dest)
+        public bool moveFile(string filename, string dest)
         {
 
             string formatedFileName = filename.Replace("/", @"\");
@@ -224,15 +244,17 @@ namespace TrappistOS
                         File.Copy(filePath, newPath);
                         File.Delete(filePath);
                         Console.WriteLine("File: " + filePath + " moved to " + newPath);
-                    return;
+                        return true;
                     } catch (Exception ex) 
                     {
                         Console.WriteLine(ex.ToString());
-                    }
-                } 
+                        return false;
+                }
+            } 
                 else 
                 {
                     Console.WriteLine("File or Dir doesn't exist. File: " + filePath + ". New Path: " + newPath);
+                    return false;
                 }
 
         }
