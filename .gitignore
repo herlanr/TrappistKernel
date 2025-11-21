@@ -63,3 +63,4 @@ testem.log
 Thumbs.db
 *.vsidx
 /TrappistOS/TrappistOS/obj/Debug/net6.0/TrappistOS.AssemblyInfoInputs.cache
+/TrappistOS/TrappistOS/bin/Debug/net6.0/TrappistOS.iso
