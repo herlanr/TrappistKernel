@@ -19,7 +19,8 @@ namespace TrappistOS
             Console.Clear();
 
             // Print system info
-            Console.WriteLine("========== TrappistOS Boot ==========");
+            Console.WriteLine(" _____                     _     _   _____ _____ \r\n|_   _|                   (_)   | | |  _  /  ___|\r\n  | |_ __ __ _ _ __  _ __  _ ___| |_| | | \\ `--. \r\n  | | '__/ _` | '_ \\| '_ \\| / __| __| | | |`--. \\\r\n  | | | | (_| | |_) | |_) | \\__ \\ |_\\ \\_/ /\\__/ /\r\n  \\_/_|  \\__,_| .__/| .__/|_|___/\\__|\\___/\\____/ \r\n              | |   | |                          \r\n              |_|   |_|                          ");
+
             Console.WriteLine("Version: 1.0");
             Console.WriteLine("Kernel: Cosmos");
             Console.WriteLine("Current Directory: " + fsManager.getCurrentDir());
