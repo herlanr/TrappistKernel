@@ -12,6 +12,7 @@ namespace TrappistOS
     {
         private CosmosVFS fs;
         string currentDir = @"0:\";
+        string rootdir = @"0:\";
         Stack<string> dirHistory = new Stack<string>();
 
         public void fsInitialize()
@@ -22,7 +23,7 @@ namespace TrappistOS
 
         public void showFreeSpace()
         {
-            var available_space = fs.GetAvailableFreeSpace(@"0:\");
+            var available_space = fs.GetAvailableFreeSpace(rootdir);
             Console.WriteLine("Available Free Space: " + available_space);
         }
 
@@ -63,6 +64,19 @@ namespace TrappistOS
             filename = filename.Replace('/','\\');
             string path = Path.Combine(currentDir, filename);
 
+            int dotlocation = -1;
+            while (dotlocation < path.Length && path.IndexOf(@".", dotlocation+1) != -1)
+            {
+                dotlocation = path.IndexOf(@".", dotlocation+1);
+                if( dotlocation+1 == path.Length || path.IndexOf(@"\", dotlocation + 1) == dotlocation+1)
+                {
+                    path = path.Remove(dotlocation);
+                    
+                    continue;
+                }
+                dotlocation++;
+
+            }
 
             int backLocation = 0;       // .. resolution
             int preLocation = 0;
@@ -79,36 +93,44 @@ namespace TrappistOS
                     return null;
                 }
                 path = path.Remove(preLocation+1, (backLocation - preLocation) + 1);
-                
-                while (path.Contains(@"\\"))
-                {
-                    path = path.Replace(@"\\", @"\");
-                }
-                
                 backLocation = path.IndexOf(@"..");
+            }
+            while (path.Contains(@"\\"))
+            {
+                path = path.Replace(@"\\", @"\");
+            }
+            if (path.EndsWith(@"\") && path != rootdir)
+            {
+                path = path.Remove(path.Length - 1);
             }
             return path.ToLower();
         }
 
         public string[] getAllPaths(string path)
         {
+            //Console.WriteLine($"looking at: {path}");
             var result = new List<string>();
             if (Directory.Exists(path))
             {
-                result.Add(path);
+                result.Add(getFullPath(path));
                 string[] subdirs = Directory.GetDirectories(path);
-                result.AddRange(subdirs);
+                
                 string[] files = Directory.GetFiles(path);
-                result.AddRange(files);
+                foreach (string file in files)
+                {
+                    //Console.WriteLine($"adding file: {Path.Combine(path, file)}");
+                    result.Add(getFullPath(Path.Combine(path, file)));
+                }
                 foreach (string dir in subdirs)
                 {
-                    result.AddRange(getAllPaths(dir));
+                   // Console.WriteLine($"adding directory: {Path.Combine(path, dir)}");
+                    result.AddRange(getAllPaths(Path.Combine(path,dir)));
                 }
             }
 
             if (File.Exists(path))
             {
-                result.Add(path);
+                result.Add(getFullPath(path));
             }
 
             return result.ToArray();

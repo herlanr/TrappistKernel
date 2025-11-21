@@ -1,4 +1,5 @@
-﻿using Cosmos.System.Graphics.Fonts;
+﻿using Cosmos.System.FileSystem.VFS;
+using Cosmos.System.Graphics.Fonts;
 using System;
 using System.CodeDom.Compiler;
 using System.Collections;
@@ -137,6 +138,7 @@ namespace TrappistOS
                 fileRightTable.Add(@"0:\", rootFile);
             }
 
+            //Cosmos.HAL.Global.PIT.Wait((uint)10000);
             return true;
         }
 
@@ -226,7 +228,7 @@ namespace TrappistOS
             }
             if (!File.Exists(path) && !Directory.Exists(path))
             {
-                Console.WriteLine(path + " does not exist");
+                Console.WriteLine(path + " does not exist for SetWriter");
                 return false;
             }
             if(path == rootdir)
@@ -236,7 +238,7 @@ namespace TrappistOS
             }
             if (!fileRightTable.ContainsKey(path.ToLower()))
             {
-                Console.WriteLine($"unknown permissions for " + path + ", creating new");
+                Console.WriteLine($"unknown permissions for " + path + ", creating new for SetWriter");
                 InitPermissions(path);
             }
             if (fileRightTable[path.ToLower()].GetType() != typeof(FileRights))
@@ -276,7 +278,7 @@ namespace TrappistOS
             }
             if (!File.Exists(path) && !Directory.Exists(path))
             {
-                Console.WriteLine(path + " does not exist");
+                Console.WriteLine(path + " does not exist SetReader");
                 return false;
             }
             if (path == rootdir)
@@ -286,7 +288,7 @@ namespace TrappistOS
             }
             if (!fileRightTable.ContainsKey(path.ToLower()))
             {
-                Console.WriteLine($"unknown permissions for " + path + ", creating new");
+                Console.WriteLine($"unknown permissions for " + path + ", creating new for SetReader");
                 InitPermissions(path);
             }
             if (fileRightTable[path.ToLower()].GetType() != typeof(FileRights))
@@ -331,7 +333,7 @@ namespace TrappistOS
             }
             if (!File.Exists(path) && !Directory.Exists(path))
             {
-                Console.WriteLine(path + " does not exist");
+                Console.WriteLine(path + " does not exist RemoveWriter");
                 return false;
             }
             if (path == rootdir)
@@ -341,7 +343,7 @@ namespace TrappistOS
             }
             if (!fileRightTable.ContainsKey(path.ToLower()))
             {
-                Console.WriteLine($"unknown permissions for " + path + ", creating new");
+                Console.WriteLine($"unknown permissions for " + path + ", creating new for RemoveWriter");
                 InitPermissions(path);
             }
             if (fileRightTable[path.ToLower()].GetType() != typeof(FileRights))
@@ -353,7 +355,7 @@ namespace TrappistOS
             return true;
         }
 
-        public bool RemoveReader(string path, int userID)
+        public bool RemoveReader(string path, int userID, string username, FileSystemManager fsManager)
         {
             if (path == null)
             {
@@ -361,7 +363,7 @@ namespace TrappistOS
             }
             if (!File.Exists(path) && !Directory.Exists(path))
             {
-                Console.WriteLine(path + " does not exist");
+                Console.WriteLine(path + " does not exist for RemoveReader");
                 return false;
             }
             if (path == rootdir)
@@ -371,7 +373,7 @@ namespace TrappistOS
             }
             if (!fileRightTable.ContainsKey(path.ToLower()))
             {
-                Console.WriteLine($"unknown permissions for " + path + ", creating new");
+                Console.WriteLine($"unknown permissions for " + path + ", creating new for RemoveReader");
                 InitPermissions(path);
             }
             if (fileRightTable[path.ToLower()].GetType() != typeof(FileRights))
@@ -380,31 +382,80 @@ namespace TrappistOS
                 return false;
             }
 
+            if (Directory.Exists(path)) //if directory, check if anything below needs rights
+            {
+                List<string> pathsToCheck = fsManager.getAllPaths(path).ToList();
+                bool confirm = false;
+                foreach (string potentialpath in pathsToCheck) {
+                    if(IsReader(fsManager.getFullPath(potentialpath), userID) || IsOwner(potentialpath,userID))
+                    { confirm = true; break; }
+                }
+                if (confirm)
+                {
+                    if (username!="system")
+                    {
+                        Console.WriteLine("There are files or Directories within this " + path + " that " + username + " has access to.\nAre you sure you want to remove his access?\n(y)es/(n)o");
+                    }
+                    char confimation = ' ';
+                    do
+                    { confimation = Console.ReadKey(true).KeyChar; }
+                    while (confimation != 'y' && confimation != 'n' && username!="system");
+                    if (confimation == 'y' || username == "system")
+                    {
+                        foreach (string potentialpath in pathsToCheck)
+                        {
+                            if (IsWriter(potentialpath, userID))
+                            {
+                                RemoveWriter(potentialpath, userID);
+                            }
+                            internalRemoveReader(potentialpath, userID);
+                        }
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+            }
+
+
             ((FileRights)fileRightTable[path.ToLower()]).reader.Remove(userID);
 
             if (IsOwner(path, userID)||IsOwner(path,visitorID)) { return true; }
 
-            var subdirectories = Directory.GetParent(path).GetDirectories();
+            var subdirectories = Directory.GetDirectories(path); //check if rights are still needed somewhere
             foreach (var subdirectory in subdirectories)
             {
-                if(IsReader(subdirectory.FullName, userID))
+                if(IsReader(Path.Combine(path, subdirectory), userID))
                 {
                     return true;
                 }
             }
 
-            var files = Directory.GetParent(path).GetDirectories();
+            var files = Directory.GetDirectories(path);
             foreach (var file in files)
             {
-                if (IsReader(file.FullName, userID))
+                if (IsReader(Path.Combine(path, file), userID))
                 {
                     return true;
                 }
             }
 
-            RemoveReader(Directory.GetParent(path).FullName, userID);
+            internalRemoveReader(Directory.GetParent(path).FullName, userID);
 
             return true;
+        }
+
+        private bool internalRemoveReader(string path,int userID)
+        {
+            if (IsReader(path, userID))
+            {
+                ((FileRights)fileRightTable[path.ToLower()]).reader.Remove(userID);
+                return true;
+            }
+            else
+                { return false; }
+            
         }
 
         public bool SetOwner(string path, int userID)
@@ -416,7 +467,7 @@ namespace TrappistOS
             }
             if (!File.Exists(path) && !Directory.Exists(path))
             {
-                Console.WriteLine(path + " does not exist");
+                Console.WriteLine(path + " does not exist for SetOwner");
                 return false;
             }
             if (path == rootdir)
@@ -426,8 +477,8 @@ namespace TrappistOS
             }
             if (!fileRightTable.ContainsKey(path.ToLower()))
             {
-                Console.WriteLine($"unknown permissions for " + path + ", creating new");
-                fileRightTable.Add(path.ToLower(), new FileRights(visitorID, new[] { visitorID }, new[] { visitorID }));
+                Console.WriteLine($"unknown permissions for " + path + ", creating new for SetOwner");
+                InitPermissions(path.ToLower());
             }
             if (fileRightTable[path.ToLower()].GetType() != typeof(FileRights))
             { 
@@ -464,13 +515,13 @@ namespace TrappistOS
             }
             if (!File.Exists(path) && !Directory.Exists(path))
             {
-                Console.WriteLine(path + " does not exist");
+                Console.WriteLine(path + " does not exist for IsOwner");
                 return false;
             }
             if (!fileRightTable.ContainsKey(path.ToLower()))
             {
-                Console.WriteLine($"unknown permissions for " + path + ", creating new");
-                fileRightTable.Add(path.ToLower(), new FileRights(visitorID, new[] { visitorID }, new[] { visitorID }));
+                Console.WriteLine($"unknown permissions for " + path + ", creating new for IsOwner");
+                InitPermissions(path.ToLower());
             }
             if (fileRightTable[path.ToLower()].GetType() != typeof(FileRights))
             { 
@@ -493,13 +544,13 @@ namespace TrappistOS
             }
             if (!File.Exists(path) && !Directory.Exists(path))
             {
-                Console.WriteLine(path + " does not exist");
+                Console.WriteLine(path + " does not exist for IsReader");
                 return false;
             }
             if (!fileRightTable.ContainsKey(path.ToLower()))
             {
-                Console.WriteLine($"unknown permissions for " + path + ", creating new");
-                fileRightTable.Add(path.ToLower(), new FileRights(visitorID, new[] { visitorID }, new[] { visitorID }));
+                Console.WriteLine($"unknown permissions for " + path + ", creating new for IsReader");
+                InitPermissions(path.ToLower());
             }
             if (fileRightTable[path.ToLower()].GetType() != typeof(FileRights))
             {
@@ -522,13 +573,13 @@ namespace TrappistOS
             }
             if (!File.Exists(path) && !Directory.Exists(path))
             {
-                Console.WriteLine(path + " does not exist");
+                Console.WriteLine(path + " does not exist for IsWriter");
                 return false;
             }
             if (!fileRightTable.ContainsKey(path.ToLower()))
             {
-                Console.WriteLine($"unknown permissions for " + path + ", creating new");
-                fileRightTable.Add(path.ToLower(), new FileRights(visitorID, new[] { visitorID }, new[] { visitorID }));
+                Console.WriteLine($"unknown permissions for " + path + ", creating new for IsWriter");
+                InitPermissions(path.ToLower());
             }
             if (fileRightTable[path.ToLower()].GetType() != typeof(FileRights))
             {
@@ -551,12 +602,12 @@ namespace TrappistOS
             }
             if (!File.Exists(path) && !Directory.Exists(path))
             {
-                Console.WriteLine(path + " does not exist");
+                Console.WriteLine(path + " does not exist for GetOwnerID");
                 return 0;
             }
             if (!fileRightTable.ContainsKey(path.ToLower()))
             {
-                Console.WriteLine($"unknown permissions for " + path + ", creating new");
+                Console.WriteLine($"unknown permissions for " + path + ", creating new for GetOwnerID");
                 InitPermissions(path);
                 return visitorID;
             }
@@ -579,12 +630,12 @@ namespace TrappistOS
             }
             if (!File.Exists(path) && !Directory.Exists(path))
             {
-                Console.WriteLine(path + " does not exist");
+                Console.WriteLine(path + " does not exist for GetReaderIDs");
                 return Array.Empty<int>();
             }
             if (!fileRightTable.ContainsKey(path.ToLower()))
             {
-                Console.WriteLine($"unknown permissions for " + path + ", creating new");
+                Console.WriteLine($"unknown permissions for " + path + ", creating new for GetReaderIDs");
                 InitPermissions(path);
                 return new[] { visitorID };
             }
@@ -618,12 +669,12 @@ namespace TrappistOS
             }
             if (!File.Exists(path) && !Directory.Exists(path))
             {
-                Console.WriteLine(path + " does not exist");
+                Console.WriteLine(path + " does not exist for GetWriterIDs");
                 return Array.Empty<int>();
             }
             if (!fileRightTable.ContainsKey(path.ToLower()))
             {
-                Console.WriteLine($"unknown permissions for " + path + ", creating new");
+                Console.WriteLine($"unknown permissions for " + path + ", creating new for GetWriterIDs");
                 InitPermissions(path);
                 return new[] { visitorID };
             }
@@ -659,26 +710,29 @@ namespace TrappistOS
                 //Console.WriteLine("Trying to create file: " + filepath);
                 File.Create(filepath);
                 //Console.WriteLine("Created file: " + filepath);
-
+                Console.WriteLine("saving " + fileRightTable.Count + " values");
+                string toSave = "";
+                int loop = 0;
                 foreach (DictionaryEntry file in fileRightTable)
                 {
+                    loop++;
                     int[] writers = ((FileRights)file.Value).writer.ToArray();
                     int[] readers = ((FileRights)file.Value).reader.ToArray();
                     int owner = ((FileRights)file.Value).owner;
 
-                    File.AppendAllText(filepath, Convert.ToString(owner) + ' ');
+                    toSave = toSave + Convert.ToString(owner) + ' ';
                     //Console.WriteLine(" added " + Convert.ToString(owner) + ' ' + " to " + filepath);
-                    for(int i = 0; i < writers.Length; i++)
+                    for (int i = 0; i < writers.Length; i++)
                     {
                         int writer = writers[i];
-                        if (i > writers.Length-1)
+                        if (i > writers.Length - 1)
                         {
-                            File.AppendAllText(filepath, Convert.ToString(writer) + ',');
+                            toSave = toSave + Convert.ToString(writer) + ',';
                             //Console.WriteLine(" added " + Convert.ToString(writer) + ',' + " to " + filepath);
                         }
                         else
                         {
-                            File.AppendAllText(filepath, Convert.ToString(writer) + ' ');
+                            toSave = toSave + Convert.ToString(writer) + ' ';
                             //Console.WriteLine(" added " + Convert.ToString(writer) + ' ' + " to " + filepath);
                         }
                     }
@@ -687,18 +741,19 @@ namespace TrappistOS
                         int reader = readers[i];
                         if (i < readers.Length - 1)
                         {
-                            File.AppendAllText(filepath, Convert.ToString(reader) + ',');
+                            toSave = toSave + Convert.ToString(reader) + ',';
                             //Console.WriteLine(" added " + Convert.ToString(reader) + ',' + " to " + filepath);
                         }
                         else
                         {
-                            File.AppendAllText(filepath, Convert.ToString(reader) + ' ');
+                            toSave = toSave + Convert.ToString(reader) + ' ';
                             //Console.WriteLine(" added " + Convert.ToString(reader) + ' ' + " to " + filepath);
                         }
                     }
-                    File.AppendAllText(filepath,file.Key.ToString() + Environment.NewLine);
-
+                    toSave = toSave + file.Key.ToString() + Environment.NewLine;
+                    //Console.WriteLine("saving: " + loop.ToString() + ".");
                 }
+                File.AppendAllText(filepath, toSave);
                 return true;
             }
             catch (Exception e) {

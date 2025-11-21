@@ -184,6 +184,11 @@ namespace TrappistOS
                                 break;
 
                         }
+                        if (!File.Exists(fsManager.getFullPath(args[1])) && !Directory.Exists(fsManager.getFullPath(args[1])))
+                        {
+                            Console.WriteLine("File does not exist");
+                            break;
+                        }
                         if (!permManager.IsWriter(fsManager.getFullPath(args[1]), userInfo.GetId()) && !userInfo.IsAdmin())
                         {
                             Console.WriteLine("You do not have permissions to move this file.");
@@ -200,6 +205,11 @@ namespace TrappistOS
                             Console.WriteLine("Usage: cat <file name>");
                             Console.WriteLine("Description: Opens a text file, reads all the text in the file,\nand then closes the file.");
                             Console.WriteLine("Avaiable Arguments: \n-h: help");
+                            break;
+                        }
+                        if (!File.Exists(fsManager.getFullPath(args[1])) && !Directory.Exists(fsManager.getFullPath(args[1])))
+                        {
+                            Console.WriteLine("File does not exist");
                             break;
                         }
                         string path = fsManager.getFullPath(args[1]);
@@ -226,6 +236,11 @@ namespace TrappistOS
                             Console.WriteLine("Avaiable Arguments: \n-h: help");
                             break;
                         }
+                        if (!File.Exists(fsManager.getFullPath(args[1])) && !Directory.Exists(fsManager.getFullPath(args[1])))
+                        {
+                            Console.WriteLine("File does not exist");
+                            break;
+                        }
 
 
                         if (!permManager.IsWriter(fsManager.getFullPath(args[1]), userInfo.GetId()) && !userInfo.IsAdmin())
@@ -247,6 +262,11 @@ namespace TrappistOS
                             Console.WriteLine("Avaiable Arguments: \n-h: help");
                             break;
                         }
+                        if (!File.Exists(fsManager.getFullPath(args[1])) && !Directory.Exists(fsManager.getFullPath(args[1])))
+                        {
+                            Console.WriteLine("File does not exist");
+                            break;
+                        }
 
                         if (!permManager.IsWriter(fsManager.getFullPath(args[1]), userInfo.GetId()) && !userInfo.IsAdmin())
                         {
@@ -266,6 +286,11 @@ namespace TrappistOS
                             Console.WriteLine("Avaiable Arguments: \n-h: help");
                             break;
                         }
+                        if (!File.Exists(fsManager.getFullPath(args[1])) && !Directory.Exists(fsManager.getFullPath(args[1])))
+                        {
+                            Console.WriteLine("File does not exist");
+                            break;
+                        }
                         if (!permManager.IsWriter(fsManager.getFullPath(args[1]),userInfo.GetId()) && !userInfo.IsAdmin())
                         {
                             Console.WriteLine("You do not have permissions to rename this file.");
@@ -283,6 +308,11 @@ namespace TrappistOS
                             Console.WriteLine("Usage: cd <directory path>");
                             Console.WriteLine("Description: Changes your current directory to the specified one.");
                             Console.WriteLine("Avaiable Arguments: \n-h: help");
+                            break;
+                        }
+                        if (!File.Exists(fsManager.getFullPath(args[1])) && !Directory.Exists(fsManager.getFullPath(args[1])))
+                        {
+                            Console.WriteLine("File does not exist");
                             break;
                         }
 
@@ -306,9 +336,19 @@ namespace TrappistOS
                             Console.WriteLine("Avaiable Arguments: \n-h: help");
                             break;
                         }
+                        if (args[2] == "system")
+                        {
+                            Console.WriteLine("You cannot take away ownership from the system.");
+                            break;
+                        }
                         if (userInfo.GetUserID(args[2]) == 0)
                         {
                             Console.WriteLine("This User does not exist. Please check if you respected the case.");
+                            break;
+                        }
+                        if (!File.Exists(fsManager.getFullPath(args[1])) && !Directory.Exists(fsManager.getFullPath(args[1])))
+                        {
+                            Console.WriteLine("File does not exist");
                             break;
                         }
                         if (!permManager.IsOwner(fsManager.getFullPath(args[1]), userInfo.GetId()) && !userInfo.IsAdmin() && !userInfo.IsVisitor()
@@ -343,9 +383,19 @@ namespace TrappistOS
                             Console.WriteLine("Avaiable Arguments: \n-h: help");
                             break;
                         }
+                        if (args[2] == "system")
+                        {
+                            Console.WriteLine("You cannot give permissions to the system.");
+                            break;
+                        }
                         if (userInfo.GetUserID(args[2]) == 0)
                         {
                             Console.WriteLine("This User does not exist. Please check if you respected the case.");
+                            break;
+                        }
+                        if (!File.Exists(fsManager.getFullPath(args[1])) && !Directory.Exists(fsManager.getFullPath(args[1])))
+                        {
+                            Console.WriteLine("File does not exist");
                             break;
                         }
                         if ((!permManager.IsOwner(fsManager.getFullPath(args[1]), userInfo.GetId()) && !userInfo.IsAdmin() && !userInfo.IsVisitor()) 
@@ -389,9 +439,19 @@ namespace TrappistOS
                             Console.WriteLine("Avaiable Arguments: \n-h: help");
                             break;
                         }
+                        if (args[2] == "system")
+                        {
+                            Console.WriteLine("You cannot take away permissions from the system.");
+                            break;
+                        }
                         if(userInfo.GetUserID(args[2]) == 0)
                         {
                             Console.WriteLine("This User does not exist. Please check if you respected the case.");
+                            break;
+                        }
+                        if (!File.Exists(fsManager.getFullPath(args[1])) && !Directory.Exists(fsManager.getFullPath(args[1])))
+                        {
+                            Console.WriteLine("File does not exist");
                             break;
                         }
                         if (!permManager.IsOwner(fsManager.getFullPath(args[1]), userInfo.GetId()) && !userInfo.IsAdmin() && !userInfo.IsVisitor())
@@ -412,13 +472,13 @@ namespace TrappistOS
                         }
                         if (args.Contains("-r"))
                         {
-                           if ( permManager.RemoveReader(fsManager.getFullPath(args[1]), userInfo.GetUserID(args[2])))
+                           if ( permManager.RemoveReader(fsManager.getFullPath(args[1]), userInfo.GetUserID(args[2]),args[2], fsManager))
                            {
                                 Console.WriteLine("Successfully removed reading rights");
                            }
                            else
                            {
-                                Console.WriteLine("Error removing reading rights");
+                                Console.WriteLine("Couldn't remove reading rights");
                            }
                         }
                         break;
@@ -514,6 +574,7 @@ namespace TrappistOS
                                 if (args[1] == userInfo.GetName())
                                 {
                                     Console.WriteLine("Cannot delete User you are logged in with");
+                                    break;
                                 }
                                 userInfo.DeleteUser(args[1]);
                                 
