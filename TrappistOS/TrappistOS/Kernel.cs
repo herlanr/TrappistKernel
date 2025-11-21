@@ -2,6 +2,7 @@ using Cosmos.System.ScanMaps;
 using System;
 using System.ComponentModel.Design;
 using System.IO;
+using System.Linq;
 using Sys = Cosmos.System;
 
 //wait function: Cosmos.HAL.Global.PIT.Wait((uint)10000);
@@ -221,6 +222,7 @@ namespace TrappistOS
                             Console.WriteLine("You do not have permissions to delete this file.");
                             break;
                         }
+                        permManager.deletePath(fsManager.getFullPath(args[1]));
                         fsManager.deleteFile(args[1]);
                         break;
                     }
@@ -284,7 +286,127 @@ namespace TrappistOS
                         }
                         break;
                     }
+                case "setowner":
+                    {
+                        if (args.Length < 3 || args[1] == "-h")
+                        {
+                            Console.WriteLine("Usage: setOwner <path> <new owner>");
+                            Console.WriteLine("Description: Changes the owner of the specified file/directory to the specified account. \nCan only be done by the current file owner.");
+                            Console.WriteLine("Avaiable Arguments: \n-h: help");
+                            break;
+                        }
+                        if (userInfo.GetUserID(args[2]) == 0)
+                        {
+                            Console.WriteLine("This User does not exist. Please check if you respected the case.");
+                            break;
+                        }
+                        if (!permManager.IsOwner(fsManager.getFullPath(args[1]), userInfo.GetId()) && !userInfo.IsAdmin() && !userInfo.IsVisitor()
+                            || permManager.IsOwner(fsManager.getFullPath(args[1]), 0))
+                        {
+                            Console.WriteLine("You do not have the right to change ownership.");
+                            break;
+                        }
+                        Console.WriteLine($"Do you want to give Ownership of {args[1]} to {args[2]}?\nThis action is not reversable.\n(Y)es/(N)o");
+                        char confirmation = ' ';
+                        do
+                        { confirmation = Console.ReadKey(true).KeyChar; }
+                        while (confirmation != 'y' && confirmation != 'n');
+                        if (confirmation == 'y')
+                        {
+                            permManager.SetOwner(fsManager.getFullPath(args[1]), userInfo.GetUserID(args[2]));
+                        }
+                        break;
+                    }
+                case "givepermissions":
+                case "gperm":
+                    {
+                        if (args.Length < 4 || args.Contains("-h"))
+                        {
+                            Console.WriteLine("Usage: gperm / givepermissions <path> <user owner> [-r] [-w]");
+                            Console.WriteLine("Description: Changes the owner of the specified file/directory to the specified account. \nCan only be done by the current file owner.");
+                            Console.WriteLine("Avaiable Arguments: \n-h: help");
+                            break;
+                        }
+                        if (userInfo.GetUserID(args[2]) == 0)
+                        {
+                            Console.WriteLine("This User does not exist. Please check if you respected the case.");
+                            break;
+                        }
+                        if ((!permManager.IsOwner(fsManager.getFullPath(args[1]), userInfo.GetId()) && !userInfo.IsAdmin() && !userInfo.IsVisitor()) 
+                            || permManager.IsOwner(fsManager.getFullPath(args[1]),0))
+                        {
+                            Console.WriteLine("You do not have the right to change the Permissions of this file.");
+                            break;
+                        }
+                        if (args.Contains("-r")||args.Contains("-w"))
+                        {
+                            if(permManager.SetReader(fsManager.getFullPath(args[1]),userInfo.GetUserID(args[2])))
+                            {
+                                Console.WriteLine("Successfully added reading rights");
+                            }
+                            else
+                            {
+                                Console.WriteLine("Error adding reading rights");
+                            }
+                        }
 
+                        if (args.Contains("-w"))
+                        {
+                            if(permManager.SetWriter(fsManager.getFullPath(args[1]), userInfo.GetUserID(args[2])))
+                            {
+                                Console.WriteLine("Successfully added writing rights");
+                            }
+                            else
+                            {
+                                Console.WriteLine("Error adding writing rights");
+                            }
+                        }
+                        break;
+                    }
+                case "takepermissions":
+                case "tperm":
+                    {
+                        if (args.Length < 4 || args.Contains("-h"))
+                        {
+                            Console.WriteLine("Usage: tperm / takepermissions <path> <user owner> [-r] [-w]");
+                            Console.WriteLine("Description: Changes the owner of the specified file/directory to the specified account. \nCan only be done by the current file owner.");
+                            Console.WriteLine("Avaiable Arguments: \n-h: help");
+                            break;
+                        }
+                        if(userInfo.GetUserID(args[2]) == 0)
+                        {
+                            Console.WriteLine("This User does not exist. Please check if you respected the case.");
+                            break;
+                        }
+                        if (!permManager.IsOwner(fsManager.getFullPath(args[1]), userInfo.GetId()) && !userInfo.IsAdmin() && !userInfo.IsVisitor())
+                        {
+                            Console.WriteLine("You do not have the right to change the Permissions of this file.");
+                            break;
+                        }
+                        if (args.Contains("-w") || args.Contains("-r"))
+                        {
+                            if(permManager.RemoveWriter(fsManager.getFullPath(args[1]), userInfo.GetUserID(args[2])))
+                            {
+                                Console.WriteLine("Successfully removed writing rights");
+                            }
+                            else
+                            {
+                                Console.WriteLine("Error removing writing rights");
+                            }
+                        }
+                        if (args.Contains("-r"))
+                        {
+                           if ( permManager.RemoveReader(fsManager.getFullPath(args[1]), userInfo.GetUserID(args[2])))
+                           {
+                                Console.WriteLine("Successfully removed reading rights");
+                           }
+                           else
+                           {
+                                Console.WriteLine("Error removing reading rights");
+                           }
+                        }
+                        break;
+                    }
                 case "pwd": //in help
                     {
                         Console.WriteLine("You are here: " + fsManager.getCurrentDir());
@@ -617,7 +739,7 @@ namespace TrappistOS
 
         internal void HelpOutput()
         {
-            int pagecount = 8;
+            int pagecount = 9;
             int currentPage = 0;
             Console.ForegroundColor = ConsoleColor.Magenta;
             Console.WriteLine("Usage: freespace");
@@ -820,6 +942,32 @@ namespace TrappistOS
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine("Description: Change password");
             Console.WriteLine("Available Arguments:\n -h: help");
+            Console.WriteLine();
+
+            currentPage++;
+            Console.WriteLine("Page " + currentPage.ToString() + " out of " + pagecount.ToString() + " Continue with enter, exit with esc");
+            if (!WaitForResponse()) { return; } //wait for enter or escape
+            Console.WriteLine();
+
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.WriteLine("Usage: setOwner <path> <new owner>");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine("Description: Changes the owner of the specified file/directory to the specified account. \nCan only be done by the current file owner.");
+            Console.WriteLine("Avaiable Arguments: \n-h: help");
+            Console.WriteLine();
+
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.WriteLine("Usage: gperm / givepermissions <path> <user owner> [-r] [-w]");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine("Description: Changes the owner of the specified file/directory to the specified account. \nCan only be done by the current file owner.");
+            Console.WriteLine("Avaiable Arguments: \n-h: help");
+            Console.WriteLine();
+
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.WriteLine("Usage: tperm / takepermissions <path> <user owner> [-r] [-w]");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine("Description: Changes the owner of the specified file/directory to the specified account. \nCan only be done by the current file owner.");
+            Console.WriteLine("Avaiable Arguments: \n-h: help");
             Console.WriteLine();
 
             currentPage++;

@@ -53,6 +53,15 @@ namespace TrappistOS
             return currentUser.id < maxAdminID;
         }
 
+        public bool IsVisitor() //Admincheck
+        {
+            if (currentUser == null)
+            {
+                currentUser = VisitorLogin();
+            }
+            return currentUser.id == visitorid;
+        }
+
         private bool UserIsAdmin(UserClass user)
         {
             return user.id < maxAdminID;
@@ -452,7 +461,7 @@ namespace TrappistOS
             UserClass thisUser = GetUser(username);
             if (thisUser is null)
             {
-                return visitorid + maxAdminID;
+                return 0;
             }
             return thisUser.id;
         }
