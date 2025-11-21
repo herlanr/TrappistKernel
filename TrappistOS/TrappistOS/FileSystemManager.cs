@@ -136,7 +136,7 @@ namespace TrappistOS
 
         public string createDirectory(string dirName)
         {
-            string path = currentDir + dirName;
+            string path = Path.Combine(currentDir, dirName);
 
             try
             {
