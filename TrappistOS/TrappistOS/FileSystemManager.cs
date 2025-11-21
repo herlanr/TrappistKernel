@@ -259,6 +259,40 @@ namespace TrappistOS
 
         }
 
+        public void renameFileOrDir(string filename, string newName)
+        {
+            string formatedFileName = filename.Replace("/", @"\");
+            string path = filename.StartsWith(@"0:\") ? formatedFileName : Path.Combine(currentDir, formatedFileName);
+
+            try
+            {
+                if (currentDir.StartsWith(path, StringComparison.OrdinalIgnoreCase))
+                {
+                    Console.WriteLine("Renaming the current directory or its ancestors is not allowed.");
+                    return;
+                }
+
+                if (File.Exists(path))
+                {
+                    fs.GetFile(path).SetName(newName);
+                    Console.WriteLine("File renamed!");
+                }
+                else if (Directory.Exists(path))
+                {
+                    fs.GetDirectory(path).SetName(newName);
+                    Console.WriteLine("Directory renamed!");
+                }
+                else
+                {
+                    Console.WriteLine("File or Dir wasn't found!");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+            }
+        }
+
         public string getCurrentDir()
         {
             return currentDir;
