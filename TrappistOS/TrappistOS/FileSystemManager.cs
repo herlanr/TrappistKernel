@@ -61,7 +61,7 @@ namespace TrappistOS
         public string getFullPath(string filename)
         {
             string formatedFileName = filename.Replace("/", @"\");
-            string path = filename.StartsWith(@"0:\") ? formatedFileName : Path.Combine(currentDir, formatedFileName);
+            string path = Path.Combine(currentDir, formatedFileName);
             if (!File.Exists(path) && !Directory.Exists(path))
             {
                 return null;

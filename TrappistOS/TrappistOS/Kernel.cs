@@ -108,7 +108,7 @@ namespace TrappistOS
                         {
                             Console.WriteLine("Usage: touch [-o] <file name> ");
                             Console.WriteLine("Description: Creates a new file");
-                            Console.WriteLine("Avaiable Arguments: \n-h: help \n-o: give yourself complete ownership.\n   If not set, it will inherent the ownership of the Current directory.");
+                            Console.WriteLine("Avaiable Arguments: \n-h: help \n-o: give yourself complete ownership.\n    If not set, it will inherent the ownership of the Current directory.");
                             break;
                         }
                         if (args[1] == "-o")
@@ -125,11 +125,11 @@ namespace TrappistOS
                     }
                 case "mkdir": //in help
                     {
-                        if (args.Length < 3 || args[1] == "-h")
+                        if (args.Length < 2 || args[1] == "-h")
                         {
                             Console.WriteLine("Usage: mkdir [-o] <directory name> ");
                             Console.WriteLine("Description: Creates a new directory");
-                            Console.WriteLine("Avaiable Arguments: \n-h: help \n-o: give yourself complete ownership.\n   If not set, it will inherent the ownership of the Current directory.");
+                            Console.WriteLine("Avaiable Arguments: \n-h: help \n-o: give yourself complete ownership.\n    If not set, it will inherent the ownership of the Current directory.");
                             break;
                         }
                         if (args[1] == "-o")
@@ -450,6 +450,7 @@ namespace TrappistOS
                             Console.WriteLine("Command can only get run in home directory");
                             break; 
                         }
+                        InitPerms();
                         break;
                     }
                 case "clearperms": //in help
@@ -626,17 +627,17 @@ namespace TrappistOS
             Console.WriteLine();
 
             Console.ForegroundColor = ConsoleColor.Magenta;
-            Console.WriteLine("Usage: [-o] touch <directory name> ");
+            Console.WriteLine("Usage: touch [-o] <directory name> ");
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine("Description: Creates a new file");
-            Console.WriteLine("Avaiable Arguments: \n-h: help \n-o: give yourself complete ownership.\n   If not set, it will inherent the ownership of the Current directory.");
+            Console.WriteLine("Avaiable Arguments: \n-h: help \n-o: give yourself complete ownership.\n    If not set, it will inherent the ownership of the Current directory.");
             Console.WriteLine();
 
             Console.ForegroundColor = ConsoleColor.Magenta;
-            Console.WriteLine("Usage: [-o] mkdir <directory name> ");
+            Console.WriteLine("Usage: mkdir [-o] <directory name> ");
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine("Description: Creates a new directory");
-            Console.WriteLine("Avaiable Arguments: \n-h: help \n-o: give yourself complete ownership.\n   If not set, it will inherent the ownership of the Current directory.");
+            Console.WriteLine("Avaiable Arguments: \n-h: help \n-o: give yourself complete ownership.\n    If not set, it will inherent the ownership of the Current directory.");
             Console.WriteLine();
 
             currentPage++;
@@ -853,7 +854,7 @@ namespace TrappistOS
                 string[] allpaths = fsManager.getAllPaths(dirpath);
                 foreach (string path in allpaths)
                 {
-                    if (permManager.InitPermissions(path, userInfo.GetUserID(user)))
+                    if (permManager.InitPermissions(fsManager.getFullPath(path), userInfo.GetUserID(user)))
                     {
                         Console.WriteLine("Set Rights of " + path + " to " + user);
                     }
@@ -865,9 +866,9 @@ namespace TrappistOS
             string[] rootpaths = fsManager.getAllPaths(fsManager.getCurrentDir());
             foreach (string path in rootpaths)
             {
-                if (permManager.InitPermissions(path))
+                if (permManager.InitPermissions(fsManager.getFullPath(path)))
                 {
-                    Console.WriteLine("Set Rights of " + path + " to " + userInfo.GetUserName(permManager.GetOwnerID(path)));
+                    Console.WriteLine("Set Rights of " + fsManager.getFullPath(path) + " to " + userInfo.GetUserName(permManager.GetOwnerID(fsManager.getFullPath(path))));
                 }
             }
             Console.WriteLine("initialization Successful");

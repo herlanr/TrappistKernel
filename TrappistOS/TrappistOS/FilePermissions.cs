@@ -132,24 +132,32 @@ namespace TrappistOS
         {
             try
             {
-                if (!fileRightTable.ContainsKey(path.ToLower()))
+                if (path is null)
                 {
-                    if (fileRightTable.ContainsKey(path.ToLower()))
-                    {
-                        return false;
-                    }
-                    FileRights SystemFile;
+                    return false;
+                }
+                string lowerpath = path.ToLower();
+                
+                if (!fileRightTable.ContainsKey(lowerpath))
+                {
+                    FileRights SystemFile = new FileRights(visitorID, new[] { visitorID }, new[] { visitorID });
                     //FileRights SystemFile = new FileRights(userID, new[] { userID }, new[] { userID });
-                    if (fileRightTable.ContainsKey((Directory.GetParent(path)).FullName))
+                    if (path == rootdir)
                     {
-                        SystemFile = (FileRights)fileRightTable[(Directory.GetParent(path)).FullName];
+                        //Console.WriteLine("Went down to root");
                     }
-                    else if (path == rootdir)
+                    else if(Directory.GetParent(path) == null)
                     {
-                        SystemFile = new FileRights(visitorID, new[] { visitorID }, new[] { visitorID });
+                        //Console.WriteLine(path + " has not parent dir and isn't root");
+                    }
+                    else if (fileRightTable.ContainsKey((Directory.GetParent(path)).FullName))
+                    {
+                        //Console.WriteLine("using rights from parent:" + path);
+                        SystemFile = (FileRights)fileRightTable[(Directory.GetParent(path)).FullName];
                     }
                     else
                     {
+                        //Console.WriteLine("making rights for parent: " + path);
                         if (InitPermissions((Directory.GetParent(path)).FullName))
                         {
                             SystemFile = (FileRights)fileRightTable[(Directory.GetParent(path)).FullName];
@@ -173,6 +181,10 @@ namespace TrappistOS
         {
             try
             {
+                if (path is null)
+                {
+                    return false;
+                }
                 FileRights SystemFile;
                 if (!fileRightTable.ContainsKey(path.ToLower()))
                 {
