@@ -58,14 +58,38 @@ namespace TrappistOS
             }
         }
 
-        public string getFilePath(string filename)
+        public string getFullPath(string filename)
         {
             string path = Path.Combine(currentDir, filename);
             if (!File.Exists(path) && !Directory.Exists(path))
             {
                 return null;
             }
-            return path;
+            return path.ToLower();
+        }
+
+        public string[] getAllPaths(string path)
+        {
+            var result = new List<string>();
+            if (Directory.Exists(path))
+            {
+                result.Add(path);
+                string[] subdirs = Directory.GetDirectories(path);
+                result.AddRange(subdirs);
+                string[] files = Directory.GetFiles(path);
+                result.AddRange(files);
+                foreach (string dir in subdirs)
+                {
+                    result.AddRange(getAllPaths(dir));
+                }
+            }
+
+            if (File.Exists(path))
+            {
+                result.Add(path);
+            }
+
+            return result.ToArray();
         }
 
         public string createFile(string filename)
@@ -111,7 +135,7 @@ namespace TrappistOS
 
         public string createDirectory(string dirName)
         {
-            string path = currentDir + @"\" + dirName;
+            string path = currentDir + dirName;
 
             try
             {

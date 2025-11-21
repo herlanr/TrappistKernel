@@ -29,7 +29,7 @@ namespace TrappistOS
 
         private int visitorID;
         Hashtable fileRightTable;
-        string filepath = @"0:\filePerm";
+        string filepath = @"0:\filePerm.sys";
         public bool PermInit(UserLogin user, string[] requiredSystemPaths) 
         {
             Array.Resize(ref requiredSystemPaths, requiredSystemPaths.Length + 1);
@@ -95,17 +95,23 @@ namespace TrappistOS
                     Console.WriteLine("Duplicate File " + permissionDetails[3] + " in filepermissions. Permissions for that File might not be correct.");
                 }
             }
-
             foreach (string path in requiredSystemPaths)
             {
                 
-                if (!fileRightTable.ContainsKey(path) || ((FileRights)fileRightTable[path]).owner != 0)
+                if (!fileRightTable.ContainsKey(path.ToLower()))
                 {
                     //Console.WriteLine(path);
-                    //Cosmos.HAL.Global.PIT.Wait((uint)3000);
+                    //Cosmos.HAL.Global.PIT.Wait((uint)1000);
                     int[] system = { 0 };
                     FileRights SystemFile = new FileRights(system[0], system, system);
-                    fileRightTable.Add(path,SystemFile);  
+                    fileRightTable.Add(path.ToLower(),SystemFile);  
+                }
+                if (((FileRights)fileRightTable[path.ToLower()]).owner != 0 || ((FileRights)fileRightTable[path.ToLower()]).reader != new[] { 0 } || ((FileRights)fileRightTable[path.ToLower()]).writer != new[] { 0 })
+                {
+                    fileRightTable.Remove(path.ToLower());
+                    int[] system = { 0 };
+                    FileRights SystemFile = new FileRights(system[0], system, system);
+                    fileRightTable.Add(path.ToLower(), SystemFile);
                 }
             }
             visitorID = user.maxAdminID + user.visitorid;
@@ -123,9 +129,15 @@ namespace TrappistOS
         {
             try
             {
-                FileRights SystemFile = new FileRights(userID,new[] { userID }, new[] { userID });
-                fileRightTable.Add(path, SystemFile);
-                return true;
+                if (!fileRightTable.ContainsKey(path.ToLower()))
+                {
+                    FileRights SystemFile = new FileRights(userID, new[] { userID }, new[] { userID });
+                    fileRightTable.Add(path.ToLower(), SystemFile);
+                    return true;
+                }
+                else
+                    return false;
+                
             }
             catch (Exception e) {
                 Console.WriteLine("Error when creating filepermissions " + e.Message);
@@ -135,56 +147,96 @@ namespace TrappistOS
 
         public bool SetWriter(string path, int userID)
         {
-            if (fileRightTable[filepath].GetType() != typeof(FileRights))
+            if (!File.Exists(path) && !Directory.Exists(path))
+            {
+                Console.WriteLine(path + " does not exist");
+                return false;
+            }
+            if (!fileRightTable.ContainsKey(path.ToLower()))
+            {
+                Console.WriteLine($"unknown permissions for " + path + ", creating new");
+                fileRightTable.Add(path.ToLower(), new FileRights(visitorID, new[] { visitorID }, new[] { visitorID }));
+            }
+            if (fileRightTable[path.ToLower()].GetType() != typeof(FileRights))
             { 
                 Console.WriteLine("Error in file Permission Hashtable, please restart the machine. If this message appears again, please contact an Administrator.");
                 return false;
             }
             else
             {
-                ((FileRights)fileRightTable[filepath]).writer.Append(userID);
+                ((FileRights)fileRightTable[path.ToLower()]).writer.Append(userID);
                 return true;
             }
         }
 
         public bool SetReader(string path, int userID)
         {
-            if (fileRightTable[filepath].GetType() != typeof(FileRights))
+            if (!File.Exists(path) && !Directory.Exists(path))
+            {
+                Console.WriteLine(path + " does not exist");
+                return false;
+            }
+            if (!fileRightTable.ContainsKey(path.ToLower()))
+            {
+                Console.WriteLine($"unknown permissions for " + path + ", creating new");
+                fileRightTable.Add(path.ToLower(), new FileRights(visitorID, new[] { visitorID }, new[] { visitorID }));
+            }
+            if (fileRightTable[path.ToLower()].GetType() != typeof(FileRights))
             { 
                 Console.WriteLine("Error in file Permission Hashtable, please restart the machine. If this message appears again, please contact an Administrator."); 
                 return false;
             }
             else
             {
-                ((FileRights)fileRightTable[filepath]).reader.Append(userID);
+                ((FileRights)fileRightTable[path.ToLower()]).reader.Append(userID);
                 return true;
             }
         }
 
         public bool SetOwner(string path, int userID)
         {
-            if (fileRightTable[filepath].GetType() != typeof(FileRights))
+            if (!File.Exists(path) && !Directory.Exists(path))
+            {
+                Console.WriteLine(path + " does not exist");
+                return false;
+            }
+            if (!fileRightTable.ContainsKey(path.ToLower()))
+            {
+                Console.WriteLine($"unknown permissions for " + path + ", creating new");
+                fileRightTable.Add(path.ToLower(), new FileRights(visitorID, new[] { visitorID }, new[] { visitorID }));
+            }
+            if (fileRightTable[path.ToLower()].GetType() != typeof(FileRights))
             { 
                 Console.WriteLine("Error in file Permission Hashtable, please restart the machine. If this message appears again, please contact an Administrator."); 
                 return false;
             }
             else
             {
-                ((FileRights)fileRightTable[filepath]).owner = userID;
+                ((FileRights)fileRightTable[path.ToLower()]).owner = userID;
                 return true;
             }
         }
 
         public bool IsOwner(string path, int userID)
         {
-            if (fileRightTable[filepath].GetType() != typeof(FileRights))
+            if (!File.Exists(path) && !Directory.Exists(path))
+            {
+                Console.WriteLine(path + " does not exist");
+                return false;
+            }
+            if (!fileRightTable.ContainsKey(path.ToLower()))
+            {
+                Console.WriteLine($"unknown permissions for " + path + ", creating new");
+                fileRightTable.Add(path.ToLower(), new FileRights(visitorID, new[] { visitorID }, new[] { visitorID }));
+            }
+            if (fileRightTable[path.ToLower()].GetType() != typeof(FileRights))
             { 
                 Console.WriteLine("Error in file Permission Hashtable, please restart the machine. If this message appears again, please contact an Administrator."); 
                 return false; 
             }
             else
             {
-                if(((FileRights)fileRightTable[filepath]).owner == userID)
+                if(((FileRights)fileRightTable[path.ToLower()]).owner == userID)
                 { return true; }
                 return false;
             }
@@ -192,14 +244,24 @@ namespace TrappistOS
 
         public bool IsReader(string path, int userID)
         {
-            if (fileRightTable[filepath].GetType() != typeof(FileRights))
+            if (!File.Exists(path) && !Directory.Exists(path))
+            {
+                Console.WriteLine(path + " does not exist");
+                return false;
+            }
+            if (!fileRightTable.ContainsKey(path.ToLower()))
+            {
+                Console.WriteLine($"unknown permissions for " + path + ", creating new");
+                fileRightTable.Add(path.ToLower(), new FileRights(visitorID, new[] { visitorID }, new[] { visitorID }));
+            }
+            if (fileRightTable[path.ToLower()].GetType() != typeof(FileRights))
             {
                 Console.WriteLine("Error in file Permission Hashtable, please restart the machine. If this message appears again, please contact an Administrator.");
                 return false;
             }
             else
             {
-                if (((FileRights)fileRightTable[filepath]).reader.Contains(userID))
+                if (((FileRights)fileRightTable[path.ToLower()]).reader.Contains(userID))
                 { return true; }
                 return false;
             }
@@ -207,14 +269,24 @@ namespace TrappistOS
 
         public bool IsWriter(string path, int userID)
         {
-            if (fileRightTable[filepath].GetType() != typeof(FileRights))
+            if (!File.Exists(path) && !Directory.Exists(path))
+            {
+                Console.WriteLine(path + " does not exist");
+                return false;
+            }
+            if (!fileRightTable.ContainsKey(path.ToLower()))
+            {
+                Console.WriteLine($"unknown permissions for " + path + ", creating new");
+                fileRightTable.Add(path.ToLower(), new FileRights(visitorID, new[] { visitorID }, new[] { visitorID }));
+            }
+            if (fileRightTable[path.ToLower()].GetType() != typeof(FileRights))
             {
                 Console.WriteLine("Error in file Permission Hashtable, please restart the machine. If this message appears again, please contact an Administrator.");
                 return false;
             }
             else
             {
-                if (((FileRights)fileRightTable[filepath]).writer.Contains(userID))
+                if (((FileRights)fileRightTable[path.ToLower()]).writer.Contains(userID))
                 { return true; }
                 return false;
             }
@@ -222,26 +294,42 @@ namespace TrappistOS
 
         public int GetOwnerID(string path)
         {
-            if (!fileRightTable.ContainsKey(path))
+            if (!File.Exists(path) && !Directory.Exists(path))
             {
-                Console.WriteLine("unknown permissions, creating new");
-                fileRightTable.Add(path,new FileRights(visitorID, new[] { visitorID}, new[] { visitorID }));
+                Console.WriteLine(path + " does not exist");
+                return 0;
+            }
+            if (!fileRightTable.ContainsKey(path.ToLower()))
+            {
+                Console.WriteLine($"unknown permissions for " + path + ", creating new");
+                fileRightTable.Add(path.ToLower(),new FileRights(visitorID, new[] { visitorID}, new[] { visitorID }));
                 return visitorID;
             }
-            if (fileRightTable[filepath].GetType() != typeof(FileRights))
+            if (fileRightTable[path.ToLower()].GetType() != typeof(FileRights))
             {
                 Console.WriteLine("Error in file Permission Hashtable, please restart the machine. If this message appears again, please contact an Administrator.");
                 return 0;
             }
             else
             {
-                return ((FileRights)fileRightTable[path]).owner;
+                return ((FileRights)fileRightTable[path.ToLower()]).owner;
             }
         }
 
         public int[] GetReaderIDs(string path)
         {
-            if (fileRightTable[filepath].GetType() != typeof(FileRights))
+            if (!File.Exists(path) && !Directory.Exists(path))
+            {
+                Console.WriteLine(path + " does not exist");
+                return Array.Empty<int>();
+            }
+            if (!fileRightTable.ContainsKey(path.ToLower()))
+            {
+                Console.WriteLine($"unknown permissions for " + path + ", creating new");
+                fileRightTable.Add(path.ToLower(), new FileRights(visitorID, new[] { visitorID }, new[] { visitorID }));
+                return new[] { visitorID };
+            }
+            if (fileRightTable[path.ToLower()].GetType() != typeof(FileRights))
             {
                 Console.WriteLine("Error in file Permission Hashtable, please restart the machine. If this message appears again, please contact an Administrator.");
                 int[] system = { 0 };
@@ -249,13 +337,24 @@ namespace TrappistOS
             }
             else
             {
-                return ((FileRights)fileRightTable[filepath]).reader;
+                return ((FileRights)fileRightTable[path.ToLower()]).reader;
             }
         }
 
         public int[] GetWriterIDs(string path)
         {
-            if (fileRightTable[filepath].GetType() != typeof(FileRights))
+            if (!File.Exists(path) && !Directory.Exists(path))
+            {
+                Console.WriteLine(path + " does not exist");
+                return Array.Empty<int>();
+            }
+            if (!fileRightTable.ContainsKey(path.ToLower()))
+            {
+                Console.WriteLine($"unknown permissions for " + path + ", creating new");
+                fileRightTable.Add(path.ToLower(), new FileRights(visitorID, new[] { visitorID }, new[] { visitorID }));
+                return new[] { visitorID };
+            }
+            if (fileRightTable[path.ToLower()].GetType() != typeof(FileRights))
             {
                 Console.WriteLine("Error in file Permission Hashtable, please restart the machine. If this message appears again, please contact an Administrator.");
                 int[] system = { 0 };
@@ -263,8 +362,14 @@ namespace TrappistOS
             }
             else
             {
-                return ((FileRights)fileRightTable[filepath]).writer;
+                return ((FileRights)fileRightTable[path.ToLower()]).writer;
             }
+        }
+
+        public bool EmptyPerms()
+        {
+            fileRightTable.Clear();
+            return true;
         }
 
         public bool SavePermissions()

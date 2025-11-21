@@ -544,7 +544,7 @@ namespace TrappistOS
         public string[] GetAllUsers()
         {
             string[] users = File.ReadAllLines(filepath);
-            string[] result = Array.Empty<string>();
+            List<string> result = new List<string>();
 
             foreach (string user in users) //look through file for user
             {
@@ -558,9 +558,9 @@ namespace TrappistOS
                     continue;
                 }
 
-                result.Append(elements[0]);
+                result.Add(elements[1]);
             }
-            return result;
+            return result.ToArray();
         }
     }
 }

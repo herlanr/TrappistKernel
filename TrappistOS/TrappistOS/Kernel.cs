@@ -9,7 +9,7 @@ namespace TrappistOS
 {
     public class Kernel : Sys.Kernel
     {
-        string userpath = @"0:\users";
+        string userpath = @"0:\users.sys";
 
         FileSystemManager fsManager;
 
@@ -90,7 +90,7 @@ namespace TrappistOS
             
 
             string[] args = input.Split(' ');
-
+            args[0] = args[0].ToLower();
             switch (args[0])
             {
                 case "freespace":
@@ -176,8 +176,18 @@ namespace TrappistOS
                             Console.WriteLine("Avaiable Arguments: \n-h: help");
                             break;
                         }
-
-                        fsManager.readFromFile(args[1]);
+                        string path = fsManager.getFullPath(args[1]);
+                        if (path == null)
+                        {
+                            Console.WriteLine("This file does not exist.");                        
+                        }
+                        if (permManager.IsReader(fsManager.getFullPath(args[1]), userInfo.GetId()) || userInfo.IsAdmin())
+                        {
+                            fsManager.readFromFile(args[1]);
+                        } else
+                        {
+                            Console.WriteLine("You do not have permission to view this file.");
+                        }
                         break;
                     }
 
@@ -382,12 +392,12 @@ namespace TrappistOS
                         }
                         break;
                     }*/
-                case "initfperms":
+                case "initperms":
                     {
                         if (args.Length != 1)
                         { 
-                            Console.WriteLine("Usage: initfperms");
-                            Console.WriteLine("Description: initialize Fiilepermissions");
+                            Console.WriteLine("Usage: initperms");
+                            Console.WriteLine("Description: initialize Filepermissions. Only available to Admins.");
                             Console.WriteLine("Available Arguments:\n -h: help");
                             break;
                         }
@@ -402,45 +412,118 @@ namespace TrappistOS
                             break; 
                         }
                         string[] allUsers = userInfo.GetAllUsers();
-
-                        //supress outputs of fsmanager
-                        /*
-                        TextWriter  _oldOut = Console.Out;
-                        TextWriter  _oldError = Console.Error;
-                        Console.SetOut(TextWriter.Null);
-                        Console.SetError(TextWriter.Null);*/
+                        Console.WriteLine("intializing Rights with Visitor");
+                        string[] rootpaths = fsManager.getAllPaths(fsManager.getCurrentDir());
+                        foreach (string path in rootpaths)
+                        {
+                            permManager.InitPermissions(path, userInfo.GetUserID("Visitor"));
+                        }
+                        Console.WriteLine("initialization successful.\nCreating user specific Directories for the following users:");
                         foreach (string user in allUsers)
                         {
-                            string dirpath = fsManager.createDirectory(user);
-                            permManager.SetOwner(dirpath, userInfo.GetUserID(user));
-                            permManager.SetWriter(dirpath, userInfo.GetUserID(user));
-                            permManager.SetReader(dirpath, userInfo.GetUserID(user));
+                            Console.Write(user + " ");
                         }
+                        Console.WriteLine();
+                        foreach (string user in allUsers)
+                        {
+                            string dirpath = fsManager.getFullPath(user);
+                            if (dirpath == null)
+                            {
+                                dirpath = fsManager.createDirectory(user);
+                                Console.WriteLine("Created: "+ dirpath);
+                            }
+                            if(File.Exists(dirpath))
+                            {
+                                Console.WriteLine("Error: File with Username " + user + " already exists.");
+                                continue;
+                            }
+                            string[] allpaths = fsManager.getAllPaths(dirpath);
+                            foreach(string path in allpaths)
+                            {
+                                if (permManager.InitPermissions(path, userInfo.GetUserID(user)))
+                                {
+                                    Console.WriteLine("Set Rights of " + path + " to " + user);
+                                }
+                                else
+                                {
+                                    Console.WriteLine(path + " already has defined rights.");
+                                }
+                                
+                            }
+                        }
+                        Console.WriteLine("initialization Successful");
                         //Console.SetOut(_oldOut);
                         //Console.SetError(_oldError);
                         break;
                     }
-                case "gfo":
-                case "getfileowner":
+                case "clearperms":
+                    { 
+                        if (args.Length != 1)
+                        {
+                            Console.WriteLine("Usage: clearperms");
+                            Console.WriteLine("Description: clear all Filepermissions.");
+                            Console.WriteLine("Available Arguments:\n -h: help");
+                            break;
+                        }
+                        if (!userInfo.IsAdmin())
+                        {
+                            Console.WriteLine("Only Admins can run this command");
+                            break;
+                        }
+                        permManager.EmptyPerms();
+                        Console.WriteLine("Permissions cleared successfully");
+                        break;
+                    }
+                case "perm":
+                case "permissions":
                     {
                         if (args.Length < 2 || args[1] == "-h")
                         {
-                            Console.WriteLine("Usage: gfo/getfileowner <file name>");
-                            Console.WriteLine("Description: Shows the owner of a File.");
+                            Console.WriteLine("Usage: perm/permissions <file name>");
+                            Console.WriteLine("Description: Shows the owner, readers and writers of a file or Directory.");
                             Console.WriteLine("Avaiable Arguments: \n-h: help");
                             break;
                         }
-                        string path = fsManager.getFilePath(args[1]);
-                        if (path is null) {
+                        string path = fsManager.getFullPath(args[1]);
+                        if (path is null)
+                        {
                             Console.WriteLine("File/Directory does not exist");
                             break;
                         }
+
                         int ownerID = permManager.GetOwnerID(path);
-                        Console.WriteLine(args[1] + " is owned by " + userInfo.GetUserName(ownerID));
+                        Console.WriteLine("owner: " + userInfo.GetUserName(ownerID));
+                        
+                        int[] readersIDs = permManager.GetReaderIDs(path);
+                        Console.Write("readers: ");
+                        if (readersIDs.Length == 0)
+                        {
+                            Console.WriteLine("nobody");
+                            break;
+                        }
+                        for (int i = 0; i < readersIDs.Length - 1; i++)
+                        {
+                            Console.Write(userInfo.GetUserName(readersIDs[i]) + ", ");
+                        }
+                        Console.Write(userInfo.GetUserName(readersIDs[readersIDs.Length - 1]));
+                        Console.WriteLine();
+                        
+                        int[] writerIDs = permManager.GetWriterIDs(path);
+                        Console.Write("writers: ");
+                        if (writerIDs.Length == 0)
+                        {
+                            Console.WriteLine("nobody");
+                            break;
+                        }
+                        for (int i = 0; i < writerIDs.Length - 1; i++)
+                        {
+                            Console.Write(userInfo.GetUserName(writerIDs[i]) + ", ");
+                        }
+                        Console.Write(userInfo.GetUserName(writerIDs[writerIDs.Length - 1]));
+                        Console.WriteLine();
                         break;
                     }
-                case "sfp":
-                case "savefperms":
+                case "saveperms":
                     {
                         if (args.Length == 1)
                         {
@@ -448,7 +531,7 @@ namespace TrappistOS
                         }
                         else
                         {
-                            Console.WriteLine("Usage: sfp/savefperms");
+                            Console.WriteLine("Usage: saveperms");
                             Console.WriteLine("Description: Save Permissions");
                             Console.WriteLine("Available Arguments:\n -h: help");
                         }
@@ -493,190 +576,7 @@ namespace TrappistOS
                     }
                 case "help":
                     {
-                        int pagecount = 7;
-                        int currentPage = 0;
-                        Console.ForegroundColor = ConsoleColor.Magenta;
-                        Console.WriteLine("Usage: freespace");
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.WriteLine("Description: Get available free space.");
-                        Console.WriteLine("Avaiable Arguments: \n-h: help");
-                        Console.WriteLine();
-                        
-                        Console.ForegroundColor = ConsoleColor.Magenta;
-                        Console.WriteLine("Usage: mkdir <directory name> ");
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.WriteLine("Description: Creates a new directory");
-                        Console.WriteLine("Avaiable Arguments: \n-h: help");
-                        Console.WriteLine();
-                        
-                        Console.ForegroundColor = ConsoleColor.Magenta;
-                        Console.WriteLine("Usage: mkdir <directory name> ");
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.WriteLine("Description: Creates a new directory");
-                        Console.WriteLine("Avaiable Arguments: \n-h: help");
-                        Console.WriteLine();
-                        
-                        currentPage++;
-                        Console.WriteLine("Page "+ currentPage.ToString() +" out of " + pagecount.ToString() + " Continue with enter, exit with esc");
-                        if(!WaitForResponse()) { break; } //wait for enter or escape
-                        Console.WriteLine();
-
-                        Console.ForegroundColor = ConsoleColor.Magenta;
-                        Console.WriteLine("Usage: ls");
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.WriteLine("Description: List all the files in a directory");
-                        Console.WriteLine("Avaiable Arguments: \n-h: help");
-                        Console.WriteLine();
-
-                        Console.ForegroundColor = ConsoleColor.Magenta;
-                        Console.WriteLine("Usage: mv <file path> <dest path>");
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.WriteLine("Description: Move file between directories");
-                        Console.WriteLine("Avaiable Arguments: \n-h: help");
-                        Console.WriteLine();
-
-                        Console.ForegroundColor = ConsoleColor.Magenta;
-                        Console.WriteLine("Usage: cat <file name>");
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.WriteLine("Description: Opens a text file, reads all the text in the file,\nand then closes the file.");
-                        Console.WriteLine("Avaiable Arguments: \n-h: help");
-                        Console.WriteLine();
-                        
-                        currentPage++;
-                        Console.WriteLine("Page " + currentPage.ToString() +" out of " + pagecount.ToString() + " Continue with enter, exit with esc");
-                        if (!WaitForResponse()) { break; } //wait for enter or escape
-                        Console.WriteLine();
-
-                        Console.ForegroundColor = ConsoleColor.Magenta;
-                        Console.WriteLine("Usage: rm <file name OR directory name>");
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.WriteLine("Description: Deletes the specified file or dir");
-                        Console.WriteLine("Avaiable Arguments: \n-h: help");
-                        Console.WriteLine();
-
-                        Console.ForegroundColor = ConsoleColor.Magenta;
-                        Console.WriteLine("Usage: cd <directory path>");
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.WriteLine("Description: Changes your current directory to the specified one.");
-                        Console.WriteLine("Avaiable Arguments: \n-h: help");
-                        Console.WriteLine();
-
-                        Console.ForegroundColor = ConsoleColor.Magenta;
-                        Console.WriteLine("Usage: pwd");
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.WriteLine("Description: Get current working directory");
-                        Console.WriteLine();
-
-                        Console.ForegroundColor = ConsoleColor.Magenta;
-                        Console.WriteLine("Usage: clear");
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.WriteLine("Description: clear command log");
-                        Console.WriteLine();
-                        
-                        currentPage++;
-                        Console.WriteLine("Page "+ currentPage.ToString() +" out of " + pagecount.ToString() + " Continue with enter, exit with esc");
-                        if (!WaitForResponse()) { break; } //wait for enter or escape
-                        Console.WriteLine();
-
-                        Console.ForegroundColor = ConsoleColor.Magenta;
-                        Console.WriteLine("Usage: shutdown");
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.WriteLine("Description: Shut the Computer down");
-                        Console.WriteLine();
-
-                        Console.ForegroundColor = ConsoleColor.Magenta;
-                        Console.WriteLine("Usage: reboot");
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.WriteLine("Description: Reboot the Computer");
-                        Console.WriteLine();
-
-                        Console.ForegroundColor = ConsoleColor.Magenta;
-                        Console.WriteLine("Usage: force-shutdown");
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.WriteLine("Description: Force a shutdown without proper exit protocols.\nWarning: not all changes made will be saved!");
-                        Console.WriteLine();
-
-                        Console.ForegroundColor = ConsoleColor.Magenta;
-                        Console.WriteLine("Usage: force-reboot");
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.WriteLine("Description: Force a reboot without proper exit protocols.\nWarning: not all changes made will be saved!");
-                        Console.WriteLine();
-                        
-                        currentPage++;
-                        Console.WriteLine("Page " + currentPage.ToString() + " out of " + pagecount.ToString() + " Continue with enter, exit with esc");
-                        if (!WaitForResponse()) { break; } //wait for enter or escape
-                        Console.WriteLine();
-
-                        Console.ForegroundColor = ConsoleColor.Magenta;
-                        Console.WriteLine("Usage: Login");
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.WriteLine("Description: Login to Account");
-                        Console.WriteLine("Available Arguments:\n -h: help");
-                        Console.WriteLine();
-
-                        Console.ForegroundColor = ConsoleColor.Magenta;
-                        Console.WriteLine("Usage: Logout");
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.WriteLine("Description: Logout of your Account");
-                        Console.WriteLine("Available Arguments:\n -h: help");
-                        Console.WriteLine();
-
-                        Console.ForegroundColor = ConsoleColor.Magenta;
-                        Console.WriteLine("Usage: createUser / mkUsr");
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.WriteLine("Description: Create a new User");
-                        Console.WriteLine("Available Arguments: \n -h: help \n -a: create Admin (Only Admins can crate Admins)");
-                        Console.WriteLine();
-                        
-                        currentPage++;
-                        Console.WriteLine("Page " + currentPage.ToString() + " out of " + pagecount.ToString() + " Continue with enter, exit with esc");
-                        if (!WaitForResponse()) { break; } //wait for enter or escape
-                        Console.WriteLine();
-
-                        Console.ForegroundColor = ConsoleColor.Magenta;
-                        Console.WriteLine("Usage: deleteUser [username] / delUsr [username]");
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.WriteLine("Description: delete a User (only available to admins)");
-                        Console.WriteLine("Available Arguments: \n -h: help");
-                        Console.WriteLine();
-
-                        Console.ForegroundColor = ConsoleColor.Magenta;
-                        Console.WriteLine("Usage: initfperms");
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.WriteLine("Description: initialize Fiilepermissions");
-                        Console.WriteLine("Available Arguments:\n -h: help");
-                        Console.WriteLine();
-
-                        Console.ForegroundColor = ConsoleColor.Magenta;
-                        Console.WriteLine("Usage: gfo/getfileowner <file name>");
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.WriteLine("Description: Shows the owner of a File.");
-                        Console.WriteLine("Avaiable Arguments: \n-h: help");
-                        Console.WriteLine();
-                        
-                        currentPage++;
-                        Console.WriteLine("Page " + currentPage.ToString() + " out of " + pagecount.ToString() + " Continue with enter, exit with esc");
-                        if (!WaitForResponse()) { break; } //wait for enter or escape
-                        Console.WriteLine();
-
-                        Console.ForegroundColor = ConsoleColor.Magenta;
-                        Console.WriteLine("Usage: sfp/savefperms");
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.WriteLine("Description: Save File Permissions");
-                        Console.WriteLine("Available Arguments:\n -h: help");
-                        Console.WriteLine();
-
-                        Console.ForegroundColor = ConsoleColor.Magenta;
-                        Console.WriteLine("Usage: changepwd");
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.WriteLine("Description: Change password");
-                        Console.WriteLine("Available Arguments:\n -h: help");
-                        Console.WriteLine();
-                        
-                        currentPage++;
-                        Console.WriteLine("Page " + currentPage.ToString() + " out of " + pagecount.ToString() + " Continue with enter, exit with esc");
-                        if (!WaitForResponse()) { break; } //wait for enter or escape
-                        Console.WriteLine();
+                        HelpOutput();
                         break;
                     }
                 default:
@@ -716,6 +616,201 @@ namespace TrappistOS
                 if (key.Key == ConsoleKey.Escape)
                 { return false; }
             }
+        }
+
+        internal void HelpOutput()
+        {
+            int pagecount = 7;
+            int currentPage = 0;
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.WriteLine("Usage: freespace");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine("Description: Get available free space.");
+            Console.WriteLine("Avaiable Arguments: \n-h: help");
+            Console.WriteLine();
+
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.WriteLine("Usage: mkdir <directory name> ");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine("Description: Creates a new directory");
+            Console.WriteLine("Avaiable Arguments: \n-h: help");
+            Console.WriteLine();
+
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.WriteLine("Usage: mkdir <directory name> ");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine("Description: Creates a new directory");
+            Console.WriteLine("Avaiable Arguments: \n-h: help");
+            Console.WriteLine();
+
+            currentPage++;
+            Console.WriteLine("Page " + currentPage.ToString() + " out of " + pagecount.ToString() + " Continue with enter, exit with esc");
+            if (!WaitForResponse()) { return; } //wait for enter or escape
+            Console.WriteLine();
+
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.WriteLine("Usage: ls");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine("Description: List all the files in a directory");
+            Console.WriteLine("Avaiable Arguments: \n-h: help");
+            Console.WriteLine();
+
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.WriteLine("Usage: mv <file path> <dest path>");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine("Description: Move file between directories");
+            Console.WriteLine("Avaiable Arguments: \n-h: help");
+            Console.WriteLine();
+
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.WriteLine("Usage: cat <file name>");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine("Description: Opens a text file, reads all the text in the file,\nand then closes the file.");
+            Console.WriteLine("Avaiable Arguments: \n-h: help");
+            Console.WriteLine();
+
+            currentPage++;
+            Console.WriteLine("Page " + currentPage.ToString() + " out of " + pagecount.ToString() + " Continue with enter, exit with esc");
+            if (!WaitForResponse()) { return; } //wait for enter or escape
+            Console.WriteLine();
+
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.WriteLine("Usage: rm <file name OR directory name>");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine("Description: Deletes the specified file or dir");
+            Console.WriteLine("Avaiable Arguments: \n-h: help");
+            Console.WriteLine();
+
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.WriteLine("Usage: cd <directory path>");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine("Description: Changes your current directory to the specified one.");
+            Console.WriteLine("Avaiable Arguments: \n-h: help");
+            Console.WriteLine();
+
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.WriteLine("Usage: pwd");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine("Description: Get current working directory");
+            Console.WriteLine();
+
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.WriteLine("Usage: clear");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine("Description: clear command log");
+            Console.WriteLine();
+
+            currentPage++;
+            Console.WriteLine("Page " + currentPage.ToString() + " out of " + pagecount.ToString() + " Continue with enter, exit with esc");
+            if (!WaitForResponse()) { return; } //wait for enter or escape
+            Console.WriteLine();
+
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.WriteLine("Usage: shutdown");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine("Description: Shut the Computer down");
+            Console.WriteLine();
+
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.WriteLine("Usage: reboot");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine("Description: Reboot the Computer");
+            Console.WriteLine();
+
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.WriteLine("Usage: force-shutdown");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine("Description: Force a shutdown without proper exit protocols.\nWarning: not all changes made will be saved!");
+            Console.WriteLine();
+
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.WriteLine("Usage: force-reboot");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine("Description: Force a reboot without proper exit protocols.\nWarning: not all changes made will be saved!");
+            Console.WriteLine();
+
+            currentPage++;
+            Console.WriteLine("Page " + currentPage.ToString() + " out of " + pagecount.ToString() + " Continue with enter, exit with esc");
+            if (!WaitForResponse()) { return; } //wait for enter or escape
+            Console.WriteLine();
+
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.WriteLine("Usage: Login");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine("Description: Login to Account");
+            Console.WriteLine("Available Arguments:\n -h: help");
+            Console.WriteLine();
+
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.WriteLine("Usage: Logout");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine("Description: Logout of your Account");
+            Console.WriteLine("Available Arguments:\n -h: help");
+            Console.WriteLine();
+
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.WriteLine("Usage: createUser / mkUsr");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine("Description: Create a new User");
+            Console.WriteLine("Available Arguments: \n -h: help \n -a: create Admin (Only Admins can crate Admins)");
+            Console.WriteLine();
+
+            currentPage++;
+            Console.WriteLine("Page " + currentPage.ToString() + " out of " + pagecount.ToString() + " Continue with enter, exit with esc");
+            if (!WaitForResponse()) { return; } //wait for enter or escape
+            Console.WriteLine();
+
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.WriteLine("Usage: deleteUser [username] / delUsr [username]");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine("Description: delete a User (only available to admins)");
+            Console.WriteLine("Available Arguments: \n -h: help");
+            Console.WriteLine();
+
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.WriteLine("Usage: initperms");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine("Description: initialize Filepermissions.  Only available to Admins.");
+            Console.WriteLine("Available Arguments:\n -h: help");
+            Console.WriteLine();
+
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.WriteLine("Usage: perm/permissions <file name>");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine("Description: Shows the owner, readers and writers of a file or Directory.");
+            Console.WriteLine("Avaiable Arguments: \n-h: help");
+            Console.WriteLine();
+
+            currentPage++;
+            Console.WriteLine("Page " + currentPage.ToString() + " out of " + pagecount.ToString() + " Continue with enter, exit with esc");
+            if (!WaitForResponse()) { return; } //wait for enter or escape
+            Console.WriteLine();
+
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.WriteLine("Usage: saveperms");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine("Description: Save File Permissions");
+            Console.WriteLine("Available Arguments:\n -h: help");
+            Console.WriteLine();
+
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.WriteLine("Usage: clearperms");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine("Description: clear all Filepermissions.");
+            Console.WriteLine("Available Arguments:\n -h: help");
+            Console.WriteLine();
+
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.WriteLine("Usage: changepwd");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine("Description: Change password");
+            Console.WriteLine("Available Arguments:\n -h: help");
+            Console.WriteLine();
+
+            currentPage++;
+            Console.WriteLine("Page " + currentPage.ToString() + " out of " + pagecount.ToString() + " Continue with enter, exit with esc");
+            if (!WaitForResponse()) { return; } //wait for enter or escape
+            Console.WriteLine();
         }
 
     }
