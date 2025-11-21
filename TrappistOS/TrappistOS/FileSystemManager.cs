@@ -99,7 +99,7 @@ namespace TrappistOS
             if (filename.Length > 8)
             {
                 Console.WriteLine("File or Directory name can't be longer than 8 characters");
-                return false;
+                return null;
             }
 
             try

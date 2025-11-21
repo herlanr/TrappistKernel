@@ -18,22 +18,10 @@ namespace TrappistOS
         protected override void BeforeRun()
         {
             Console.WriteLine("TrappistOS booting");
-            
             fsManager = new FileSystemManager();
             fsManager.fsInitialize();
             Sys.KeyboardManager.SetKeyLayout(new DE_Standard());
             Console.WriteLine("Filesystem initialized");
-
-            userInfo = new UserLogin();
-            userInfo.BeforeRun(userpath);
-            Console.WriteLine("Usermanagement intialized");
-
-            permManager = new FilePermissions();
-            permManager.PermInit(userInfo,new[] { userpath } );
-            Console.WriteLine("Filepermissions initialized");
-            Console.Clear();
-            
-            
 
             // Print system info
             Console.WriteLine(" _____                     _     _   _____ _____ \r\n|_   _|                   (_)   | | |  _  /  ___|\r\n  | |_ __ __ _ _ __  _ __  _ ___| |_| | | \\ `--. \r\n  | | '__/ _` | '_ \\| '_ \\| / __| __| | | |`--. \\\r\n  | | | | (_| | |_) | |_) | \\__ \\ |_\\ \\_/ /\\__/ /\r\n  \\_/_|  \\__,_| .__/| .__/|_|___/\\__|\\___/\\____/ \r\n              | |   | |                          \r\n              |_|   |_|                          ");
@@ -60,8 +48,12 @@ namespace TrappistOS
                 {
                     Console.WriteLine("\nStarting terminal...");
                     userInfo = new UserLogin();
-                    ProgramMemory[0] = userInfo;
-                    userInfo.BeforeRun();
+                    userInfo.BeforeRun(userpath);
+                    Console.WriteLine("Usermanagement intialized");
+
+                    permManager = new FilePermissions();
+                    permManager.PermInit(userInfo, new[] { userpath });
+                    Console.WriteLine("Filepermissions initialized");
                     Console.Clear();
                     Console.WriteLine("TrappistOS booted up!");
                     break;
@@ -93,7 +85,7 @@ namespace TrappistOS
             args[0] = args[0].ToLower();
             switch (args[0])
             {
-                case "freespace":
+                case "freespace": //in help
                     {
                         if(args.Length > 1)
                         {
@@ -109,7 +101,7 @@ namespace TrappistOS
                         fsManager.showFreeSpace();
                         break;
                     }
-                case "touch":
+                case "touch": //in help
                     {
                         if (args.Length < 2 || args[1] == "-h")
                         {
@@ -123,7 +115,7 @@ namespace TrappistOS
                         permManager.InitPermissions(path, userInfo.GetId());
                         break;
                     }
-                case "mkdir":
+                case "mkdir": //in help
                     {
                         if (args.Length < 2 || args[1] == "-h")
                         {
@@ -137,7 +129,7 @@ namespace TrappistOS
                         break;
                     }
 
-                case "ls":
+                case "ls": //in help
                     {
                         if (args.Length > 1)
                         {
@@ -153,7 +145,7 @@ namespace TrappistOS
                         break;
                     }
 
-                case "mv":
+                case "mv": //in help
                     {
                         if (args.Length < 3 || args[1] == "-h")
                         {
@@ -167,7 +159,7 @@ namespace TrappistOS
                         break;
                     }
 
-                case "cat":
+                case "cat": //in help
                     {
                         if (args.Length < 2 || args[1] == "-h")
                         {
@@ -195,7 +187,7 @@ namespace TrappistOS
                     {
                         if (args.Length < 2 || args[1] == "-h")
                         {
-                            Console.WriteLine("Usage: rm <file name>");
+                            Console.WriteLine("Usage: rmfile <file name>");
                             Console.WriteLine("Description: Deletes the specified file");
                             Console.WriteLine("Avaiable Arguments: \n-h: help");
                             break;
@@ -208,7 +200,7 @@ namespace TrappistOS
                     {
                         if (args.Length < 2 || args[1] == "-h")
                         {
-                            Console.WriteLine("Usage: rm <directory name>");
+                            Console.WriteLine("Usage: rmdir <directory name>");
                             Console.WriteLine("Description: Deletes the specified dir");
                             Console.WriteLine("Avaiable Arguments: \n-h: help");
                             break;
@@ -232,7 +224,7 @@ namespace TrappistOS
                         break;
                     }
 
-                case "cd":
+                case "cd": //in help
                     {
                         if (args.Length < 2 || args[1] == "-h")
                         {
@@ -246,29 +238,29 @@ namespace TrappistOS
                         break;
                     }
 
-                case "pwd":
+                case "pwd": //in help
                     {
                         Console.WriteLine("You are here: " + fsManager.getCurrentDir());
                         break;
                     }
-                case "clear":
+                case "clear": //in help
                     {
                         Console.Clear();
                         break;
                     }
-                case "shutdown":
+                case "shutdown": //in help
                     {
                         permManager.SavePermissions();
                         Sys.Power.Shutdown();
                         break;
                     }
-                case "reboot":
+                case "reboot": //in help
                     {
                         permManager.SavePermissions();
                         Sys.Power.Reboot();
                         break;
                     }
-                case "force-shutdown":
+                case "force-shutdown": //in help
                     {
                         Console.WriteLine($"Are you sure you want to forcecfully shutdown? Not all changes will be saved.\n(y)es/(n)o");
                         char confimation = ' ';
@@ -281,7 +273,7 @@ namespace TrappistOS
                         }
                         break;
                     }
-                case "force-reboot":
+                case "force-reboot": //in help
                     {
                         Console.WriteLine($"Are you sure you want to forcecfully reboot? Not all changes will be saved.\n(y)es/(n)o");
                         char confimation = ' ';
@@ -294,7 +286,7 @@ namespace TrappistOS
                         }
                         break;
                     }
-                case "login":
+                case "login": //in help
                     {        
                         if (args.Length == 1)
                         {
@@ -308,7 +300,7 @@ namespace TrappistOS
                         }
                         break;
                     }
-                case "logout":
+                case "logout": //in help
                     {
                         if (args.Length == 1)
                         {
@@ -323,7 +315,7 @@ namespace TrappistOS
                         break;
                     }
                 case "deleteuser":
-                case "delusr":
+                case "delusr": //in help
                     {
                         if (args.Length == 2 && args[1] != "-h")
                         {
@@ -355,7 +347,7 @@ namespace TrappistOS
                         break;
                     }
                 case "createuser":
-                case "mkusr":
+                case "mkusr": //in help
                     {
                         if (args.Length == 1)
                         {  
@@ -392,7 +384,7 @@ namespace TrappistOS
                         }
                         break;
                     }*/
-                case "initperms":
+                case "initperms": //in help
                     {
                         if (args.Length != 1)
                         { 
@@ -456,7 +448,7 @@ namespace TrappistOS
                         //Console.SetError(_oldError);
                         break;
                     }
-                case "clearperms":
+                case "clearperms": //in help
                     { 
                         if (args.Length != 1)
                         {
@@ -475,7 +467,7 @@ namespace TrappistOS
                         break;
                     }
                 case "perm":
-                case "permissions":
+                case "permissions": //in help
                     {
                         if (args.Length < 2 || args[1] == "-h")
                         {
@@ -523,7 +515,7 @@ namespace TrappistOS
                         Console.WriteLine();
                         break;
                     }
-                case "saveperms":
+                case "saveperms": //in help
                     {
                         if (args.Length == 1)
                         {
@@ -536,8 +528,8 @@ namespace TrappistOS
                             Console.WriteLine("Available Arguments:\n -h: help");
                         }
                         break;
-                    }
-                case "changepwd":
+                    } 
+                case "changepwd": //in help
                     {
                         if(args.Length != 1)
                         {
@@ -620,7 +612,7 @@ namespace TrappistOS
 
         internal void HelpOutput()
         {
-            int pagecount = 7;
+            int pagecount = 8;
             int currentPage = 0;
             Console.ForegroundColor = ConsoleColor.Magenta;
             Console.WriteLine("Usage: freespace");
@@ -675,10 +667,27 @@ namespace TrappistOS
             Console.WriteLine();
 
             Console.ForegroundColor = ConsoleColor.Magenta;
-            Console.WriteLine("Usage: rm <file name OR directory name>");
+            Console.WriteLine("Usage: rmfile <file name>");
             Console.ForegroundColor = ConsoleColor.White;
-            Console.WriteLine("Description: Deletes the specified file or dir");
+            Console.WriteLine("Description: Deletes the specified file");
             Console.WriteLine("Avaiable Arguments: \n-h: help");
+            Console.WriteLine();
+
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.WriteLine("Usage: rmdir <directory name>");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine("Description: Deletes the specified dir");
+            Console.WriteLine("Avaiable Arguments: \n-h: help");
+
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.WriteLine("Usage: rename <directory or file> <new name>");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine("Description: It Renames the selected directory or file.");
+            Console.WriteLine("Avaiable Arguments: \n-h: help");
+
+            currentPage++;
+            Console.WriteLine("Page " + currentPage.ToString() + " out of " + pagecount.ToString() + " Continue with enter, exit with esc");
+            if (!WaitForResponse()) { return; } //wait for enter or escape
             Console.WriteLine();
 
             Console.ForegroundColor = ConsoleColor.Magenta;
