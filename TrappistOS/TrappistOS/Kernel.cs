@@ -1,5 +1,6 @@
 using Cosmos.System.ScanMaps;
 using System;
+using System.ComponentModel.Design;
 using System.IO;
 using Sys = Cosmos.System;
 
@@ -105,27 +106,43 @@ namespace TrappistOS
                     {
                         if (args.Length < 2 || args[1] == "-h")
                         {
-                            Console.WriteLine("Usage: touch <file name> ");
+                            Console.WriteLine("Usage: touch [-o] <file name> ");
                             Console.WriteLine("Description: Creates a new file");
-                            Console.WriteLine("Avaiable Arguments: \n-h: help");
+                            Console.WriteLine("Avaiable Arguments: \n-h: help \n-o: give yourself complete ownership.\n   If not set, it will inherent the ownership of the Current directory.");
                             break;
                         }
-                        
-                        string path = fsManager.createFile(args[1]);
-                        permManager.InitPermissions(path, userInfo.GetId());
+                        if (args[1] == "-o")
+                        {
+                            string path = fsManager.createFile(args[2]);
+                            permManager.InitPermissions(path, userInfo.GetId());
+                        }
+                        else
+                        {
+                            string path = fsManager.createFile(args[1]);
+                            permManager.InitPermissions(path);
+                        }
                         break;
                     }
                 case "mkdir": //in help
                     {
-                        if (args.Length < 2 || args[1] == "-h")
+                        if (args.Length < 3 || args[1] == "-h")
                         {
-                            Console.WriteLine("Usage: mkdir <directory name> ");
+                            Console.WriteLine("Usage: mkdir [-o] <directory name> ");
                             Console.WriteLine("Description: Creates a new directory");
-                            Console.WriteLine("Avaiable Arguments: \n-h: help");
+                            Console.WriteLine("Avaiable Arguments: \n-h: help \n-o: give yourself complete ownership.\n   If not set, it will inherent the ownership of the Current directory.");
                             break;
                         }
-                        string path = fsManager.createDirectory(args[1]);
-                        permManager.InitPermissions(path, userInfo.GetId());
+                        if (args[1] == "-o")
+                        {
+                            string path = fsManager.createDirectory(args[2]);
+                            permManager.InitPermissions(path, userInfo.GetId());
+                        }
+                        else
+                        {
+                            string path = fsManager.createDirectory(args[1]);
+                            permManager.InitPermissions(path);
+                        }
+                            
                         break;
                     }
 
@@ -154,6 +171,11 @@ namespace TrappistOS
                                 Console.WriteLine("Avaiable Arguments: \n-h: help");
                                 break;
 
+                        }
+                        if (!permManager.IsWriter(fsManager.getFullPath(args[1]), userInfo.GetId()) && !userInfo.IsAdmin())
+                        {
+                            Console.WriteLine("You do not have permissions to move this file.");
+                            break;
                         }
                         fsManager.moveFile(args[1], args[2]);
                         break;
@@ -193,6 +215,12 @@ namespace TrappistOS
                             break;
                         }
 
+
+                        if (!permManager.IsWriter(fsManager.getFullPath(args[1]), userInfo.GetId()) && !userInfo.IsAdmin())
+                        {
+                            Console.WriteLine("You do not have permissions to delete this file.");
+                            break;
+                        }
                         fsManager.deleteFile(args[1]);
                         break;
                     }
@@ -207,6 +235,11 @@ namespace TrappistOS
                             break;
                         }
 
+                        if (!permManager.IsWriter(fsManager.getFullPath(args[1]), userInfo.GetId()) && !userInfo.IsAdmin())
+                        {
+                            Console.WriteLine("You do not have permissions to delete this directory.");
+                            break;
+                        }
                         fsManager.deleteDir(args[1]);
                         break;
                     }
@@ -218,6 +251,11 @@ namespace TrappistOS
                             Console.WriteLine("Usage: rename <directory or file> <new name>");
                             Console.WriteLine("Description: It Renames the selected directory or file.");
                             Console.WriteLine("Avaiable Arguments: \n-h: help");
+                            break;
+                        }
+                        if (!permManager.IsWriter(fsManager.getFullPath(args[1]),userInfo.GetId()) && !userInfo.IsAdmin())
+                        {
+                            Console.WriteLine("You do not have permissions to rename this file.");
                             break;
                         }
 
@@ -235,7 +273,15 @@ namespace TrappistOS
                             break;
                         }
 
-                        fsManager.changeDirectory(args[1]);
+
+                        if (permManager.IsReader(fsManager.getFullPath(args[1]), userInfo.GetId()) || userInfo.IsAdmin())
+                        {
+                            fsManager.changeDirectory(args[1]);
+                        }
+                        else
+                        {
+                            Console.WriteLine("You do not have permission to view this directory.");
+                        }
                         break;
                     }
 
@@ -404,49 +450,6 @@ namespace TrappistOS
                             Console.WriteLine("Command can only get run in home directory");
                             break; 
                         }
-                        string[] allUsers = userInfo.GetAllUsers();
-                        Console.WriteLine("intializing Rights with Visitor");
-                        string[] rootpaths = fsManager.getAllPaths(fsManager.getCurrentDir());
-                        foreach (string path in rootpaths)
-                        {
-                            permManager.InitPermissions(path, userInfo.GetUserID("Visitor"));
-                        }
-                        Console.WriteLine("initialization successful.\nCreating user specific Directories for the following users:");
-                        foreach (string user in allUsers)
-                        {
-                            Console.Write(user + " ");
-                        }
-                        Console.WriteLine();
-                        foreach (string user in allUsers)
-                        {
-                            string dirpath = fsManager.getFullPath(user);
-                            if (dirpath == null)
-                            {
-                                dirpath = fsManager.createDirectory(user);
-                                Console.WriteLine("Created: "+ dirpath);
-                            }
-                            if(File.Exists(dirpath))
-                            {
-                                Console.WriteLine("Error: File with Username " + user + " already exists.");
-                                continue;
-                            }
-                            string[] allpaths = fsManager.getAllPaths(dirpath);
-                            foreach(string path in allpaths)
-                            {
-                                if (permManager.InitPermissions(path, userInfo.GetUserID(user)))
-                                {
-                                    Console.WriteLine("Set Rights of " + path + " to " + user);
-                                }
-                                else
-                                {
-                                    Console.WriteLine(path + " already has defined rights.");
-                                }
-                                
-                            }
-                        }
-                        Console.WriteLine("initialization Successful");
-                        //Console.SetOut(_oldOut);
-                        //Console.SetError(_oldError);
                         break;
                     }
                 case "clearperms": //in help
@@ -623,17 +626,17 @@ namespace TrappistOS
             Console.WriteLine();
 
             Console.ForegroundColor = ConsoleColor.Magenta;
-            Console.WriteLine("Usage: mkdir <directory name> ");
+            Console.WriteLine("Usage: [-o] touch <directory name> ");
             Console.ForegroundColor = ConsoleColor.White;
-            Console.WriteLine("Description: Creates a new directory");
-            Console.WriteLine("Avaiable Arguments: \n-h: help");
+            Console.WriteLine("Description: Creates a new file");
+            Console.WriteLine("Avaiable Arguments: \n-h: help \n-o: give yourself complete ownership.\n   If not set, it will inherent the ownership of the Current directory.");
             Console.WriteLine();
 
             Console.ForegroundColor = ConsoleColor.Magenta;
-            Console.WriteLine("Usage: mkdir <directory name> ");
+            Console.WriteLine("Usage: [-o] mkdir <directory name> ");
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine("Description: Creates a new directory");
-            Console.WriteLine("Avaiable Arguments: \n-h: help");
+            Console.WriteLine("Avaiable Arguments: \n-h: help \n-o: give yourself complete ownership.\n   If not set, it will inherent the ownership of the Current directory.");
             Console.WriteLine();
 
             currentPage++;
@@ -822,6 +825,52 @@ namespace TrappistOS
             Console.WriteLine("Page " + currentPage.ToString() + " out of " + pagecount.ToString() + " Continue with enter, exit with esc");
             if (!WaitForResponse()) { return; } //wait for enter or escape
             Console.WriteLine();
+        }
+
+        public void InitPerms()
+        {
+
+            string[] allUsers = userInfo.GetAllUsers();
+            Console.WriteLine("Creating user specific Directories for the following users:");
+            foreach (string user in allUsers)
+            {
+                Console.Write(user + " ");
+            }
+            Console.WriteLine();
+            foreach (string user in allUsers)
+            {
+                string dirpath = fsManager.getFullPath(user);
+                if (dirpath == null)
+                {
+                    dirpath = fsManager.createDirectory(user);
+                    Console.WriteLine("Created: " + dirpath);
+                }
+                if (File.Exists(dirpath))
+                {
+                    Console.WriteLine("Error: File with Username " + user + " already exists.");
+                    continue;
+                }
+                string[] allpaths = fsManager.getAllPaths(dirpath);
+                foreach (string path in allpaths)
+                {
+                    if (permManager.InitPermissions(path, userInfo.GetUserID(user)))
+                    {
+                        Console.WriteLine("Set Rights of " + path + " to " + user);
+                    }
+
+                }
+            }
+
+            Console.WriteLine("intializing Remaining files");
+            string[] rootpaths = fsManager.getAllPaths(fsManager.getCurrentDir());
+            foreach (string path in rootpaths)
+            {
+                if (permManager.InitPermissions(path))
+                {
+                    Console.WriteLine("Set Rights of " + path + " to " + userInfo.GetUserName(permManager.GetOwnerID(path)));
+                }
+            }
+            Console.WriteLine("initialization Successful");
         }
 
     }

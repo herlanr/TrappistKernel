@@ -17,19 +17,22 @@ namespace TrappistOS
         private class FileRights
         {
             public int owner;
-            public int[] reader;
-            public int[] writer;
+            public List<int> reader;
+            public List<int> writer;
             public FileRights(int iowner, int[] ireader, int[] iwriter) 
             {
                 owner = iowner;
-                reader = ireader;
-                writer = iwriter;
+                reader = ireader.ToList();
+                writer = iwriter.ToList();
             }
         }
+
 
         private int visitorID;
         Hashtable fileRightTable;
         string filepath = @"0:\filePerm.sys";
+        string rootdir = @"0:\";
+
         public bool PermInit(UserLogin user, string[] requiredSystemPaths) 
         {
             Array.Resize(ref requiredSystemPaths, requiredSystemPaths.Length + 1);
@@ -106,7 +109,7 @@ namespace TrappistOS
                     FileRights SystemFile = new FileRights(system[0], system, system);
                     fileRightTable.Add(path.ToLower(),SystemFile);  
                 }
-                if (((FileRights)fileRightTable[path.ToLower()]).owner != 0 || ((FileRights)fileRightTable[path.ToLower()]).reader != new[] { 0 } || ((FileRights)fileRightTable[path.ToLower()]).writer != new[] { 0 })
+                if (((FileRights)fileRightTable[path.ToLower()]).owner != 0 || ((FileRights)fileRightTable[path.ToLower()]).reader != new List<int>(0) || ((FileRights)fileRightTable[path.ToLower()]).writer != new List<int>(0))
                 {
                     fileRightTable.Remove(path.ToLower());
                     int[] system = { 0 };
@@ -125,13 +128,34 @@ namespace TrappistOS
             return true;
         }
 
-        public bool InitPermissions(string path, int userID)
+        public bool InitPermissions(string path)
         {
             try
             {
                 if (!fileRightTable.ContainsKey(path.ToLower()))
                 {
-                    FileRights SystemFile = new FileRights(userID, new[] { userID }, new[] { userID });
+                    if (fileRightTable.ContainsKey(path.ToLower()))
+                    {
+                        return false;
+                    }
+                    FileRights SystemFile;
+                    //FileRights SystemFile = new FileRights(userID, new[] { userID }, new[] { userID });
+                    if (fileRightTable.ContainsKey((Directory.GetParent(path)).FullName))
+                    {
+                        SystemFile = (FileRights)fileRightTable[(Directory.GetParent(path)).FullName];
+                    }
+                    else if (path == rootdir)
+                    {
+                        SystemFile = new FileRights(visitorID, new[] { visitorID }, new[] { visitorID });
+                    }
+                    else
+                    {
+                        if (InitPermissions((Directory.GetParent(path)).FullName))
+                        {
+                            SystemFile = (FileRights)fileRightTable[(Directory.GetParent(path)).FullName];
+                        }
+                        else return false;
+                    }
                     fileRightTable.Add(path.ToLower(), SystemFile);
                     return true;
                 }
@@ -145,6 +169,31 @@ namespace TrappistOS
             };
         }
 
+        public bool InitPermissions(string path, int userID)
+        {
+            try
+            {
+                FileRights SystemFile;
+                if (!fileRightTable.ContainsKey(path.ToLower()))
+                {
+                    SystemFile = new FileRights(userID, new[] { userID }, new[] { userID });
+                }
+                else
+                {
+                    return false;
+                }
+                fileRightTable.Add(path.ToLower(), SystemFile);
+                return true;
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error when creating filepermissions " + e.Message);
+                return false;
+            }
+            ;
+        }
+
         public bool SetWriter(string path, int userID)
         {
             if (!File.Exists(path) && !Directory.Exists(path))
@@ -152,10 +201,15 @@ namespace TrappistOS
                 Console.WriteLine(path + " does not exist");
                 return false;
             }
+            if(path == rootdir)
+            {
+                Console.WriteLine("You cannot change permissions for the root directory");
+                return false;
+            }
             if (!fileRightTable.ContainsKey(path.ToLower()))
             {
                 Console.WriteLine($"unknown permissions for " + path + ", creating new");
-                fileRightTable.Add(path.ToLower(), new FileRights(visitorID, new[] { visitorID }, new[] { visitorID }));
+                InitPermissions(path);
             }
             if (fileRightTable[path.ToLower()].GetType() != typeof(FileRights))
             { 
@@ -164,7 +218,22 @@ namespace TrappistOS
             }
             else
             {
-                ((FileRights)fileRightTable[path.ToLower()]).writer.Append(userID);
+                ((FileRights)fileRightTable[path.ToLower()]).writer.Add(userID);
+                if (fileRightTable.ContainsKey((Directory.GetParent(path)).FullName))
+                {
+                    if(!IsReader(Directory.GetParent(path).FullName,userID))
+                    {
+                        SetReader(Directory.GetParent(path).FullName, userID);
+                    }
+                }
+                else
+                {
+                    InitPermissions(Directory.GetParent(path).FullName, userID);
+                    if (!IsReader(Directory.GetParent(path).FullName, userID))
+                    {
+                        SetReader(Directory.GetParent(path).FullName, userID);
+                    }
+                }
                 return true;
             }
         }
@@ -176,10 +245,15 @@ namespace TrappistOS
                 Console.WriteLine(path + " does not exist");
                 return false;
             }
+            if (path == rootdir)
+            {
+                Console.WriteLine("You cannot change permissions for the root directory");
+                return false;
+            }
             if (!fileRightTable.ContainsKey(path.ToLower()))
             {
                 Console.WriteLine($"unknown permissions for " + path + ", creating new");
-                fileRightTable.Add(path.ToLower(), new FileRights(visitorID, new[] { visitorID }, new[] { visitorID }));
+                InitPermissions(path);
             }
             if (fileRightTable[path.ToLower()].GetType() != typeof(FileRights))
             { 
@@ -188,7 +262,27 @@ namespace TrappistOS
             }
             else
             {
-                ((FileRights)fileRightTable[path.ToLower()]).reader.Append(userID);
+                ((FileRights)fileRightTable[path.ToLower()]).reader.Add(userID);
+                if (fileRightTable.ContainsKey((Directory.GetParent(path)).FullName))
+                {
+                    if (!IsReader(Directory.GetParent(path).FullName, userID))
+                    {
+                        SetReader(Directory.GetParent(path).FullName, userID);
+                    }
+                }
+                else
+                {
+                    if(path == rootdir)
+                    {
+                        InitPermissions(Directory.GetParent(path).FullName, visitorID);
+                        return true;
+                    }
+                    InitPermissions(Directory.GetParent(path).FullName, userID);
+                    if (!IsReader(Directory.GetParent(path).FullName, userID))
+                    {
+                        SetReader(Directory.GetParent(path).FullName, userID);
+                    }
+                }
                 return true;
             }
         }
@@ -198,6 +292,11 @@ namespace TrappistOS
             if (!File.Exists(path) && !Directory.Exists(path))
             {
                 Console.WriteLine(path + " does not exist");
+                return false;
+            }
+            if (path == rootdir)
+            {
+                Console.WriteLine("You cannot change permissions for the root directory");
                 return false;
             }
             if (!fileRightTable.ContainsKey(path.ToLower()))
@@ -213,6 +312,21 @@ namespace TrappistOS
             else
             {
                 ((FileRights)fileRightTable[path.ToLower()]).owner = userID;
+                if (fileRightTable.ContainsKey((Directory.GetParent(path)).FullName))
+                {
+                    if (!IsReader(Directory.GetParent(path).FullName, userID))
+                    {
+                        SetReader(Directory.GetParent(path).FullName, userID);
+                    }
+                }
+                else
+                {
+                    InitPermissions(Directory.GetParent(path).FullName, userID);
+                    if (!IsReader(Directory.GetParent(path).FullName, userID))
+                    {
+                        SetReader(Directory.GetParent(path).FullName, userID);
+                    }
+                }
                 return true;
             }
         }
@@ -236,7 +350,7 @@ namespace TrappistOS
             }
             else
             {
-                if(((FileRights)fileRightTable[path.ToLower()]).owner == userID)
+                if(((FileRights)fileRightTable[path.ToLower()]).owner == userID && ((FileRights)fileRightTable[path.ToLower()]).owner != visitorID)
                 { return true; }
                 return false;
             }
@@ -261,7 +375,7 @@ namespace TrappistOS
             }
             else
             {
-                if (((FileRights)fileRightTable[path.ToLower()]).reader.Contains(userID))
+                if (((FileRights)fileRightTable[path.ToLower()]).reader.Contains(userID) || ((FileRights)fileRightTable[path.ToLower()]).reader.Contains(visitorID))
                 { return true; }
                 return false;
             }
@@ -286,7 +400,7 @@ namespace TrappistOS
             }
             else
             {
-                if (((FileRights)fileRightTable[path.ToLower()]).writer.Contains(userID))
+                if (((FileRights)fileRightTable[path.ToLower()]).writer.Contains(userID) || ((FileRights)fileRightTable[path.ToLower()]).writer.Contains(visitorID))
                 { return true; }
                 return false;
             }
@@ -337,7 +451,7 @@ namespace TrappistOS
             }
             else
             {
-                return ((FileRights)fileRightTable[path.ToLower()]).reader;
+                return ((FileRights)fileRightTable[path.ToLower()]).reader.ToArray();
             }
         }
 
@@ -362,7 +476,7 @@ namespace TrappistOS
             }
             else
             {
-                return ((FileRights)fileRightTable[path.ToLower()]).writer;
+                return ((FileRights)fileRightTable[path.ToLower()]).writer.ToArray();
             }
         }
 
@@ -389,8 +503,8 @@ namespace TrappistOS
 
                 foreach (DictionaryEntry file in fileRightTable)
                 {
-                    int[] writers = ((FileRights)file.Value).writer;
-                    int[] readers = ((FileRights)file.Value).reader;
+                    int[] writers = ((FileRights)file.Value).writer.ToArray();
+                    int[] readers = ((FileRights)file.Value).reader.ToArray();
                     int owner = ((FileRights)file.Value).owner;
 
                     File.AppendAllText(filepath, Convert.ToString(owner) + ' ');
