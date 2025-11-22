@@ -36,7 +36,7 @@ namespace TrappistOS
 
         public bool PermInit(UserLogin user, string[] requiredSystemPaths) 
         {
-            Array.Resize(ref requiredSystemPaths, requiredSystemPaths.Length + 1);
+            Array.Resize(ref requiredSystemPaths, requiredSystemPaths.Length + 1); //array.addpend geht nicht, in zukunft Liste mehr nutzen.
             requiredSystemPaths[requiredSystemPaths.Length - 1] = filepath;
 
             fileRightTable = new Hashtable(); 
@@ -51,21 +51,23 @@ namespace TrappistOS
                 catch (Exception e)
                 {
                     Console.WriteLine("Error in File Permission loading:" + e.Message + "\nPlease restart your machine with the \"force-shutdown\" or \"force-reboot\" Option");
-                    Cosmos.HAL.Global.PIT.Wait((uint)3000);
+                    Cosmos.HAL.Global.PIT.Wait((uint)3000); //Output normally gets cleared right after putting it out;
                     return false;
                 }
             }
+
             string[] filePermissions = File.ReadAllLines(filepath);
+
             foreach (string line in filePermissions)
             {
                 string[] permissionDetails = line.Split(' ');
-                if (permissionDetails.Length < 4)
+                if (permissionDetails.Length < 4) //Structure: [ownerID] [ReaderID1,ReaderID2....] [WriterID1,WriterID2,...] [path]
                 {
                     Console.WriteLine(line + "too short");
                     continue; 
                 }
 
-                if (permissionDetails.Length > 4)
+                if (permissionDetails.Length > 4) //handle spaces in Paths
                 {
                     for (int i = 4; i < permissionDetails.Length; i++)
                     {
@@ -74,7 +76,7 @@ namespace TrappistOS
                 }
 
                 int owner = 0;
-                if (int.TryParse(permissionDetails[0], out owner)){ }
+                if (int.TryParse(permissionDetails[0], out owner)){ } //try to get int from ownerID
                 else 
                 {
                     Console.WriteLine(line + " owner not int " + permissionDetails[0]);
@@ -82,10 +84,10 @@ namespace TrappistOS
                 }
 
                 int[] readRights = Array.Empty<int>();
-                string[] readerList = permissionDetails[1].Split(",");
+                string[] readerList = permissionDetails[1].Split(","); //Split readerlist into array to use
                 foreach (string reader in readerList)
                 {
-                    Array.Resize(ref readRights, readRights.Length + 1);
+                    Array.Resize(ref readRights, readRights.Length + 1);    //convert string array to int array
                     if (int.TryParse(reader, out readRights[readRights.Length-1])) { }
                     else 
                     {
@@ -95,10 +97,10 @@ namespace TrappistOS
                 }
 
                 int[] writeRights = Array.Empty<int>();
-                string[] writerList = permissionDetails[1].Split(",");
+                string[] writerList = permissionDetails[1].Split(","); //Split Writerlist into array to use
                 foreach (string writer in writerList)
                 {
-                    Array.Resize(ref writeRights, writeRights.Length + 1);
+                    Array.Resize(ref writeRights, writeRights.Length + 1); //convert string array to int array
                     if (int.TryParse(writer, out writeRights[writeRights.Length-1])) { }
                     else 
                     {
@@ -107,19 +109,20 @@ namespace TrappistOS
                     }
                 }
 
-                FileRights currentFileRights = new FileRights(owner,readRights,writeRights);
+                FileRights currentFileRights = new FileRights(owner,readRights,writeRights); //create new object with got data
 
                 try
                 {
-                    fileRightTable.Add(permissionDetails[3].ToLower(), currentFileRights);
+                    fileRightTable.Add(permissionDetails[3].ToLower(), currentFileRights); //Add new object to hastable for quick access
                 }
-                catch
+                catch (Exception e)
                 {
-                    Console.WriteLine("Duplicate File " + permissionDetails[3] + " in filepermissions. Permissions for that File might not be correct.");
+                    Console.WriteLine("Error: " + e.Message + " when loading permissions for file: " + permissionDetails[3] + ".\nPermissions for that File might not be correct.");
+                    Cosmos.HAL.Global.PIT.Wait((uint)3000);
                 }
             }
             //Cosmos.HAL.Global.PIT.Wait((uint)5000);
-            foreach (string path in requiredSystemPaths)
+            foreach (string path in requiredSystemPaths) //Set Systemfiles to be owned by System
             {
                 
                 if (!fileRightTable.ContainsKey(path.ToLower()))
@@ -138,7 +141,8 @@ namespace TrappistOS
                     fileRightTable.Add(path.ToLower(), SystemFile);
                 }
             }
-            visitorID = user.maxAdminID + user.visitorid;
+
+            visitorID = user.maxAdminID + user.visitorid; //Set root to be owned by Visitor, needed for consistent recursion ending
             if (!fileRightTable.ContainsKey(rootdir))
             {
                 int[] visitor = { visitorID };
@@ -150,7 +154,8 @@ namespace TrappistOS
             return true;
         }
 
-        public bool InitPermissions(string path)
+        //Init permissions without User to initialize to
+        public bool InitPermissions(string path, bool overwrite = false)
         {
             try
             {
@@ -158,25 +163,41 @@ namespace TrappistOS
                 {
                     return false;
                 }
-                string lowerpath = path.ToLower();
+                string lowerpath = path.ToLower(); //hashtable only works with lowercase paths
                 
-                if (!fileRightTable.ContainsKey(lowerpath))
+                if (!fileRightTable.ContainsKey(lowerpath)|| overwrite) //check if path already exists in Hashtable, if it does, it can't be initialized or it is overwritten
                 {
-                    FileRights SystemFile = new FileRights(visitorID, new[] { visitorID }, new[] { visitorID });
-                    //FileRights SystemFile = new FileRights(userID, new[] { userID }, new[] { userID });
-                    if (path == rootdir)
+                    if (fileRightTable.ContainsKey(lowerpath)) //deletion in case of overwrite
                     {
+                        fileRightTable.Remove(lowerpath);
+                    }
+
+                    //standard: initialize to visitor
+                    FileRights SystemFile = new FileRights(visitorID, new[] { visitorID }, new[] { visitorID });
+
+                    //if path is root, end here
+                    if (path == rootdir) 
+                    {
+                        return true;
                         //Console.WriteLine("Went down to root");
                     }
-                    else if(Directory.GetParent(path) == null)
+
+                    //if parent directory somehow doesn't exist, end here
+                    if (Directory.GetParent(path) == null) 
                     {
-                        //Console.WriteLine(path + " has not parent dir and isn't root");
+                        Console.WriteLine(path + " has not parent dir and isn't root");
+                        return true;
                     }
-                    else if (fileRightTable.ContainsKey((Directory.GetParent(path)).FullName.ToLower()))
+
+                    //if parent directory exists and is in database, use the permissions from that
+                    if (fileRightTable.ContainsKey((Directory.GetParent(path)).FullName.ToLower())) 
                     {
                         //Console.WriteLine("using rights from parent:" + path);
                         SystemFile = (FileRights)fileRightTable[(Directory.GetParent(path)).FullName.ToLower()];
                     }
+
+                    //if parent directory exists, but isn't in the database, call this function with the parent directory.
+                    //-> recursion until root or first directory with permissions
                     else
                     {
                         //Console.WriteLine("making rights for parent: " + path);
@@ -186,7 +207,9 @@ namespace TrappistOS
                         }
                         else return false;
                     }
-                    fileRightTable.Add(path.ToLower(), SystemFile);
+
+                    //finally, add new directory with rights to database
+                    fileRightTable.Add(path.ToLower(), SystemFile); 
                     return true;
                 }
                 else
@@ -199,21 +222,35 @@ namespace TrappistOS
             };
         }
 
+
+        //init permissions to specified user
         public bool InitPermissions(string path, int userID, bool overwrite = false)
         {
             try
             {
-                if (path is null)
+                //if empty path, stop here
+                if (path is null) 
                 {
                     return false;
                 }
+
+                //if path is not valid, end here
+                if (!Directory.Exists(path) || !File.Exists(path))
+                {
+                    return false;
+                }
+
                 FileRights SystemFile;
-                if (!fileRightTable.ContainsKey(path.ToLower()))
+
+                //if database doesn'#'t know this file, make new object
+                if (!fileRightTable.ContainsKey(path.ToLower())) 
                 {
                     SystemFile = new FileRights(userID, new[] { userID }, new[] { userID });
                 }
                 else
                 {
+                    //if path exists and database knows this path, check if overwrite
+                    //if overwrite -> delete path from database and make new object
                     if (overwrite)
                     {
                         fileRightTable.Remove(path.ToLower());
@@ -225,6 +262,8 @@ namespace TrappistOS
                     }
                         
                 }
+
+                //add to database
                 fileRightTable.Add(path.ToLower(), SystemFile);
                 return true;
 
@@ -238,35 +277,25 @@ namespace TrappistOS
 
         public bool SetWriter(string path, int userID)
         {
-            if (path == null)
+            //valid path check
+            if (!PathValidation(path))
             {
                 return false;
             }
-            if (!File.Exists(path) && !Directory.Exists(path))
-            {
-                Console.WriteLine(path + " does not exist for SetWriter");
-                return false;
-            }
-            if(path == rootdir)
+
+            if (path == rootdir)
             {
                 Console.WriteLine("You cannot change permissions for the root directory");
                 return false;
             }
-            if (!fileRightTable.ContainsKey(path.ToLower()))
-            {
-                Console.WriteLine($"unknown permissions for " + path + ", creating new for SetWriter");
-                InitPermissions(path);
-            }
-            if (fileRightTable[path.ToLower()].GetType() != typeof(FileRights))
-            { 
-                Console.WriteLine("Error in file Permission Hashtable, please restart the machine. If this message appears again, please contact an Administrator.");
-                return false;
-            }
 
-            if(!((FileRights)fileRightTable[path.ToLower()]).writer.Contains(userID))
+            //Only add to permissions if it isn't already in there
+            if (!((FileRights)fileRightTable[path.ToLower()]).writer.Contains(userID))
             {
                 ((FileRights)fileRightTable[path.ToLower()]).writer.Add(userID);
             }
+
+            //if Writer permission is given, the person has to be able to view this file. Thus, he gets reading permission on the parent directory.
             if (fileRightTable.ContainsKey((Directory.GetParent(path)).FullName.ToLower()))
             {
                 if(!IsReader(Directory.GetParent(path).FullName.ToLower(), userID))
@@ -288,36 +317,25 @@ namespace TrappistOS
 
         public bool SetReader(string path, int userID)
         {
-            if (path == null)
+            //valid path check
+            if (!PathValidation(path))
             {
                 return false;
             }
-            if (!File.Exists(path) && !Directory.Exists(path))
-            {
-                Console.WriteLine(path + " does not exist SetReader");
-                return false;
-            }
+
             if (path == rootdir)
             {
                 Console.WriteLine("You cannot change permissions for the root directory");
                 return false;
             }
-            if (!fileRightTable.ContainsKey(path.ToLower()))
-            {
-                Console.WriteLine($"unknown permissions for " + path + ", creating new for SetReader");
-                InitPermissions(path);
-            }
-            if (fileRightTable[path.ToLower()].GetType() != typeof(FileRights))
-            { 
-                Console.WriteLine("Error in file Permission Hashtable, please restart the machine. If this message appears again, please contact an Administrator."); 
-                return false;
-            }
 
-            if(!((FileRights)fileRightTable[path.ToLower()]).reader.Contains(userID))
+            //check if the user already has reading rights to avoid duplications
+            if (!((FileRights)fileRightTable[path.ToLower()]).reader.Contains(userID))
             {
                 ((FileRights)fileRightTable[path.ToLower()]).reader.Add(userID);
             }
 
+            //if user is able to read file or directory, he hs to be able to read the parent directory
             if (fileRightTable.ContainsKey((Directory.GetParent(path)).FullName.ToLower()))
             {
                 if (!IsReader(Directory.GetParent(path).FullName.ToLower(), userID))
@@ -341,72 +359,61 @@ namespace TrappistOS
             return true;
         }
 
+        //remove writer rights from file
         public bool RemoveWriter(string path, int userID)
         {
-            if (path == null)
+            //valid path check
+            if (!PathValidation(path))
             {
                 return false;
             }
-            if (!File.Exists(path) && !Directory.Exists(path))
-            {
-                Console.WriteLine(path + " does not exist RemoveWriter");
-                return false;
-            }
+
+
             if (path == rootdir)
             {
                 Console.WriteLine("You cannot change permissions for the root directory");
                 return false;
             }
-            if (!fileRightTable.ContainsKey(path.ToLower()))
-            {
-                Console.WriteLine($"unknown permissions for " + path + ", creating new for RemoveWriter");
-                InitPermissions(path);
-            }
-            if (fileRightTable[path.ToLower()].GetType() != typeof(FileRights))
-            {
-                Console.WriteLine("Error in file Permission Hashtable, please restart the machine. If this message appears again, please contact an Administrator.");
-                return false;
-            }
+
             ((FileRights)fileRightTable[path.ToLower()]).writer.Remove(userID);
             return true;
         }
 
+        //remove reader rights from file with userinterface for dictionaries
         public bool RemoveReader(string path, int userID, string username, FileSystemManager fsManager)
         {
-            if (path == null)
+            //valid path check
+            if (!PathValidation(path))
             {
                 return false;
             }
-            if (!File.Exists(path) && !Directory.Exists(path))
-            {
-                Console.WriteLine(path + " does not exist for RemoveReader");
-                return false;
-            }
+
+
             if (path == rootdir)
             {
                 Console.WriteLine("You cannot change permissions for the root directory");
                 return false;
             }
-            if (!fileRightTable.ContainsKey(path.ToLower()))
-            {
-                Console.WriteLine($"unknown permissions for " + path + ", creating new for RemoveReader");
-                InitPermissions(path);
-            }
-            if (fileRightTable[path.ToLower()].GetType() != typeof(FileRights))
-            {
-                Console.WriteLine("Error in file Permission Hashtable, please restart the machine. If this message appears again, please contact an Administrator.");
-                return false;
-            }
 
-            if (Directory.Exists(path)) //if directory, check if anything below needs rights
+            //if directory, check if anything below needs rights
+            if (Directory.Exists(path)) 
             {
+
                 List<string> pathsToCheck = fsManager.getAllPaths(path).ToList();
+                
+                //value if user needs to be asked to confirm
                 bool confirm = false;
+
+                //remove own path from paths to check
                 pathsToCheck.Remove(fsManager.getFullPath(path));
+
+                //check if user is owner or reader of any of the files below (writer alone shouldn't be possible and is as such ignored)
                 foreach (string potentialpath in pathsToCheck) {
                     if(IsReader(fsManager.getFullPath(potentialpath), userID) || IsOwner(potentialpath,userID))
                     { confirm = true; break; }
                 }
+
+                //if user has to confirm, something has been found
                 if (confirm)
                 {
                     if (username!="system")
@@ -414,9 +421,13 @@ namespace TrappistOS
                         Console.WriteLine("There are files or Directories within this " + path + " that " + username + " has access to.\nAre you sure you want to remove his access?\n(y)es/(n)o");
                     }
                     char confimation = ' ';
+
+                    //wait for confirmation. Auslagern?
                     do
                     { confimation = Console.ReadKey(true).KeyChar; }
                     while (confimation != 'y' && confimation != 'n' && username!="system");
+
+                    //If user agrees go through every path do remove permissions if they exist.
                     if (confimation == 'y' || username == "system")
                     {
                         foreach (string potentialpath in pathsToCheck)
@@ -430,18 +441,23 @@ namespace TrappistOS
                     }
                     else
                     {
+                        Console.WriteLine("Deletion Aborted.");
                         return false;
                     }
                 }
             }
 
-
+            //remove reading permission from file or dir
             ((FileRights)fileRightTable[path.ToLower()]).reader.Remove(userID);
 
+
+            //if user or visitor is the owner, there is no need to look if parent rights have to be removed as he need access
             if (IsOwner(path, userID)||IsOwner(path,visitorID)) { return true; }
 
-            if (IsWriter(Directory.GetParent(path).FullName, userID)) { return true; }
+            //if user or visitor is writer in parent dir, there is no need to look up parent rights as he needs read access
+            if (IsWriter(Directory.GetParent(path).FullName, userID) || IsWriter(Directory.GetParent(path).FullName, visitorID)) { return true; }
 
+            //get all subdiretories of Parent, if he is reader in 1, removing reading rights is wrong
             var subdirectories = Directory.GetDirectories(Directory.GetParent(path).FullName); //check if rights are still needed somewhere
             foreach (var subdirectory in subdirectories)
             {
@@ -451,7 +467,8 @@ namespace TrappistOS
                 }
             }
 
-            var files = Directory.GetDirectories(Directory.GetParent(path).FullName);
+            //same for files
+            var files = Directory.GetFiles(Directory.GetParent(path).FullName);
             foreach (var file in files)
             {
                 if (IsReader(Path.Combine(path, file), userID))
@@ -460,11 +477,13 @@ namespace TrappistOS
                 }
             }
 
+            //remove parent reading permissions if none of the above applies
             internalRemoveReader(Directory.GetParent(path).FullName, userID);
 
             return true;
         }
 
+        //simplified remover with less protections
         private bool internalRemoveReader(string path,int userID)
         {
             if (IsReader(path, userID))
@@ -477,197 +496,135 @@ namespace TrappistOS
             
         }
 
+
         public bool SetOwner(string path, int userID)
         {
-            if (path == null)
+            if (!PathValidation(path))
             {
-                Console.WriteLine("Invalid path.");
                 return false;
             }
-            if (!File.Exists(path) && !Directory.Exists(path))
-            {
-                Console.WriteLine(path + " does not exist for SetOwner");
-                return false;
-            }
+
+
             if (path == rootdir)
             {
                 Console.WriteLine("You cannot change permissions for the root directory");
                 return false;
             }
-            if (!fileRightTable.ContainsKey(path.ToLower()))
+
+            //check if previous owner stil needs rights access
+            int prevOwner = ((FileRights)fileRightTable[path.ToLower()]).owner;
+
+            if (prevOwner == userID)
             {
-                Console.WriteLine($"unknown permissions for " + path + ", creating new for SetOwner");
-                InitPermissions(path.ToLower());
+                return true;
             }
-            if (fileRightTable[path.ToLower()].GetType() != typeof(FileRights))
-            { 
-                Console.WriteLine("Error in file Permission Hashtable, please restart the machine. If this message appears again, please contact an Administrator."); 
-                return false;
+
+            //check if the previous owner should get reding rights on directory removed
+            if(!IsOwner(Directory.GetParent(path).FullName.ToLower(), prevOwner) && !IsWriter(Directory.GetParent(path).FullName.ToLower(), prevOwner))
+            {
+                bool needsRight = false;
+                //get all subdiretories of Parent, if he is reader in 1, removing reading rights is wrong
+                var subdirectories = Directory.GetDirectories(Directory.GetParent(path).FullName);
+
+                //check if previous owner has rights in subdirectories
+                foreach (var subdirectory in subdirectories)
+                {
+                    if (IsReader(Path.Combine(path, subdirectory), userID))
+                    {
+                        needsRight = true;
+                    }
+                }
+
+                //same for files
+                var files = Directory.GetFiles(Directory.GetParent(path).FullName);
+                foreach (var file in files)
+                {
+                    if (IsReader(Path.Combine(path, file), userID))
+                    {
+                        needsRight = true;
+                    }
+                }
+
+                if(!needsRight)
+                {
+                    internalRemoveReader(Directory.GetParent(path).FullName.ToLower(),prevOwner);
+                }
+            }
+
+
+
+            //set owner
+            ((FileRights)fileRightTable[path.ToLower()]).owner = userID;
+
+            //he is no set the owner, he needs read access
+            if (fileRightTable.ContainsKey((Directory.GetParent(path)).FullName.ToLower()))
+            {
+                if (!IsReader(Directory.GetParent(path).FullName, userID))
+                {
+                    SetReader(Directory.GetParent(path).FullName, userID);
+                }
             }
             else
             {
-                ((FileRights)fileRightTable[path.ToLower()]).owner = userID;
-                if (fileRightTable.ContainsKey((Directory.GetParent(path)).FullName.ToLower()))
+                InitPermissions(Directory.GetParent(path).FullName, userID);
+                if (!IsReader(Directory.GetParent(path).FullName, userID))
                 {
-                    if (!IsReader(Directory.GetParent(path).FullName, userID))
-                    {
-                        SetReader(Directory.GetParent(path).FullName, userID);
-                    }
+                    SetReader(Directory.GetParent(path).FullName, userID);
                 }
-                else
-                {
-                    InitPermissions(Directory.GetParent(path).FullName, userID);
-                    if (!IsReader(Directory.GetParent(path).FullName, userID))
-                    {
-                        SetReader(Directory.GetParent(path).FullName, userID);
-                    }
-                }
-                return true;
             }
+            return true;
         }
 
         public bool IsOwner(string path, int userID)
         {
-            if(path == null)
+            if(!PathValidation(path))
             {
                 return false;
             }
-            if (!File.Exists(path) && !Directory.Exists(path))
-            {
-                Console.WriteLine(path + " does not exist for IsOwner");
-                return false;
-            }
-            if (!fileRightTable.ContainsKey(path.ToLower()))
-            {
-                Console.WriteLine($"unknown permissions for " + path + ", creating new for IsOwner");
-                InitPermissions(path.ToLower());
-            }
-            if (fileRightTable[path.ToLower()].GetType() != typeof(FileRights))
-            { 
-                Console.WriteLine("Error in file Permission Hashtable, please restart the machine. If this message appears again, please contact an Administrator."); 
-                return false; 
-            }
-            else
-            {
-                if(((FileRights)fileRightTable[path.ToLower()]).owner == userID && ((FileRights)fileRightTable[path.ToLower()]).owner != visitorID)
-                { return true; }
-                return false;
-            }
+
+            if(((FileRights)fileRightTable[path.ToLower()]).owner == userID && ((FileRights)fileRightTable[path.ToLower()]).owner != visitorID)
+            { return true; }
+            return false;
         }
 
         public bool IsReader(string path, int userID)
         {
-            if (path == null)
+            if (!PathValidation(path))
             {
                 return false;
             }
-            if (!File.Exists(path) && !Directory.Exists(path))
-            {
-                Console.WriteLine(path + " does not exist for IsReader");
-                return false;
-            }
-            if (!fileRightTable.ContainsKey(path.ToLower()))
-            {
-                Console.WriteLine($"unknown permissions for " + path + ", creating new for IsReader");
-                InitPermissions(path.ToLower());
-            }
-            if (fileRightTable[path.ToLower()].GetType() != typeof(FileRights))
-            {
-                Console.WriteLine("Error in file Permission Hashtable, please restart the machine. If this message appears again, please contact an Administrator.");
-                return false;
-            }
-            else
-            {
-                if (((FileRights)fileRightTable[path.ToLower()]).reader.Contains(userID) || ((FileRights)fileRightTable[path.ToLower()]).reader.Contains(visitorID))
-                { return true; }
-                return false;
-            }
+            if (((FileRights)fileRightTable[path.ToLower()]).reader.Contains(userID) || ((FileRights)fileRightTable[path.ToLower()]).reader.Contains(visitorID))
+            { return true; }
+            return false;
         }
 
         public bool IsWriter(string path, int userID)
         {
-            if (path == null)
+            if (!PathValidation(path))
             {
                 return false;
             }
-            if (!File.Exists(path) && !Directory.Exists(path))
-            {
-                Console.WriteLine(path + " does not exist for IsWriter");
-                return false;
-            }
-            if (!fileRightTable.ContainsKey(path.ToLower()))
-            {
-                Console.WriteLine($"unknown permissions for " + path + ", creating new for IsWriter");
-                InitPermissions(path.ToLower());
-            }
-            if (fileRightTable[path.ToLower()].GetType() != typeof(FileRights))
-            {
-                Console.WriteLine("Error in file Permission Hashtable, please restart the machine. If this message appears again, please contact an Administrator.");
-                return false;
-            }
-            else
-            {
-                if (((FileRights)fileRightTable[path.ToLower()]).writer.Contains(userID) || ((FileRights)fileRightTable[path.ToLower()]).writer.Contains(visitorID))
-                { return true; }
-                return false;
-            }
+            if (((FileRights)fileRightTable[path.ToLower()]).writer.Contains(userID) || ((FileRights)fileRightTable[path.ToLower()]).writer.Contains(visitorID))
+            { return true; }
+            return false;
         }
 
         public int GetOwnerID(string path)
         {
-            if (path == null)
+            if (!PathValidation(path))
             {
                 return 0;
             }
-            if (!File.Exists(path) && !Directory.Exists(path))
-            {
-                Console.WriteLine(path + " does not exist for GetOwnerID");
-                return 0;
-            }
-            if (!fileRightTable.ContainsKey(path.ToLower()))
-            {
-                Console.WriteLine($"unknown permissions for " + path + ", creating new for GetOwnerID");
-                InitPermissions(path);
-                return visitorID;
-            }
-            if (fileRightTable[path.ToLower()].GetType() != typeof(FileRights))
-            {
-                Console.WriteLine("Error in file Permission Hashtable, please restart the machine. If this message appears again, please contact an Administrator.");
-                return 0;
-            }
-            else
-            {
-                return ((FileRights)fileRightTable[path.ToLower()]).owner;
-            }
+            return ((FileRights)fileRightTable[path.ToLower()]).owner;
         }
 
         public int[] GetReaderIDs(string path)
         {
-            if (path == null)
+            if (!PathValidation(path))
             {
-                return Array.Empty<int>();
+                return new[] { 0 };
             }
-            if (!File.Exists(path) && !Directory.Exists(path))
-            {
-                Console.WriteLine(path + " does not exist for GetReaderIDs");
-                return Array.Empty<int>();
-            }
-            if (!fileRightTable.ContainsKey(path.ToLower()))
-            {
-                Console.WriteLine($"unknown permissions for " + path + ", creating new for GetReaderIDs");
-                InitPermissions(path);
-                return new[] { visitorID };
-            }
-            if (fileRightTable[path.ToLower()].GetType() != typeof(FileRights))
-            {
-                Console.WriteLine("Error in file Permission Hashtable, please restart the machine. If this message appears again, please contact an Administrator.");
-                int[] system = { 0 };
-                return system;
-            }
-            else
-            {
-                return ((FileRights)fileRightTable[path.ToLower()]).reader.ToArray();
-            }
+            return ((FileRights)fileRightTable[path.ToLower()]).reader.ToArray();
         }
 
         public bool deletePath(string path)
@@ -682,31 +639,11 @@ namespace TrappistOS
 
         public int[] GetWriterIDs(string path)
         {
-            if (path == null)
+            if (!PathValidation(path))
             {
-                return Array.Empty<int>();
+                return new[] { 0 };
             }
-            if (!File.Exists(path) && !Directory.Exists(path))
-            {
-                Console.WriteLine(path + " does not exist for GetWriterIDs");
-                return Array.Empty<int>();
-            }
-            if (!fileRightTable.ContainsKey(path.ToLower()))
-            {
-                Console.WriteLine($"unknown permissions for " + path + ", creating new for GetWriterIDs");
-                InitPermissions(path);
-                return new[] { visitorID };
-            }
-            if (fileRightTable[path.ToLower()].GetType() != typeof(FileRights))
-            {
-                Console.WriteLine("Error in file Permission Hashtable, please restart the machine. If this message appears again, please contact an Administrator.");
-                int[] system = { 0 };
-                return system;
-            }
-            else
-            {
-                return ((FileRights)fileRightTable[path.ToLower()]).writer.ToArray();
-            }
+            return ((FileRights)fileRightTable[path.ToLower()]).writer.ToArray();
         }
 
         public bool EmptyPerms()
@@ -719,44 +656,36 @@ namespace TrappistOS
         {
             try
             {
-                //Console.WriteLine("Trying to delete File: " + filepath);
-                if (File.Exists(filepath))
-                {
-                    //Console.WriteLine("Trying to delete existing File: " + filepath);
-                    File.Delete(filepath);
-                    //Console.WriteLine("Deleted file: " + filepath);
-                }
-                //Console.WriteLine("Trying to create file: " + filepath);
+                //always create a new file to eliminate saving errors
                 File.Create(filepath);
-                //Console.WriteLine("Created file: " + filepath);
-                //Console.WriteLine("saving " + fileRightTable.Count + " values");
+
+
                 string toSave = "";
-                int loop = 0;
                 foreach (DictionaryEntry file in fileRightTable)
                 {
-                    loop++;
                     int[] writers = ((FileRights)file.Value).writer.ToArray();
                     int[] readers = ((FileRights)file.Value).reader.ToArray();
                     int owner = ((FileRights)file.Value).owner;
 
+                    //put owners first
                     toSave = toSave + Convert.ToString(owner) + ' ';
-                    //Console.WriteLine(" added " + Convert.ToString(owner) + ' ' + " to " + filepath);
+
                     for (int i = 0; i < writers.Length; i++)
                     {
+                        //put int list into string with , seperating them and a space at the end
                         int writer = writers[i];
                         if (i > writers.Length - 1)
                         {
                             toSave = toSave + Convert.ToString(writer) + ',';
-                            //Console.WriteLine(" added " + Convert.ToString(writer) + ',' + " to " + filepath);
                         }
                         else
                         {
                             toSave = toSave + Convert.ToString(writer) + ' ';
-                            //Console.WriteLine(" added " + Convert.ToString(writer) + ' ' + " to " + filepath);
                         }
                     }
                     for (int i = 0; i < readers.Length; i++)
                     {
+                        //put int list into string with , seperating them and a space at the end
                         int reader = readers[i];
                         if (i < readers.Length - 1)
                         {
@@ -769,9 +698,11 @@ namespace TrappistOS
                             //Console.WriteLine(" added " + Convert.ToString(reader) + ' ' + " to " + filepath);
                         }
                     }
+                    //add path and newline
                     toSave = toSave + file.Key.ToString() + Environment.NewLine;
-                    //Console.WriteLine("saving: " + loop.ToString() + ".");
                 }
+
+                //add everything at once to file
                 File.AppendAllText(filepath, toSave);
                 return true;
             }
@@ -781,6 +712,33 @@ namespace TrappistOS
             }
         }
 
+        private bool PathValidation(string path)
+        {
+            //if path is null someting went very wrong
+            if (path == null)
+            {
+                return false;
+            }
+            //File or dir needs to exist to work with it
+            if (!File.Exists(path) && !Directory.Exists(path))
+            {
+                Console.WriteLine(path + " does not exist");
+                return false;
+            }
+            //init permissions for legacy files
+            if (!fileRightTable.ContainsKey(path.ToLower()))
+            {
+                Console.WriteLine($"unknown permissions for " + path + ", creating new");
+                InitPermissions(path);
+            }
+            //If this happens, something fundamentally broke.
+            if (fileRightTable[path.ToLower()].GetType() != typeof(FileRights))
+            {
+                Console.WriteLine("Error in file Permission Hashtable, please restart the machine. If this message appears again, please contact an Administrator.");
+                return false;
+            }
+            return true;
+        }
 
     }
 }

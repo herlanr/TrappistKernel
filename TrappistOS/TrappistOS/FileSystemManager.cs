@@ -245,6 +245,11 @@ namespace TrappistOS
             {
                 if (Directory.Exists(path))
                 {
+                    if (currentDir.Contains(path))
+                    {
+                        Console.WriteLine("You cannot delete a Parent Directory");
+                        return false;
+                    }
                     Directory.Delete(path);
                     Console.WriteLine("Directory " + path + " deleted");
                     return true;
