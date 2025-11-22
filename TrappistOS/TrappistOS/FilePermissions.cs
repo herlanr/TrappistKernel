@@ -65,6 +65,14 @@ namespace TrappistOS
                     continue; 
                 }
 
+                if (permissionDetails.Length > 4)
+                {
+                    for (int i = 4; i < permissionDetails.Length; i++)
+                    {
+                        permissionDetails[3] = permissionDetails[3] + " " + permissionDetails[i];
+                    }
+                }
+
                 int owner = 0;
                 if (int.TryParse(permissionDetails[0], out owner)){ }
                 else 
@@ -191,7 +199,7 @@ namespace TrappistOS
             };
         }
 
-        public bool InitPermissions(string path, int userID)
+        public bool InitPermissions(string path, int userID, bool overwrite = false)
         {
             try
             {
@@ -206,7 +214,16 @@ namespace TrappistOS
                 }
                 else
                 {
-                    return false;
+                    if (overwrite)
+                    {
+                        fileRightTable.Remove(path.ToLower());
+                        SystemFile = new FileRights(userID, new[] { userID }, new[] { userID });
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                        
                 }
                 fileRightTable.Add(path.ToLower(), SystemFile);
                 return true;
@@ -216,8 +233,7 @@ namespace TrappistOS
             {
                 Console.WriteLine("Error when creating filepermissions " + e.Message);
                 return false;
-            }
-            ;
+            };
         }
 
         public bool SetWriter(string path, int userID)
@@ -386,6 +402,7 @@ namespace TrappistOS
             {
                 List<string> pathsToCheck = fsManager.getAllPaths(path).ToList();
                 bool confirm = false;
+                pathsToCheck.Remove(fsManager.getFullPath(path));
                 foreach (string potentialpath in pathsToCheck) {
                     if(IsReader(fsManager.getFullPath(potentialpath), userID) || IsOwner(potentialpath,userID))
                     { confirm = true; break; }
@@ -423,7 +440,9 @@ namespace TrappistOS
 
             if (IsOwner(path, userID)||IsOwner(path,visitorID)) { return true; }
 
-            var subdirectories = Directory.GetDirectories(path); //check if rights are still needed somewhere
+            if (IsWriter(Directory.GetParent(path).FullName, userID)) { return true; }
+
+            var subdirectories = Directory.GetDirectories(Directory.GetParent(path).FullName); //check if rights are still needed somewhere
             foreach (var subdirectory in subdirectories)
             {
                 if(IsReader(Path.Combine(path, subdirectory), userID))
@@ -432,7 +451,7 @@ namespace TrappistOS
                 }
             }
 
-            var files = Directory.GetDirectories(path);
+            var files = Directory.GetDirectories(Directory.GetParent(path).FullName);
             foreach (var file in files)
             {
                 if (IsReader(Path.Combine(path, file), userID))

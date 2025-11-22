@@ -12,6 +12,7 @@ namespace TrappistOS
     public class Kernel : Sys.Kernel
     {
         string userpath = @"0:\users.sys";
+        string rootdir = @"0:\";
 
         FileSystemManager fsManager;
 
@@ -576,6 +577,26 @@ namespace TrappistOS
                                     Console.WriteLine("Cannot delete User you are logged in with");
                                     break;
                                 }
+                                string[] paths = fsManager.getAllPaths(rootdir);
+                                foreach (string path in paths)
+                                {
+                                    if (permManager.IsOwner(path, userInfo.GetId(args[1])))
+                                    {
+                                        permManager.InitPermissions(path,userInfo.visitorid,true);
+                                    }
+                                    else
+                                    { 
+                                    if(permManager.IsReader(path, userInfo.GetId(args[1])) || permManager.IsWriter(path, userInfo.GetId(args[1])))
+                                    {
+                                        permManager.RemoveReader(path, userInfo.GetId(args[1]), args[1], fsManager);
+                                    }
+                                    if (permManager.IsWriter(path, userInfo.GetId(args[1])))
+                                    {
+                                        permManager.RemoveWriter(path, userInfo.GetId(args[1]));
+                                    }
+                                    }
+                                }
+
                                 userInfo.DeleteUser(args[1]);
                                 
                             } else
@@ -598,7 +619,7 @@ namespace TrappistOS
                         if (args.Length == 1)
                         {  
                             int newUser = userInfo.CreateUser(false); 
-                            string newdir = fsManager.createDirectory(@"0:\" + userInfo.GetName(newUser));
+                            string newdir = fsManager.createDirectory(rootdir + userInfo.GetName(newUser));
                             permManager.InitPermissions(newdir, newUser);
                         }
                         else if (args.Length >= 2)
@@ -607,7 +628,7 @@ namespace TrappistOS
                                 if (userInfo.IsAdmin())
                                 {
                                     int newUser = userInfo.CreateUser(true);
-                                    string newdir = fsManager.createDirectory(@"0:\" + userInfo.GetName(newUser));
+                                    string newdir = fsManager.createDirectory(rootdir + userInfo.GetName(newUser));
                                     permManager.InitPermissions(newdir, newUser);
                                 }
                                 else
@@ -648,7 +669,7 @@ namespace TrappistOS
                             Console.WriteLine("Only Admins can run this command");
                             break;
                         }
-                        if (fsManager.getCurrentDir() != @"0:\")
+                        if (fsManager.getCurrentDir() != rootdir)
                         {
                             Console.WriteLine("Command can only get run in home directory");
                             break; 

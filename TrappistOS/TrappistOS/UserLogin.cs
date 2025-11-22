@@ -77,13 +77,14 @@ namespace TrappistOS
             List<string> new_users = new List<string>();
             Console.Write("Please put in your password:");
             string password = null; //hides the input
-            while (true)
+            password = TypePassword();
+
+            if (password != null)
             {
-                var key = System.Console.ReadKey(true);
-                if (key.Key == ConsoleKey.Enter)
-                    break;
-                password += key.KeyChar;
+                Console.WriteLine("Change Aborted");
+                return false;
             }
+
             Console.WriteLine();
             if (password != currentUser.password)
             {
@@ -94,23 +95,22 @@ namespace TrappistOS
             {
                 Console.Write("Password: ");
                 password = null;
-                while (true)
+                password = TypePassword();
+
+                if (password != null)
                 {
-                    var key = System.Console.ReadKey(true);
-                    //if (key.Key == Console.)
-                    if (key.Key == ConsoleKey.Enter)
-                        break;
-                    password += key.KeyChar;
+                    Console.WriteLine("Change Aborted");
+                    return false;
                 }
                 Console.WriteLine();
                 Console.Write("Confirm Password: ");
                 string repeatPassword = null;
-                while (true)
+                repeatPassword = TypePassword();
+
+                if (password != null)
                 {
-                    var key = System.Console.ReadKey(true);
-                    if (key.Key == ConsoleKey.Enter)
-                        break;
-                    repeatPassword += key.KeyChar;
+                    Console.WriteLine("Change Aborted");
+                    return false;
                 }
                 Console.WriteLine();
                 if (password == repeatPassword)
@@ -162,12 +162,13 @@ namespace TrappistOS
             }
             Console.Write("Password: ");
             string password = null; //hides the input
-            while (true)
+
+            password = TypePassword();
+
+            if (password != null)
             {
-                var key = System.Console.ReadKey(true);
-                if (key.Key == ConsoleKey.Enter)
-                    break;
-                password += key.KeyChar;
+                Console.WriteLine("Login Aborted");
+                return false;
             }
             Console.WriteLine();
 
@@ -284,23 +285,22 @@ namespace TrappistOS
             {
                 Console.Write("Password: ");
                 password = null;
-                while (true)
+                password = TypePassword();
+
+                if (password != null)
                 {
-                    var key = System.Console.ReadKey(true);
-                    //if (key.Key == Console.)
-                    if (key.Key == ConsoleKey.Enter)
-                        break;
-                    password += key.KeyChar;
+                    Console.WriteLine("Creation Aborted");
+                    return 0;
                 }
                 Console.WriteLine();
                 Console.Write("Confirm Password: ");
                 string repeatPassword = null;
-                while (true)
+                repeatPassword = TypePassword();
+
+                if (password != null)
                 {
-                    var key = System.Console.ReadKey(true);
-                    if (key.Key == ConsoleKey.Enter)
-                        break;
-                    repeatPassword += key.KeyChar;
+                    Console.WriteLine("Change Aborted");
+                    return 0;
                 }
                 Console.WriteLine();
                 if (password == repeatPassword)
@@ -569,6 +569,23 @@ namespace TrappistOS
                 result.Add(elements[1]);
             }
             return result.ToArray();
+        }
+
+        public string TypePassword()
+        {
+            string password = "";
+            while (true)
+            {
+                var key = System.Console.ReadKey(true);
+                if (key.Key == ConsoleKey.Enter)
+                    break;
+                if (key.Key == ConsoleKey.Escape)
+                {
+                    return null;
+                }
+                password += key.KeyChar;
+            }
+            return password;
         }
     }
 }
