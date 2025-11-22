@@ -103,7 +103,7 @@ namespace TrappistOS
             {
                 path = path.Remove(path.Length - 1);
             }
-            return path.ToLower();
+            return path;
         }
 
         public string[] getAllPaths(string path)

@@ -341,7 +341,7 @@ namespace TrappistOS
                             Console.WriteLine("You cannot take away ownership from the system.");
                             break;
                         }
-                        if (userInfo.GetUserID(args[2]) == 0)
+                        if (userInfo.GetId(args[2]) == 0)
                         {
                             Console.WriteLine("This User does not exist. Please check if you respected the case.");
                             break;
@@ -364,7 +364,7 @@ namespace TrappistOS
                         while (confirmation != 'y' && confirmation != 'n');
                         if (confirmation == 'y')
                         {
-                            permManager.SetOwner(fsManager.getFullPath(args[1]), userInfo.GetUserID(args[2]));
+                            permManager.SetOwner(fsManager.getFullPath(args[1]), userInfo.GetId(args[2]));
                             Console.WriteLine("Successfully changed Owner to" + args[2]);
                         }
                         else
@@ -388,7 +388,7 @@ namespace TrappistOS
                             Console.WriteLine("You cannot give permissions to the system.");
                             break;
                         }
-                        if (userInfo.GetUserID(args[2]) == 0)
+                        if (userInfo.GetId(args[2]) == 0)
                         {
                             Console.WriteLine("This User does not exist. Please check if you respected the case.");
                             break;
@@ -406,7 +406,7 @@ namespace TrappistOS
                         }
                         if (args.Contains("-r")||args.Contains("-w"))
                         {
-                            if(permManager.SetReader(fsManager.getFullPath(args[1]),userInfo.GetUserID(args[2])))
+                            if(permManager.SetReader(fsManager.getFullPath(args[1]),userInfo.GetId(args[2])))
                             {
                                 Console.WriteLine("Successfully added reading rights");
                             }
@@ -418,7 +418,7 @@ namespace TrappistOS
 
                         if (args.Contains("-w"))
                         {
-                            if(permManager.SetWriter(fsManager.getFullPath(args[1]), userInfo.GetUserID(args[2])))
+                            if(permManager.SetWriter(fsManager.getFullPath(args[1]), userInfo.GetId(args[2])))
                             {
                                 Console.WriteLine("Successfully added writing rights");
                             }
@@ -444,7 +444,7 @@ namespace TrappistOS
                             Console.WriteLine("You cannot take away permissions from the system.");
                             break;
                         }
-                        if(userInfo.GetUserID(args[2]) == 0)
+                        if(userInfo.GetId(args[2]) == 0)
                         {
                             Console.WriteLine("This User does not exist. Please check if you respected the case.");
                             break;
@@ -461,7 +461,7 @@ namespace TrappistOS
                         }
                         if (args.Contains("-w") || args.Contains("-r"))
                         {
-                            if(permManager.RemoveWriter(fsManager.getFullPath(args[1]), userInfo.GetUserID(args[2])))
+                            if(permManager.RemoveWriter(fsManager.getFullPath(args[1]), userInfo.GetId(args[2])))
                             {
                                 Console.WriteLine("Successfully removed writing rights");
                             }
@@ -472,7 +472,7 @@ namespace TrappistOS
                         }
                         if (args.Contains("-r"))
                         {
-                           if ( permManager.RemoveReader(fsManager.getFullPath(args[1]), userInfo.GetUserID(args[2]),args[2], fsManager))
+                           if ( permManager.RemoveReader(fsManager.getFullPath(args[1]), userInfo.GetId(args[2]),args[2], fsManager))
                            {
                                 Console.WriteLine("Successfully removed reading rights");
                            }
@@ -585,7 +585,7 @@ namespace TrappistOS
                         }
                         else
                         {
-                            Console.WriteLine("Usage: deleteUser [username] / delUsr [username]");
+                            Console.WriteLine("Usage: deleteUser / delUsr [username]");
                             Console.WriteLine("Description: delete a User (only available to admins)");
                             Console.WriteLine("Available Arguments: \n -h: help");
 
@@ -597,14 +597,18 @@ namespace TrappistOS
                     {
                         if (args.Length == 1)
                         {  
-                            userInfo.CreateUser(false); 
+                            int newUser = userInfo.CreateUser(false); 
+                            string newdir = fsManager.createDirectory(@"0:\" + userInfo.GetName(newUser));
+                            permManager.InitPermissions(newdir, newUser);
                         }
                         else if (args.Length >= 2)
                         {
                             if (args[1] == "-a")
                                 if (userInfo.IsAdmin())
                                 {
-                                    userInfo.CreateUser(true);
+                                    int newUser = userInfo.CreateUser(true);
+                                    string newdir = fsManager.createDirectory(@"0:\" + userInfo.GetName(newUser));
+                                    permManager.InitPermissions(newdir, newUser);
                                 }
                                 else
                                 {
@@ -688,7 +692,7 @@ namespace TrappistOS
                         }
 
                         int ownerID = permManager.GetOwnerID(path);
-                        Console.WriteLine("owner: " + userInfo.GetUserName(ownerID));
+                        Console.WriteLine("owner: " + userInfo.GetName(ownerID));
                         
                         int[] readersIDs = permManager.GetReaderIDs(path);
                         Console.Write("readers: ");
@@ -699,9 +703,9 @@ namespace TrappistOS
                         }
                         for (int i = 0; i < readersIDs.Length - 1; i++)
                         {
-                            Console.Write(userInfo.GetUserName(readersIDs[i]) + ", ");
+                            Console.Write(userInfo.GetName(readersIDs[i]) + ", ");
                         }
-                        Console.Write(userInfo.GetUserName(readersIDs[readersIDs.Length - 1]));
+                        Console.Write(userInfo.GetName(readersIDs[readersIDs.Length - 1]));
                         Console.WriteLine();
                         
                         int[] writerIDs = permManager.GetWriterIDs(path);
@@ -713,9 +717,9 @@ namespace TrappistOS
                         }
                         for (int i = 0; i < writerIDs.Length - 1; i++)
                         {
-                            Console.Write(userInfo.GetUserName(writerIDs[i]) + ", ");
+                            Console.Write(userInfo.GetName(writerIDs[i]) + ", ");
                         }
-                        Console.Write(userInfo.GetUserName(writerIDs[writerIDs.Length - 1]));
+                        Console.Write(userInfo.GetName(writerIDs[writerIDs.Length - 1]));
                         Console.WriteLine();
                         break;
                     }
@@ -1079,7 +1083,7 @@ namespace TrappistOS
                 string[] allpaths = fsManager.getAllPaths(dirpath);
                 foreach (string path in allpaths)
                 {
-                    if (permManager.InitPermissions(fsManager.getFullPath(path), userInfo.GetUserID(user)))
+                    if (permManager.InitPermissions(fsManager.getFullPath(path), userInfo.GetId(user)))
                     {
                         Console.WriteLine("Set Rights of " + path + " to " + user);
                     }
@@ -1093,7 +1097,7 @@ namespace TrappistOS
             {
                 if (permManager.InitPermissions(fsManager.getFullPath(path)))
                 {
-                    Console.WriteLine("Set Rights of " + fsManager.getFullPath(path) + " to " + userInfo.GetUserName(permManager.GetOwnerID(fsManager.getFullPath(path))));
+                    Console.WriteLine("Set Rights of " + fsManager.getFullPath(path) + " to " + userInfo.GetName(permManager.GetOwnerID(fsManager.getFullPath(path))));
                 }
             }
             Console.WriteLine("initialization Successful");

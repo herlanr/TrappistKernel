@@ -103,7 +103,7 @@ namespace TrappistOS
 
                 try
                 {
-                    fileRightTable.Add(permissionDetails[3], currentFileRights);
+                    fileRightTable.Add(permissionDetails[3].ToLower(), currentFileRights);
                 }
                 catch
                 {
@@ -131,11 +131,11 @@ namespace TrappistOS
                 }
             }
             visitorID = user.maxAdminID + user.visitorid;
-            if (!fileRightTable.ContainsKey(@"0:\"))
+            if (!fileRightTable.ContainsKey(rootdir))
             {
                 int[] visitor = { visitorID };
                 FileRights rootFile = new FileRights(visitor[0], visitor, visitor);
-                fileRightTable.Add(@"0:\", rootFile);
+                fileRightTable.Add(rootdir, rootFile);
             }
 
             //Cosmos.HAL.Global.PIT.Wait((uint)10000);
@@ -164,17 +164,17 @@ namespace TrappistOS
                     {
                         //Console.WriteLine(path + " has not parent dir and isn't root");
                     }
-                    else if (fileRightTable.ContainsKey((Directory.GetParent(path)).FullName))
+                    else if (fileRightTable.ContainsKey((Directory.GetParent(path)).FullName.ToLower()))
                     {
                         //Console.WriteLine("using rights from parent:" + path);
-                        SystemFile = (FileRights)fileRightTable[(Directory.GetParent(path)).FullName];
+                        SystemFile = (FileRights)fileRightTable[(Directory.GetParent(path)).FullName.ToLower()];
                     }
                     else
                     {
                         //Console.WriteLine("making rights for parent: " + path);
                         if (InitPermissions((Directory.GetParent(path)).FullName))
                         {
-                            SystemFile = (FileRights)fileRightTable[(Directory.GetParent(path)).FullName];
+                            SystemFile = (FileRights)fileRightTable[(Directory.GetParent(path)).FullName.ToLower()];
                         }
                         else return false;
                     }
@@ -251,11 +251,11 @@ namespace TrappistOS
             {
                 ((FileRights)fileRightTable[path.ToLower()]).writer.Add(userID);
             }
-            if (fileRightTable.ContainsKey((Directory.GetParent(path)).FullName))
+            if (fileRightTable.ContainsKey((Directory.GetParent(path)).FullName.ToLower()))
             {
-                if(!IsReader(Directory.GetParent(path).FullName,userID))
+                if(!IsReader(Directory.GetParent(path).FullName.ToLower(), userID))
                 {
-                    SetReader(Directory.GetParent(path).FullName, userID);
+                    SetReader(Directory.GetParent(path).FullName.ToLower(), userID);
                 }
             }
             else
@@ -302,11 +302,11 @@ namespace TrappistOS
                 ((FileRights)fileRightTable[path.ToLower()]).reader.Add(userID);
             }
 
-            if (fileRightTable.ContainsKey((Directory.GetParent(path)).FullName))
+            if (fileRightTable.ContainsKey((Directory.GetParent(path)).FullName.ToLower()))
             {
-                if (!IsReader(Directory.GetParent(path).FullName, userID))
+                if (!IsReader(Directory.GetParent(path).FullName.ToLower(), userID))
                 {
-                    SetReader(Directory.GetParent(path).FullName, userID);
+                    SetReader(Directory.GetParent(path).FullName.ToLower(), userID);
                 }
             }
             else
@@ -488,7 +488,7 @@ namespace TrappistOS
             else
             {
                 ((FileRights)fileRightTable[path.ToLower()]).owner = userID;
-                if (fileRightTable.ContainsKey((Directory.GetParent(path)).FullName))
+                if (fileRightTable.ContainsKey((Directory.GetParent(path)).FullName.ToLower()))
                 {
                     if (!IsReader(Directory.GetParent(path).FullName, userID))
                     {
@@ -655,7 +655,7 @@ namespace TrappistOS
         {
             try
             {
-                fileRightTable.Remove(path);
+                fileRightTable.Remove(path.ToLower());
                 return true;
             }
             catch (Exception e) { Console.WriteLine(e.ToString()); return false; }
@@ -710,7 +710,7 @@ namespace TrappistOS
                 //Console.WriteLine("Trying to create file: " + filepath);
                 File.Create(filepath);
                 //Console.WriteLine("Created file: " + filepath);
-                Console.WriteLine("saving " + fileRightTable.Count + " values");
+                //Console.WriteLine("saving " + fileRightTable.Count + " values");
                 string toSave = "";
                 int loop = 0;
                 foreach (DictionaryEntry file in fileRightTable)

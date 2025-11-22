@@ -268,7 +268,7 @@ namespace TrappistOS
             return true;
         }
 
-        public bool CreateUser(bool isAdmin)
+        public int CreateUser(bool isAdmin)
         {
             Console.Write("username: ");
             string username = Console.ReadLine();
@@ -276,7 +276,7 @@ namespace TrappistOS
             if (GetUser(username) != null)
             {
                 Console.WriteLine($"{username} is already exists");
-                return false;
+                return 0;
             }
 
             string password = null;
@@ -313,10 +313,10 @@ namespace TrappistOS
             if (success)
             {
                 Console.WriteLine("Creation successful");
-                return true;
+                return GetId(username);
             }
             Console.WriteLine("Creation failed");
-            return false;
+            return 0;
         }
 
         private bool SaveUser(string username, string password, bool isAdmin)
@@ -455,7 +455,7 @@ namespace TrappistOS
             return currentUser.username;
         }
 
-        public int GetUserID(string username)
+        public int GetId(string username)
         {
             UserClass thisUser = GetUser(username);
             if (thisUser is null)
@@ -465,7 +465,7 @@ namespace TrappistOS
             return thisUser.id;
         }
 
-        public string GetUserName(int userID)
+        public string GetName(int userID)
         {
             string[] users = File.ReadAllLines(filepath);
 
