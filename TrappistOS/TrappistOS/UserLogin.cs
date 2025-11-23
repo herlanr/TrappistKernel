@@ -42,7 +42,7 @@ namespace TrappistOS
                 File.WriteAllLines(filepath, intitial_users);
             }
             currentUser = VisitorLogin();
-            Console.WriteLine("File.ReadAllText(filePath)");
+            Console.WriteLine(File.ReadAllText(filepath));
         }
 
         public override void Run() //for child of Progrmmclass, maybe move decision here in future

@@ -1,15 +1,6 @@
-﻿using Cosmos.System.Graphics;
 using Cosmos.System.ScanMaps;
-using Cosmos.System.ScanMaps;
-using MIV;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.IO;
-using System.Text;
-using System.Timers;
 using Sys = Cosmos.System;
 
 namespace TrappistOS
@@ -27,12 +18,52 @@ namespace TrappistOS
             fsManager.fsInitialize();
             Sys.KeyboardManager.SetKeyLayout(new DE_Standard());
             Console.Clear();
-            Console.WriteLine("TrappistOS booted up!");
-            userInfo = new UserLogin();
-            ProgramMemory[0] = userInfo;
-            userInfo.BeforeRun();
-            Console.WriteLine("Cosmos booted successfully. Type a line of text to get it echoed back.");
-            
+
+            // Print system info
+            Console.WriteLine(" _____                     _     _   _____ _____ \r\n|_   _|                   (_)   | | |  _  /  ___|\r\n  | |_ __ __ _ _ __  _ __  _ ___| |_| | | \\ `--. \r\n  | | '__/ _` | '_ \\| '_ \\| / __| __| | | |`--. \\\r\n  | | | | (_| | |_) | |_) | \\__ \\ |_\\ \\_/ /\\__/ /\r\n  \\_/_|  \\__,_| .__/| .__/|_|___/\\__|\\___/\\____/ \r\n              | |   | |                          \r\n              |_|   |_|                          ");
+
+            Console.WriteLine("Version: 1.0");
+            Console.WriteLine("Kernel: Cosmos");
+            Console.WriteLine("Current Directory: " + fsManager.getCurrentDir());
+            Console.WriteLine("Memory: " + Cosmos.Core.CPU.GetAmountOfRAM() + " MB");
+            Console.WriteLine("Autors: Erik Wenk");
+            Console.WriteLine("        Herlan Rodrigo Ribeiro Rocha");
+            Console.WriteLine("        Nurettin Fatih Semiz");  
+            Console.WriteLine("        Timo Andreas Paetsch");  
+            Console.WriteLine("=====================================");
+            Console.WriteLine();
+
+            Console.WriteLine("Please press ENTER to go to the terminal...");
+            Console.WriteLine("Or press ESC to exit...");
+
+            while (true)
+            {
+                ConsoleKeyInfo keyInfo = Console.ReadKey(true);
+
+                if (keyInfo.Key == ConsoleKey.Enter)
+                {
+                    Console.WriteLine("\nStarting terminal...");
+                    userInfo = new UserLogin();
+                    ProgramMemory[0] = userInfo;
+                    userInfo.BeforeRun();
+                    Console.Clear();
+                    Console.WriteLine("TrappistOS booted up!");
+                    break;
+                }
+                else if (keyInfo.Key == ConsoleKey.Escape)
+                {
+                    Console.WriteLine("\nExiting system...");
+                    Sys.Power.Shutdown();
+                    return;
+                }
+                else
+                {
+                    Console.WriteLine("\nInvalid key. Press ENTER or ESC.");
+                }
+            }
+
+
+
         }
 
         protected override void Run()
@@ -131,19 +162,47 @@ namespace TrappistOS
                         break;
                     }
 
-                case "rm":
+                case "rmfile":
                     {
                         if (args.Length < 2 || args[1] == "-h")
                         {
-                            Console.WriteLine("Usage: rm <file name OR directory name>");
-                            Console.WriteLine("Description: Deletes the specified file or dir");
+                            Console.WriteLine("Usage: rm <file name>");
+                            Console.WriteLine("Description: Deletes the specified file");
                             Console.WriteLine("Avaiable Arguments: \n-h: help");
                             break;
                         }
 
-                        fsManager.deleteFileOrDir(args[1]);
+                        fsManager.deleteFile(args[1]);
                         break;
                     }
+                case "rmdir":
+                    {
+                        if (args.Length < 2 || args[1] == "-h")
+                        {
+                            Console.WriteLine("Usage: rm <directory name>");
+                            Console.WriteLine("Description: Deletes the specified dir");
+                            Console.WriteLine("Avaiable Arguments: \n-h: help");
+                            break;
+                        }
+
+                        fsManager.deleteDir(args[1]);
+                        break;
+                    }
+
+                case "rename":
+                    {
+                        if (args.Length < 3 || args[1] == "-h")
+                        {
+                            Console.WriteLine("Usage: rename <directory or file> <new name>");
+                            Console.WriteLine("Description: It Renames the selected directory or file.");
+                            Console.WriteLine("Avaiable Arguments: \n-h: help");
+                            break;
+                        }
+
+                        fsManager.renameFileOrDir(args[1], args[2]);
+                        break;
+                    }
+
                 case "cd":
                     {
                         if (args.Length < 2 || args[1] == "-h")
