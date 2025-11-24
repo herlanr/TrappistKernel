@@ -1,5 +1,6 @@
-﻿using Cosmos.System.ScanMaps;
+using Cosmos.System.ScanMaps;
 using System;
+using System.IO;
 using Sys = Cosmos.System;
 
 namespace TrappistOS
@@ -348,6 +349,22 @@ namespace TrappistOS
                     }
                 case "":
                     { break; }
+                case "miv":
+                    {
+                        if (args.Length == 2)
+                        {
+                            string filePath = Path.Combine(fsManager.getCurrentDir(), args[1]);
+                            if (MIV.MIV.PrintMivCommands() == true)
+                            {
+                                MIV.MIV.StartMIV(filePath);
+                            }
+                            else break;
+                        }
+                        else {
+                            Console.WriteLine("miv + path");
+                        } 
+                        break;
+                    }
                 default:
                     {
                         Console.WriteLine("Not a valid command");
