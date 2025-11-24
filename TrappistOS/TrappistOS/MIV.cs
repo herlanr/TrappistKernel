@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -276,6 +277,45 @@ namespace MIV
         {
             for (int i = 0; i < time; i++) ;
         }
+
+        public static bool PrintMivCommands()
+        {
+            Console.WriteLine("Do you want to see the MIV Commands before opening the file? (yes/y/no/n)");
+            Console.WriteLine("Type \"exit\" to quit.");
+            string input = Console.ReadLine().ToLower().Trim();
+
+            if (input == "yes" || input == "y")
+            {
+                Console.WriteLine();
+                Console.WriteLine("MIV Commands:");
+                Console.WriteLine(":wq - Save file and exit");
+                Console.WriteLine(":q - Exit without saving");
+                Console.WriteLine(":help - Show this help message");
+                Console.WriteLine("i - Enter writing mode");
+                Console.WriteLine("Escape - Exit writing mode or command mode");
+                Console.WriteLine();
+                Console.WriteLine("Press any key to continue...");
+                Console.ReadKey();
+                return true;
+            }
+            else if (input == "no" || input == "n")
+            {
+                return true;
+            }
+            else if(input == "exit")
+            {
+                Console.WriteLine("Exiting MIV...");
+                Console.WriteLine();
+                return false;
+            }
+            else
+            {
+                Console.WriteLine("Invalid input");
+                Console.WriteLine();
+                return PrintMivCommands();
+            }
+        }
+
         public static void StartMIV(string file)
         {
             try
@@ -311,7 +351,6 @@ namespace MIV
                 Console.WriteLine("No changes were made to " + file + " or invalid path");
                 
             }
-            return;
         }
     }
 }

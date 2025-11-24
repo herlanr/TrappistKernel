@@ -295,7 +295,11 @@ namespace TrappistOS
                         if (args.Length == 2)
                         {
                             string filePath = Path.Combine(fsManager.getCurrentDir(), args[1]);
-                            MIV.MIV.StartMIV(filePath);
+                            if (MIV.MIV.PrintMivCommands() == true)
+                            {
+                                MIV.MIV.StartMIV(filePath);
+                            }
+                            else break;
                         }
                         else {
                             Console.WriteLine("miv + path");
