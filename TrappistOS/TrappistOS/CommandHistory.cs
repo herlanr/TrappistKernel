@@ -135,32 +135,31 @@ namespace TrappistOS
 
         private void Redraw()
         {
-            // Volltext neu schreiben (Prompt + Buffer)
             string text = _buffer.ToString();
-            string full = _prompt + text;
+            int lineTop = Console.CursorTop;  // aktuelle Zeile merken
 
-            // 1) an Zeilenanfang springen, alles neu ausgeben
-            Console.Write("\r");
+            // 1) an den Anfang der Zeile springen
+            Console.SetCursorPosition(0, lineTop);
+
+            // 2) Prompt + Text neu ausgeben
             Console.ForegroundColor = ConsoleColor.Magenta;
             Console.Write(_prompt);
             Console.ResetColor();
             Console.Write(text);
 
+            // 3) Rest der alten Zeile mit Spaces überschreiben (falls neue kürzer)
+            int totalLen = _prompt.Length + text.Length;
+            int pad = Math.Max(0, _prevBufferLen - totalLen);
+            if (pad > 0)
+            {
+                Console.Write(new string(' ', pad));
+            }
 
-            // 2) falls die neue Zeile kürzer ist: den "Rest" mit Spaces überschreiben
-            int leftover = Math.Max(0, _prevBufferLen - full.Length);
-            if (leftover > 0)
-                Console.Write(new string(' ', leftover));
+            // 4) Cursor auf die logische Position setzen
+            int cursorAbsolute = _prompt.Length + _cursor;
+            Console.SetCursorPosition(cursorAbsolute, lineTop);
 
-            // 3) Cursor an die logische Position KORRIGIEREN:
-            //    Wenn der Cursor NICHT am Ende steht, laufen wir mit Backspace zurück.
-            int cursorAbsolute = _prompt.Length + _cursor;          // Zielposition relativ zum Zeilenanfang
-            int currentAbsolute = full.Length;                      // wir stehen aktuell am Ende
-            int back = Math.Max(0, currentAbsolute - cursorAbsolute);
-            if (back > 0)
-                Console.Write(new string('\b', back));
-
-            _prevBufferLen = full.Length;
+            _prevBufferLen = totalLen;
         }
     }
 }
