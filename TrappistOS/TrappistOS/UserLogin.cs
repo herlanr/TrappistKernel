@@ -79,7 +79,7 @@ namespace TrappistOS
             string password = null; //hides the input
             password = TypePassword();
 
-            if (password != null)
+            if (password == null)
             {
                 Console.WriteLine("Change Aborted");
                 return false;
@@ -97,7 +97,7 @@ namespace TrappistOS
                 password = null;
                 password = TypePassword();
 
-                if (password != null)
+                if (password == null)
                 {
                     Console.WriteLine("Change Aborted");
                     return false;
@@ -107,7 +107,7 @@ namespace TrappistOS
                 string repeatPassword = null;
                 repeatPassword = TypePassword();
 
-                if (password != null)
+                if (password == null)
                 {
                     Console.WriteLine("Change Aborted");
                     return false;
@@ -287,7 +287,7 @@ namespace TrappistOS
                 password = null;
                 password = TypePassword();
 
-                if (password != null)
+                if (password == null)
                 {
                     Console.WriteLine("Creation Aborted");
                     return 0;
@@ -297,7 +297,7 @@ namespace TrappistOS
                 string repeatPassword = null;
                 repeatPassword = TypePassword();
 
-                if (password != null)
+                if (password == null)
                 {
                     Console.WriteLine("Change Aborted");
                     return 0;

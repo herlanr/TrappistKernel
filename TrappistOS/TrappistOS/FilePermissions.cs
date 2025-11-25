@@ -178,6 +178,8 @@ namespace TrappistOS
                     //if path is root, end here
                     if (path == rootdir) 
                     {
+                        fileRightTable.Add(path.ToLower(), SystemFile);
+                        AppendPermission(path);
                         return true;
                         //Console.WriteLine("Went down to root");
                     }
@@ -209,7 +211,8 @@ namespace TrappistOS
                     }
 
                     //finally, add new directory with rights to database
-                    fileRightTable.Add(path.ToLower(), SystemFile); 
+                    fileRightTable.Add(path.ToLower(), SystemFile);
+                    AppendPermission(path);
                     return true;
                 }
                 else
@@ -222,6 +225,21 @@ namespace TrappistOS
             };
         }
 
+        public bool AppendPermission(string path)
+        {
+            try
+            {
+                string newPermLine = "";
+                FileRights newFile = (FileRights)fileRightTable[path];
+                newPermLine += newFile.owner.ToString();
+                newPermLine += " " + String.Join(",", newFile.reader.ToList());
+                newPermLine += " " + String.Join(",", newFile.writer.ToList());
+                newPermLine += " " + path;
+                File.AppendAllText(filepath, newPermLine);
+                return true;
+            }
+            catch { return false; }
+        }
 
         //init permissions to specified user
         public bool InitPermissions(string path, int userID, bool overwrite = false)
@@ -265,6 +283,7 @@ namespace TrappistOS
 
                 //add to database
                 fileRightTable.Add(path.ToLower(), SystemFile);
+                AppendPermission(path);
                 return true;
 
             }
