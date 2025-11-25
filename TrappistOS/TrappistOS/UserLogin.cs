@@ -134,12 +134,9 @@ namespace TrappistOS
                     new_users.Add(elements[0] + " " + elements[1] + " " + password); // change password
                 }
             }
-            char confimation = ' ';
             Console.WriteLine($"Are you sure you want to Change you Password? (y)es/(n)o");
-            do
-            { confimation = Console.ReadKey(true).KeyChar; }
-            while (confimation != 'y' && confimation != 'n');
-            if (confimation == 'y')
+            
+            if (Kernel.WaitForConfirmation())
             {
                 File.WriteAllLines(filepath, new_users.ToArray()); //overwrite old users
                 currentUser.password = password;
@@ -217,12 +214,9 @@ namespace TrappistOS
             }
             if (found)
             {
-                char confimation = ' ';
                 Console.WriteLine($"Are you sure you want to delete {username}? (y)es/(n)o");
-                do
-                { confimation = Console.ReadKey(true).KeyChar; }
-                while (confimation != 'y' && confimation != 'n');
-                if (confimation == 'y')
+                
+                if (Kernel.WaitForConfirmation())
                 {
                     File.WriteAllLines(filepath, new_users.ToArray()); //overwrite old users
                     Console.WriteLine($"successfully deleted {username}");
@@ -435,6 +429,12 @@ namespace TrappistOS
             return null;
         }
 
+        public bool AutoLogin(int userId)
+        {
+
+            currentUser = GetUser(GetName(userId));
+            return true;
+        }
 
         public int GetId()
         {

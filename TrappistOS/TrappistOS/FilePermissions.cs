@@ -253,7 +253,7 @@ namespace TrappistOS
                 }
 
                 //if path is not valid, end here
-                if (!Directory.Exists(path) || !File.Exists(path))
+                if (!Directory.Exists(path) && !File.Exists(path))
                 {
                     return false;
                 }
@@ -439,15 +439,11 @@ namespace TrappistOS
                     {
                         Console.WriteLine("There are files or Directories within this " + path + " that " + username + " has access to.\nAre you sure you want to remove his access?\n(y)es/(n)o");
                     }
-                    char confimation = ' ';
 
-                    //wait for confirmation. Auslagern?
-                    do
-                    { confimation = Console.ReadKey(true).KeyChar; }
-                    while (confimation != 'y' && confimation != 'n' && username!="system");
+                    
 
                     //If user agrees go through every path do remove permissions if they exist.
-                    if (confimation == 'y' || username == "system")
+                    if (Kernel.WaitForConfirmation() || username == "system")
                     {
                         foreach (string potentialpath in pathsToCheck)
                         {

@@ -367,11 +367,8 @@ namespace TrappistOS
                             break;
                         }
                         Console.WriteLine($"Do you want to give Ownership of {args[1]} to {args[2]}?\nThis action is not reversable.\n(y)es/(n)o");
-                        char confirmation = ' ';
-                        do
-                        { confirmation = Console.ReadKey(true).KeyChar; }
-                        while (confirmation != 'y' && confirmation != 'n');
-                        if (confirmation == 'y')
+                        
+                        if (WaitForConfirmation())
                         {
                             permManager.SetOwner(fsManager.getFullPath(args[1]), userInfo.GetId(args[2]));
                             Console.WriteLine("Successfully changed Owner to" + args[2]);
@@ -517,11 +514,8 @@ namespace TrappistOS
                 case "force-shutdown": //in help
                     {
                         Console.WriteLine($"Are you sure you want to forcecfully shutdown? Not all changes will be saved.\n(y)es/(n)o");
-                        char confimation = ' ';
-                        do
-                        { confimation = Console.ReadKey(true).KeyChar; }
-                        while (confimation != 'y' && confimation != 'n');
-                        if (confimation == 'y')
+                        
+                        if (WaitForConfirmation())
                         {
                             Sys.Power.Shutdown();
                         }
@@ -530,11 +524,8 @@ namespace TrappistOS
                 case "force-reboot": //in help
                     {
                         Console.WriteLine($"Are you sure you want to forcecfully reboot? Not all changes will be saved.\n(y)es/(n)o");
-                        char confimation = ' ';
-                        do
-                        { confimation = Console.ReadKey(true).KeyChar; }
-                        while (confimation != 'y' && confimation != 'n');
-                        if (confimation == 'y')
+
+                        if (WaitForConfirmation())
                         {
                             Sys.Power.Reboot();
                         }
@@ -629,6 +620,12 @@ namespace TrappistOS
                             int newUser = userInfo.CreateUser(false); 
                             string newdir = fsManager.createDirectory(rootdir + userInfo.GetName(newUser));
                             permManager.InitPermissions(newdir, newUser);
+                            Console.WriteLine("Login as this User? \n(y)es/(n)o");
+
+                            if (WaitForConfirmation())
+                            {
+                                userInfo.AutoLogin(newUser);
+                            }
                         }
                         else if (args.Length >= 2)
                         {
@@ -650,6 +647,7 @@ namespace TrappistOS
                                 Console.WriteLine("Available Arguments: \n -h: help \n -a: create Admin (Only Admins can crate Admins)");
                             }
                         }
+                        
                         break;
                     }/*
                 case "increaseAdminRange":
@@ -714,7 +712,7 @@ namespace TrappistOS
                             break;
                         }
                         string path = fsManager.getFullPath(args[1]);
-                        if (!File.Exists(path) || !Directory.Exists(path) )
+                        if (!File.Exists(path) && !Directory.Exists(path) )
                         {
                             Console.WriteLine("File/Directory does not exist");
                             break;
@@ -834,7 +832,24 @@ namespace TrappistOS
             Console.WriteLine("The read operation will resume...\n");
         }
 
-        internal bool WaitForResponse()
+        static internal bool WaitForConfirmation()
+        //waits for enter (true) or escape (false);
+        {
+            char confirmation = ' ';
+            do
+            { confirmation = Console.ReadKey(true).KeyChar; }
+            while (confirmation != 'y' && confirmation != 'n');
+            if (confirmation == 'y')
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        static internal bool WaitForResponse()
         //waits for enter (true) or escape (false);
         {
             while (true)
