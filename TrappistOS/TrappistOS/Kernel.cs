@@ -311,9 +311,9 @@ namespace TrappistOS
                             Console.WriteLine("Avaiable Arguments: \n-h: help");
                             break;
                         }
-                        if (!File.Exists(fsManager.getFullPath(args[1])) && !Directory.Exists(fsManager.getFullPath(args[1])))
+                        if (!File.Exists(fsManager.getFullPath(args[1])) || !Directory.Exists(fsManager.getFullPath(args[1])))
                         {
-                            Console.WriteLine("File does not exist");
+                            Console.WriteLine("File/Directory does not exist");
                             break;
                         }
 
@@ -706,7 +706,7 @@ namespace TrappistOS
                             break;
                         }
                         string path = fsManager.getFullPath(args[1]);
-                        if (path is null)
+                        if (!File.Exists(path) || !Directory.Exists(path) )
                         {
                             Console.WriteLine("File/Directory does not exist");
                             break;

@@ -89,7 +89,7 @@ namespace TrappistOS
                 }
                 if (preLocation == -1 || preLocation == 0)
                 {
-                    Console.WriteLine("You are already in the home directory");
+                    //Console.WriteLine("You are already in the home directory");
                     return null;
                 }
                 path = path.Remove(preLocation+1, (backLocation - preLocation) + 1);
