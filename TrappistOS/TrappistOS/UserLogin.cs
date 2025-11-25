@@ -165,7 +165,7 @@ namespace TrappistOS
 
             password = TypePassword();
 
-            if (password != null)
+            if (password == null)
             {
                 Console.WriteLine("Login Aborted");
                 return false;
