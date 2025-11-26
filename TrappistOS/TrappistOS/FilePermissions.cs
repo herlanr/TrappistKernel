@@ -476,7 +476,7 @@ namespace TrappistOS
             var subdirectories = Directory.GetDirectories(Directory.GetParent(path).FullName); //check if rights are still needed somewhere
             foreach (var subdirectory in subdirectories)
             {
-                if(IsReader(Path.Combine(path, subdirectory), userID))
+                if(IsReader(Path.Combine(Directory.GetParent(path).FullName, subdirectory), userID))
                 {
                     return true;
                 }
@@ -486,7 +486,7 @@ namespace TrappistOS
             var files = Directory.GetFiles(Directory.GetParent(path).FullName);
             foreach (var file in files)
             {
-                if (IsReader(Path.Combine(path, file), userID))
+                if (IsReader(Path.Combine(Directory.GetParent(path).FullName, file), userID))
                 {
                     return true;
                 }
