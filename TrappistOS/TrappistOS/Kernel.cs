@@ -536,6 +536,10 @@ namespace TrappistOS
                         if (args.Length == 1)
                         {
                             userInfo.Login();
+                            if (!permManager.IsReader(fsManager.getCurrentDir(),userInfo.GetId()))
+                            {
+                                fsManager.changeDirectory(rootdir);
+                            }
                         }
                         else
                         {
@@ -550,6 +554,10 @@ namespace TrappistOS
                         if (args.Length == 1)
                         {
                             userInfo.Logout();
+                            if (!permManager.IsReader(fsManager.getCurrentDir(), userInfo.GetId()))
+                            {
+                                fsManager.changeDirectory(rootdir);
+                            }
                         }
                         else
                         {
