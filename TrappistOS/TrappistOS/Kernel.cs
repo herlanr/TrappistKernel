@@ -787,18 +787,26 @@ namespace TrappistOS
                     { break; }
                 case "miv":
                     {
+                        if (args.Length < 2 || args[1] == "-h")
+                        {
+                            Console.WriteLine("Usage: miv <file name>");
+                            Console.WriteLine("Description: Edit the specified file.");
+                            Console.WriteLine("Avaiable Arguments: \n-h: help");
+                            break;
+                        }
                         if (args.Length == 2)
                         {
-                            string filePath = Path.Combine(fsManager.getCurrentDir(), args[1]);
+                            string filePath = fsManager.getFullPath(args[1]);
+                            if(!permManager.IsWriter(filePath,userInfo.GetId()))
+                            {
+                                Console.WriteLine("You do not have permission to edit this file");
+                                break;
+                            }
                             if (MIV.MIV.PrintMivCommands() == true)
                             {
                                 MIV.MIV.StartMIV(filePath);
                             }
-                            else break;
                         }
-                        else {
-                            Console.WriteLine("miv + path");
-                        } 
                         break;
                     }
                 case "help":
@@ -864,7 +872,7 @@ namespace TrappistOS
 
         internal void HelpOutput()
         {
-            int pagecount = 9;
+            int pagecount = 10;
             int currentPage = 0;
             Console.ForegroundColor = ConsoleColor.Magenta;
             Console.WriteLine("Usage: freespace");
@@ -1092,6 +1100,18 @@ namespace TrappistOS
             Console.WriteLine("Usage: tperm / takepermissions <path> <user owner> [-r] [-w]");
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine("Description: Changes the owner of the specified file/directory to the specified account. \nCan only be done by the current file owner.");
+            Console.WriteLine("Avaiable Arguments: \n-h: help");
+            Console.WriteLine();
+
+            currentPage++;
+            Console.WriteLine("Page " + currentPage.ToString() + " out of " + pagecount.ToString() + " Continue with enter, exit with esc");
+            if (!WaitForResponse()) { return; } //wait for enter or escape
+            Console.WriteLine();
+
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.WriteLine("Usage: miv <file name>");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine("Description: Edit the specified file.");
             Console.WriteLine("Avaiable Arguments: \n-h: help");
             Console.WriteLine();
 
