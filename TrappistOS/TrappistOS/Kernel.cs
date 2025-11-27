@@ -118,9 +118,9 @@ namespace TrappistOS
                             Console.WriteLine("You do not have permission to create files here.");
                             break;
                         }
-                        if (args[1] == "-o")
+                        if (args.Length > 2 && args[2] == "-o")
                         {
-                            string path = fsManager.createFile(args[2]);
+                            string path = fsManager.createFile(args[1]);
                             permManager.InitPermissions(path, userInfo.GetId());
                         }
                         else
@@ -145,9 +145,9 @@ namespace TrappistOS
                             Console.WriteLine("You do not have permission to create directories here.");
                             break;
                         }
-                        if (args[1] == "-o")
+                        if (args.Length > 2 && args[2] == "-o")
                         {
-                            string path = fsManager.createDirectory(args[2]);
+                            string path = fsManager.createDirectory(args[1]);
                             permManager.InitPermissions(path, userInfo.GetId());
                         }
                         else
@@ -251,6 +251,7 @@ namespace TrappistOS
                         }
                         permManager.deletePath(fsManager.getFullPath(args[1]));
                         fsManager.deleteFile(args[1]);
+                        permManager.SavePermissions();
                         break;
                     }
                 case "rmd":
@@ -274,7 +275,9 @@ namespace TrappistOS
                             Console.WriteLine("You do not have permissions to delete this directory.");
                             break;
                         }
+                        permManager.deletePath(fsManager.getFullPath(args[1]));
                         fsManager.deleteDir(args[1]);
+                        permManager.SavePermissions();
                         break;
                     }
 
@@ -554,7 +557,7 @@ namespace TrappistOS
                         if (args.Length == 1)
                         {
                             userInfo.Logout();
-                            if (!permManager.IsReader(fsManager.getCurrentDir(), userInfo.GetId()))
+                            if (!permManager.IsReader(fsManager.getCurrentDir(),userInfo.GetId()))
                             {
                                 fsManager.changeDirectory(rootdir);
                             }
@@ -564,6 +567,16 @@ namespace TrappistOS
                             Console.WriteLine("Usage: Logout");
                             Console.WriteLine("Description: Logout of your Account");
                             Console.WriteLine("Available Arguments:\n -h: help");
+                        }
+                        break;
+                    }
+                case "listusers":
+                case "lusrs":
+                    {
+                        string[] userlist = userInfo.GetAllUsers();
+                        foreach (string user in userlist)
+                        {
+                            Console.WriteLine($"{user}");
                         }
                         break;
                     }
@@ -584,26 +597,48 @@ namespace TrappistOS
                                     Console.WriteLine("Cannot delete User you are logged in with");
                                     break;
                                 }
+                                if (userInfo.GetId(args[1]) == 0)
+                                {
+                                    Console.WriteLine("This user doesn't exist.");
+                                    break;
+                                }
+                                Console.WriteLine($"Are you sure you want to delete {args[1]}? (y)es/(n)o");
+
+                                if (!Kernel.WaitForConfirmation())
+                                {
+                                    Console.WriteLine("Deletion aborted");
+                                    break;
+                                }
+                                Console.WriteLine("Deletion in progress, please wait...");
                                 string[] paths = fsManager.getAllPaths(rootdir);
+                                int deluserID = userInfo.GetId(args[1]);
                                 foreach (string path in paths)
                                 {
-                                    if (permManager.IsOwner(path, userInfo.GetId(args[1])))
+                                    Console.Write("|");
+                                    //Console.WriteLine($"checking {path} with {deluserID} which is the id from {args[1]}");
+                                    if (!Directory.Exists(path) && !File.Exists(path))
+                                    {
+                                        continue;
+                                    }
+                                    if (permManager.IsOwner(path, deluserID))
                                     {
                                         permManager.InitPermissions(path,userInfo.visitorid,true);
                                     }
                                     else
                                     { 
-                                    if(permManager.IsReader(path, userInfo.GetId(args[1])) || permManager.IsWriter(path, userInfo.GetId(args[1])))
-                                    {
-                                        permManager.RemoveReader(path, userInfo.GetId(args[1]), args[1], fsManager);
-                                    }
-                                    if (permManager.IsWriter(path, userInfo.GetId(args[1])))
-                                    {
-                                        permManager.RemoveWriter(path, userInfo.GetId(args[1]));
-                                    }
+                                        if(permManager.IsReader(path, deluserID, false))
+                                        {
+                                            permManager.RemoveReader(path, deluserID, args[1], fsManager,true);
+                                        }
+                                        
+                                        if (permManager.IsWriter(path, deluserID, false))
+                                        {
+                                            permManager.RemoveWriter(path, deluserID, true);
+                                        }
                                     }
                                 }
-
+                                Console.WriteLine();
+                                permManager.SavePermissions();
                                 userInfo.DeleteUser(args[1]);
                                 
                             } else
@@ -627,6 +662,7 @@ namespace TrappistOS
                         {  
                             int newUser = userInfo.CreateUser(false); 
                             string newdir = fsManager.createDirectory(rootdir + userInfo.GetName(newUser));
+                            Console.WriteLine("init perms now");
                             permManager.InitPermissions(newdir, newUser);
                             Console.WriteLine("Login as this User? \n(y)es/(n)o");
 
@@ -642,6 +678,7 @@ namespace TrappistOS
                                 {
                                     int newUser = userInfo.CreateUser(true);
                                     string newdir = fsManager.createDirectory(rootdir + userInfo.GetName(newUser));
+                                    Console.WriteLine("init perms second");
                                     permManager.InitPermissions(newdir, newUser);
                                 }
                                 else
@@ -805,7 +842,7 @@ namespace TrappistOS
                         if (args.Length == 2)
                         {
                             string filePath = fsManager.getFullPath(args[1]);
-                            if(!permManager.IsWriter(filePath,userInfo.GetId()))
+                            if(!permManager.IsWriter(filePath,userInfo.GetId()) && !userInfo.IsAdmin())
                             {
                                 Console.WriteLine("You do not have permission to edit this file");
                                 break;
@@ -1139,23 +1176,33 @@ namespace TrappistOS
                 Console.Write(user + " ");
             }
             Console.WriteLine();
+            Console.WriteLine("Initializing root");
+            permManager.InitPermissions(rootdir,userInfo.visitorid);
             foreach (string user in allUsers)
             {
+                Console.WriteLine("get full path for " + user);
                 string dirpath = fsManager.getFullPath(user);
                 if (dirpath == null)
                 {
-                    dirpath = fsManager.createDirectory(user);
-                    Console.WriteLine("Created: " + dirpath);
+                    Console.WriteLine("inavild path creation");
+                    continue;
                 }
                 if (File.Exists(dirpath))
                 {
                     Console.WriteLine("Error: File with Username " + user + " already exists.");
                     continue;
                 }
+                if (Directory.Exists(dirpath)) 
+                {
+                    dirpath = fsManager.createDirectory(user);
+                    Console.WriteLine("Created: " + dirpath);
+                }
+                Console.WriteLine("getting all paths");
                 string[] allpaths = fsManager.getAllPaths(dirpath);
                 foreach (string path in allpaths)
                 {
-                    if (permManager.InitPermissions(fsManager.getFullPath(path), userInfo.GetId(user)))
+                    Console.WriteLine("init permissions for " + path);
+                    if (permManager.InitPermissions(path, userInfo.GetId(user)))
                     {
                         Console.WriteLine("Set Rights of " + path + " to " + user);
                     }

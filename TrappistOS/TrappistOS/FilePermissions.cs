@@ -142,7 +142,7 @@ namespace TrappistOS
                 }
             }
 
-            visitorID = user.maxAdminID + user.visitorid; //Set root to be owned by Visitor, needed for consistent recursion ending
+            visitorID = user.visitorid; //Set root to be owned by Visitor, needed for consistent recursion ending
             if (!fileRightTable.ContainsKey(rootdir))
             {
                 int[] visitor = { visitorID };
@@ -163,14 +163,22 @@ namespace TrappistOS
                 {
                     return false;
                 }
+
+                
                 string lowerpath = path.ToLower(); //hashtable only works with lowercase paths
                 
                 if (!fileRightTable.ContainsKey(lowerpath)|| overwrite) //check if path already exists in Hashtable, if it does, it can't be initialized or it is overwritten
                 {
                     if (fileRightTable.ContainsKey(lowerpath)) //deletion in case of overwrite
                     {
+                        if (((FileRights)fileRightTable[filepath]).owner == 0)
+                        {
+                            return false;
+                        }
                         fileRightTable.Remove(lowerpath);
                     }
+
+                    
 
                     //standard: initialize to visitor
                     FileRights SystemFile = new FileRights(visitorID, new[] { visitorID }, new[] { visitorID });
@@ -181,20 +189,18 @@ namespace TrappistOS
                         fileRightTable.Add(path.ToLower(), SystemFile);
                         AppendPermission(path);
                         return true;
-                        //Console.WriteLine("Went down to root");
                     }
-
                     //if parent directory somehow doesn't exist, end here
                     if (Directory.GetParent(path) == null) 
                     {
-                        Console.WriteLine(path + " has not parent dir and isn't root");
+                        fileRightTable.Add(path.ToLower(), SystemFile);
+                        AppendPermission(path);
                         return true;
                     }
 
                     //if parent directory exists and is in database, use the permissions from that
                     if (fileRightTable.ContainsKey((Directory.GetParent(path)).FullName.ToLower())) 
                     {
-                        //Console.WriteLine("using rights from parent:" + path);
                         SystemFile = (FileRights)fileRightTable[(Directory.GetParent(path)).FullName.ToLower()];
                     }
 
@@ -202,7 +208,6 @@ namespace TrappistOS
                     //-> recursion until root or first directory with permissions
                     else
                     {
-                        //Console.WriteLine("making rights for parent: " + path);
                         if (InitPermissions((Directory.GetParent(path)).FullName))
                         {
                             SystemFile = (FileRights)fileRightTable[(Directory.GetParent(path)).FullName.ToLower()];
@@ -211,8 +216,9 @@ namespace TrappistOS
                     }
 
                     //finally, add new directory with rights to database
+                    Console.WriteLine($"Adding default {SystemFile.owner} for {path.ToLower()}");
                     fileRightTable.Add(path.ToLower(), SystemFile);
-                    AppendPermission(path);
+                    AppendPermission(path.ToLower());
                     return true;
                 }
                 else
@@ -238,7 +244,21 @@ namespace TrappistOS
                 File.AppendAllText(filepath, newPermLine);
                 return true;
             }
-            catch { return false; }
+            catch (Exception e) { return false; }
+        }
+
+        public bool removePath(string path)
+        {
+            try
+            {
+                fileRightTable.Remove(path.ToLower());
+                return true;
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
+            
         }
 
         //init permissions to specified user
@@ -282,8 +302,9 @@ namespace TrappistOS
                 }
 
                 //add to database
+                Console.WriteLine($"Adding {userID} for {path.ToLower()}");
                 fileRightTable.Add(path.ToLower(), SystemFile);
-                AppendPermission(path);
+                AppendPermission(path.ToLower());
                 return true;
 
             }
@@ -294,7 +315,7 @@ namespace TrappistOS
             };
         }
 
-        public bool SetWriter(string path, int userID)
+        public bool SetWriter(string path, int userID, bool quiet = false)
         {
             //valid path check
             if (!PathValidation(path))
@@ -304,7 +325,11 @@ namespace TrappistOS
 
             if (path == rootdir)
             {
-                Console.WriteLine("You cannot change permissions for the root directory");
+                if(!quiet)
+                {
+                    Console.WriteLine("You cannot change permissions for the root directory");
+                }
+                
                 return false;
             }
 
@@ -334,7 +359,7 @@ namespace TrappistOS
             return true;
         }
 
-        public bool SetReader(string path, int userID)
+        public bool SetReader(string path, int userID, bool quiet = false)
         {
             //valid path check
             if (!PathValidation(path))
@@ -344,7 +369,10 @@ namespace TrappistOS
 
             if (path == rootdir)
             {
-                Console.WriteLine("You cannot change permissions for the root directory");
+                if (!quiet)
+                {
+                    Console.WriteLine("You cannot change permissions for the root directory");
+                }
                 return false;
             }
 
@@ -379,7 +407,7 @@ namespace TrappistOS
         }
 
         //remove writer rights from file
-        public bool RemoveWriter(string path, int userID)
+        public bool RemoveWriter(string path, int userID,bool quiet = false)
         {
             //valid path check
             if (!PathValidation(path))
@@ -390,7 +418,10 @@ namespace TrappistOS
 
             if (path == rootdir)
             {
-                Console.WriteLine("You cannot change permissions for the root directory");
+                if (!quiet)
+                {
+                    Console.WriteLine("You cannot change permissions for the root directory");
+                }
                 return false;
             }
 
@@ -399,7 +430,7 @@ namespace TrappistOS
         }
 
         //remove reader rights from file with userinterface for dictionaries
-        public bool RemoveReader(string path, int userID, string username, FileSystemManager fsManager)
+        public bool RemoveReader(string path, int userID, string username, FileSystemManager fsManager, bool quiet = false)
         {
             //valid path check
             if (!PathValidation(path))
@@ -410,7 +441,10 @@ namespace TrappistOS
 
             if (path == rootdir)
             {
-                Console.WriteLine("You cannot change permissions for the root directory");
+                if (!quiet)
+                {
+                    Console.WriteLine("You cannot change permissions for the root directory");
+                }
                 return false;
             }
 
@@ -512,7 +546,7 @@ namespace TrappistOS
         }
 
 
-        public bool SetOwner(string path, int userID)
+        public bool SetOwner(string path, int userID, bool quiet = false)
         {
             if (!PathValidation(path))
             {
@@ -522,7 +556,10 @@ namespace TrappistOS
 
             if (path == rootdir)
             {
-                Console.WriteLine("You cannot change permissions for the root directory");
+                if (!quiet)
+                {
+                    Console.WriteLine("You cannot change permissions for the root directory");
+                }
                 return false;
             }
 
@@ -597,29 +634,29 @@ namespace TrappistOS
                 return false;
             }
 
-            if(((FileRights)fileRightTable[path.ToLower()]).owner == userID && ((FileRights)fileRightTable[path.ToLower()]).owner != visitorID)
+            if(fileRightTable.ContainsKey(path) && ((FileRights)fileRightTable[path.ToLower()]).owner == userID && ((FileRights)fileRightTable[path.ToLower()]).owner != visitorID)
             { return true; }
             return false;
         }
 
-        public bool IsReader(string path, int userID)
+        public bool IsReader(string path, int userID, bool acceptVisitor = true)
         {
             if (!PathValidation(path))
             {
                 return false;
             }
-            if (((FileRights)fileRightTable[path.ToLower()]).reader.Contains(userID) || ((FileRights)fileRightTable[path.ToLower()]).reader.Contains(visitorID))
+            if (fileRightTable.ContainsKey(path) && ((FileRights)fileRightTable[path.ToLower()]).reader.Contains(userID) || ( ((FileRights)fileRightTable[path.ToLower()]).reader.Contains(visitorID) && acceptVisitor))
             { return true; }
             return false;
         }
 
-        public bool IsWriter(string path, int userID)
+        public bool IsWriter(string path, int userID, bool acceptVisitor = true)
         {
             if (!PathValidation(path))
             {
                 return false;
             }
-            if (((FileRights)fileRightTable[path.ToLower()]).writer.Contains(userID) || ((FileRights)fileRightTable[path.ToLower()]).writer.Contains(visitorID))
+            if (fileRightTable.ContainsKey(path) && ((FileRights)fileRightTable[path.ToLower()]).writer.Contains(userID) || (((FileRights)fileRightTable[path.ToLower()]).writer.Contains(visitorID) && acceptVisitor))
             { return true; }
             return false;
         }

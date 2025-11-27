@@ -36,10 +36,10 @@ namespace TrappistOS
             this.filepath = userpath;
             if (!File.Exists(filepath))
             {
-                string[] intitial_users = { $"{maxAdminID+200} Visitor Visitor", "1 Admin Admin"}
-            ;
+                string[] intitial_users = { $"{maxAdminID+ visitorid} Visitor Visitor", "1 Admin Admin"};
                 File.WriteAllLines(filepath, intitial_users);
             }
+            visitorid = visitorid + maxAdminID;
             currentUser = VisitorLogin();
         }
 
@@ -214,19 +214,10 @@ namespace TrappistOS
             }
             if (found)
             {
-                Console.WriteLine($"Are you sure you want to delete {username}? (y)es/(n)o");
                 
-                if (Kernel.WaitForConfirmation())
-                {
-                    File.WriteAllLines(filepath, new_users.ToArray()); //overwrite old users
-                    Console.WriteLine($"successfully deleted {username}");
-                    return true;
-                }
-                else
-                {
-                    Console.WriteLine("deletion aborted");
-                    return false;
-                }
+                File.WriteAllLines(filepath, new_users.ToArray()); //overwrite old users
+                Console.WriteLine($"successfully deleted {username}");
+                return true;
             }
             else { 
                 Console.WriteLine($"{username} does not exist");
@@ -392,19 +383,17 @@ namespace TrappistOS
             int cnt = 0;
             int new_id = 0;
             while (true)
-            {// user that isn't admin needs to get matcing ID
+            {// user that isn't admin needs to get matching ID
                 new_id = rnd.Next(maxAdminID + 1, 10000+maxAdminID);
-                foreach (int number in usedNumbers) {
-                    if (number == new_id)
+                if (usedNumbers.Contains(new_id))
+                {
+                    cnt++;
+                    if (cnt > 500) //Contingency for too long a loop
                     {
-                        cnt++;
-                        if (cnt > 500) //Contingency for too long a loop
-                        {
-                            Console.WriteLine("Couldn't find new valid id, try again");
-                            return false;
-                        }
-                        continue; 
+                        Console.WriteLine("Couldn't find new valid id, try again");
+                        return false;
                     }
+                    continue;
                 }
                 break;
             }
@@ -500,7 +489,7 @@ namespace TrappistOS
 
         private UserClass VisitorLogin()
         {
-            return new UserClass("Visitor", visitorid + maxAdminID,"Visitor");
+            return new UserClass("Visitor", visitorid,"Visitor");
         }
 
         private UserClass GetUser(string username)
