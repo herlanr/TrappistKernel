@@ -97,7 +97,7 @@ namespace TrappistOS
                 }
 
                 int[] writeRights = Array.Empty<int>();
-                string[] writerList = permissionDetails[1].Split(","); //Split Writerlist into array to use
+                string[] writerList = permissionDetails[2].Split(","); //Split Writerlist into array to use
                 foreach (string writer in writerList)
                 {
                     Array.Resize(ref writeRights, writeRights.Length + 1); //convert string array to int array
@@ -475,21 +475,25 @@ namespace TrappistOS
                 
                 //value if user needs to be asked to confirm
                 bool confirm = false;
-
-                for (int i = 0; i > pathsToCheck.Count; i++)
+                int rmindex = 0;
+                for (int i = 0; i < pathsToCheck.Count; i++)
                 {
-                    Console.WriteLine(pathsToCheck[i]);
                     pathsToCheck[i] = pathsToCheck[i].ToLower();
+                    if (pathsToCheck[i] == fsManager.getFullPath(path).ToLower())
+                    {
+                        rmindex = i;
+                    }
                 }
-                Console.WriteLine();
-                //remove own path from paths to check
-                Console.WriteLine(fsManager.getFullPath(path).ToLower());
-                pathsToCheck.Remove(fsManager.getFullPath(path).ToLower());
+
+                pathsToCheck.RemoveAt(rmindex);
 
                 //check if user is owner or reader of any of the files below (writer alone shouldn't be possible and is as such ignored)
                 foreach (string potentialpath in pathsToCheck) {
                     if(IsReader(fsManager.getFullPath(potentialpath), userID) || IsOwner(potentialpath,userID))
-                    { confirm = true; break; }
+                    {
+                        Console.WriteLine($"is reader here: {potentialpath}");
+                        confirm = true; break; 
+                    }
                 }
 
                 //if user has to confirm, something has been found
