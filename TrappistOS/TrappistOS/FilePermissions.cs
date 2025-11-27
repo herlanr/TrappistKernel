@@ -216,7 +216,6 @@ namespace TrappistOS
                     }
 
                     //finally, add new directory with rights to database
-                    Console.WriteLine($"Adding default {SystemFile.owner} for {path.ToLower()}");
                     fileRightTable.Add(path.ToLower(), SystemFile);
                     AppendPermission(path.ToLower());
                     return true;
@@ -302,7 +301,6 @@ namespace TrappistOS
                 }
 
                 //add to database
-                Console.WriteLine($"Adding {userID} for {path.ToLower()}");
                 fileRightTable.Add(path.ToLower(), SystemFile);
                 AppendPermission(path.ToLower());
                 return true;

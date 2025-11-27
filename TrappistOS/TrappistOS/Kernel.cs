@@ -1189,28 +1189,27 @@ namespace TrappistOS
             permManager.InitPermissions(rootdir,userInfo.visitorid);
             foreach (string user in allUsers)
             {
-                Console.WriteLine("get full path for " + user);
                 string dirpath = fsManager.getFullPath(user);
                 if (dirpath == null)
                 {
-                    Console.WriteLine("inavild path creation");
+                    //Console.WriteLine("inavild path creation");
                     continue;
                 }
                 if (File.Exists(dirpath))
                 {
-                    Console.WriteLine("Error: File with Username " + user + " already exists.");
+                    //Console.WriteLine("Error: File with Username " + user + " already exists.");
                     continue;
                 }
-                if (Directory.Exists(dirpath)) 
+                if (!Directory.Exists(dirpath)) 
                 {
                     dirpath = fsManager.createDirectory(user);
                     Console.WriteLine("Created: " + dirpath);
                 }
-                Console.WriteLine("getting all paths");
+                //Console.WriteLine("getting all paths");
                 string[] allpaths = fsManager.getAllPaths(dirpath);
                 foreach (string path in allpaths)
                 {
-                    Console.WriteLine("init permissions for " + path);
+                    //Console.WriteLine("init permissions for " + path);
                     if (permManager.InitPermissions(path, userInfo.GetId(user)))
                     {
                         Console.WriteLine("Set Rights of " + path + " to " + user);
@@ -1218,7 +1217,7 @@ namespace TrappistOS
 
                 }
             }
-
+            Console.WriteLine();
             Console.WriteLine("intializing Remaining files");
             string[] rootpaths = fsManager.getAllPaths(fsManager.getCurrentDir());
             foreach (string path in rootpaths)
@@ -1229,6 +1228,7 @@ namespace TrappistOS
                 }
             }
             Console.WriteLine("initialization Successful");
+            permManager.SavePermissions();
         }
 
     }
