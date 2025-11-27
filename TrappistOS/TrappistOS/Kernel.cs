@@ -200,6 +200,7 @@ namespace TrappistOS
                         if (newpath != null)
                         {
                             permManager.switchPermissionPath(oldpath, newpath, false);
+                            permManager.SavePermissions();
                         }
                         else
                         {
@@ -313,8 +314,8 @@ namespace TrappistOS
                         string newpath = fsManager.renameFileOrDir(args[1], args[2]);
                         if ( newpath != null)
                         {
-                            Console.WriteLine($"newpath: {newpath}, oldpath: {oldpath}");
                             permManager.switchPermissionPath(oldpath, newpath);
+                            permManager.SavePermissions();
                         }
                         else
                         {
@@ -398,6 +399,8 @@ namespace TrappistOS
                         {
                             Console.WriteLine("Change aborted.");
                         }
+
+                        permManager.SavePermissions();
                         break;
                     }
                 case "givepermissions":
@@ -454,6 +457,8 @@ namespace TrappistOS
                                 Console.WriteLine("Error adding writing rights");
                             }
                         }
+
+                        permManager.SavePermissions();
                         break;
                     }
                 case "takepermissions":
@@ -508,6 +513,8 @@ namespace TrappistOS
                                 Console.WriteLine("Couldn't remove reading rights");
                            }
                         }
+
+                        permManager.SavePermissions();
                         break;
                     }
                 case "pwd": //in help
@@ -1219,7 +1226,7 @@ namespace TrappistOS
                 foreach (string path in allpaths)
                 {
                     //Console.WriteLine("init permissions for " + path);
-                    if (permManager.InitPermissions(path, userInfo.GetId(user)))
+                    if (permManager.InitPermissions(path, userInfo.GetId(user),shouldsave: false))
                     {
                         Console.WriteLine("Set Rights of " + path + " to " + user);
                     }
@@ -1231,7 +1238,7 @@ namespace TrappistOS
             string[] rootpaths = fsManager.getAllPaths(fsManager.getCurrentDir());
             foreach (string path in rootpaths)
             {
-                if (permManager.InitPermissions(fsManager.getFullPath(path)))
+                if (permManager.InitPermissions(fsManager.getFullPath(path),shouldsave: false))
                 {
                     Console.WriteLine("Set Rights of " + fsManager.getFullPath(path) + " to " + userInfo.GetName(permManager.GetOwnerID(fsManager.getFullPath(path))));
                 }

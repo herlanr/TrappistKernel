@@ -178,7 +178,7 @@ namespace TrappistOS
         }
 
         //Init permissions without User to initialize to
-        public bool InitPermissions(string path, bool overwrite = false)
+        public bool InitPermissions(string path, bool overwrite = false, bool shouldsave = true)
         {
             try
             {
@@ -210,14 +210,21 @@ namespace TrappistOS
                     if (path == rootdir) 
                     {
                         fileRightTable.Add(path.ToLower(), SystemFile);
-                        AppendPermission(path);
+                        if (shouldsave)
+                        {
+                            AppendPermission(path);
+                        }
                         return true;
                     }
                     //if parent directory somehow doesn't exist, end here
                     if (Directory.GetParent(path) == null) 
                     {
                         fileRightTable.Add(path.ToLower(), SystemFile);
-                        AppendPermission(path);
+                        if (shouldsave)
+                        {
+                            AppendPermission(path);
+                        }
+
                         return true;
                     }
 
@@ -240,7 +247,10 @@ namespace TrappistOS
 
                     //finally, add new directory with rights to database
                     fileRightTable.Add(path.ToLower(), SystemFile);
-                    AppendPermission(path.ToLower());
+                    if (shouldsave)
+                    {
+                        AppendPermission(path);
+                    }
                     return true;
                 }
                 else
@@ -284,7 +294,7 @@ namespace TrappistOS
         }
 
         //init permissions to specified user
-        public bool InitPermissions(string path, int userID, bool overwrite = false)
+        public bool InitPermissions(string path, int userID, bool overwrite = false, bool shouldsave = true)
         {
             try
             {
@@ -325,7 +335,10 @@ namespace TrappistOS
 
                 //add to database
                 fileRightTable.Add(path.ToLower(), SystemFile);
-                AppendPermission(path.ToLower());
+                if (shouldsave)
+                {
+                    AppendPermission(path);
+                }
                 return true;
 
             }
