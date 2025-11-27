@@ -181,7 +181,7 @@ namespace TrappistOS
             return false;
         }
 
-        public bool DeleteUser(string username)
+        public bool DeleteUser(string username,bool quiet = false)
         {
             List<string> new_users = new List<string>();
             bool found = false;
@@ -195,12 +195,20 @@ namespace TrappistOS
                     {
                         continue;
                     }
-                    Console.Write("Invalid user");
-                    if (elements.Length >= 1)
+                    if(!quiet)
+                    {
+                        Console.Write("Invalid user");
+                    }
+                    
+                    if (elements.Length >= 1 && !quiet)
                     {
                         Console.Write(" with id" + elements[0]);
                     }
-                    Console.WriteLine();
+                    if(!quiet)
+                    {
+                        Console.WriteLine();
+                    }
+                    
                     continue;
                 } // list of users with new ids
                 if (elements[1] != username)
@@ -216,11 +224,19 @@ namespace TrappistOS
             {
                 
                 File.WriteAllLines(filepath, new_users.ToArray()); //overwrite old users
-                Console.WriteLine($"successfully deleted {username}");
+                if(!quiet)
+                {
+                    Console.WriteLine($"successfully deleted {username}");
+                }
+                
                 return true;
             }
             else { 
-                Console.WriteLine($"{username} does not exist");
+                if(!quiet)
+                {
+                    Console.WriteLine($"{username} does not exist");
+                }
+                
                 return false;
             }
         }
@@ -259,7 +275,7 @@ namespace TrappistOS
             Console.Write("username: ");
             string username = Console.ReadLine();
             
-            if (GetUser(username) != null)
+            if (GetUser(username,true) != null)
             {
                 Console.WriteLine($"{username} is already exists");
                 return 0;
@@ -304,26 +320,66 @@ namespace TrappistOS
             return 0;
         }
 
-        private bool SaveUser(string username, string password, bool isAdmin)
+        public int CreateUser(bool isAdmin,string username, string password, bool quiet = false)
+        {
+            Console.Write("username: ");
+
+            if (GetUser(username, true) != null)
+            {
+                if(!quiet)
+                {
+                    Console.WriteLine($"{username} is already exists");
+                }
+                
+                return 0;
+            }
+
+            bool success = SaveUser(username, password, isAdmin);
+
+            if (success)
+            {
+                Console.WriteLine("Creation successful");
+                return GetId(username);
+            }
+            Console.WriteLine("Creation failed");
+            return 0;
+        }
+
+        private bool SaveUser(string username, string password, bool isAdmin, bool quiet = false)
         {
             if (username == "")
             {
-                Console.WriteLine("empty username");
+                if (!quiet)
+                {
+                    Console.WriteLine("empty username");
+                }
                 return false;
             }
             if (username.Contains(" ")) //spaces mess with username saving
             {
-                Console.WriteLine("Error, Username Contains Space");
+                if(!quiet)
+                {
+                    Console.WriteLine("Error, Username Contains Space");
+                }
+                
                 return false;
             }
             if (password == "")
             {
-                Console.WriteLine("empty password");
+                if (!quiet)
+                {
+                    Console.WriteLine("empty password");
+                }
+                
                 return false;
             }
             if (password.Contains(" "))
             {
-                Console.WriteLine("Error, Password Contains Space");
+                if (!quiet)
+                {
+                    Console.WriteLine("Error, Password Contains Space");
+                }
+                
                 return false;
             }
             int[] adminNumbers = null;
@@ -344,19 +400,34 @@ namespace TrappistOS
                     {
                         continue;
                     }
-                    Console.Write("Invalid user");
+                    if(!quiet)
+                    {
+                        Console.Write("Invalid user");
+                    }
+                    
                     if (elements.Length >= 1)
                     {
-                        Console.Write(" with id" + elements[0]);
+                        if (!quiet)
+                        {
+                            Console.Write(" with id" + elements[0]);
+                        }
                         usedNumbers.Add(Convert.ToInt32(elements[0]));
                     }
-                    Console.WriteLine();
+                    if(!quiet)
+                    {
+                        Console.WriteLine();
+                    }
+                    
                     continue;
                 }
                 usedNumbers.Add(Convert.ToInt32(elements[0]));
                 if (elements[1] == username) //id name password
                 {
-                    Console.WriteLine("Username already taken");
+                    if(!quiet)
+                    {
+                        Console.WriteLine("Username already taken");
+                    }
+                    
                     return false;
                 }
                 List<int> new_admin = new List<int>();
@@ -371,7 +442,11 @@ namespace TrappistOS
             }
             if (isAdmin && adminNumbers.Length == 0)
             {
-                Console.WriteLine("No AdminIds free, increase range with 'increaseAdminRange'");
+                if(!quiet)
+                {
+                    Console.WriteLine("No AdminIds free, increase range with 'increaseAdminRange'");
+                }
+                
                 return false;
             }
             if (isAdmin)
@@ -390,7 +465,11 @@ namespace TrappistOS
                     cnt++;
                     if (cnt > 500) //Contingency for too long a loop
                     {
-                        Console.WriteLine("Couldn't find new valid id, try again");
+                        if(!quiet)
+                        {
+                            Console.WriteLine("Couldn't find new valid id, try again");
+                        }
+                        
                         return false;
                     }
                     continue;
@@ -401,27 +480,39 @@ namespace TrappistOS
             return true;
         }
 
-        private UserClass _Login(string name, string pw)
+        private UserClass _Login(string name, string pw, bool quiet = false)
         {
-            UserClass user = GetUser(name);
+            UserClass user = GetUser(name,true);
             if (user == null)
             {
-                Console.WriteLine($"{name} is not registered.");
+                if(!quiet)
+                {
+                    Console.WriteLine($"{name} is not registered.");
+                }
+                
                 return null;
             }
             if (user.password == pw)
             {
-                Console.WriteLine($"Password Correct, welcome {name}");
+                if(!quiet)
+                {
+                    Console.WriteLine($"Password Correct, welcome {name}");
+                }
+                
                 return user;
             }
-            Console.WriteLine("Password incorrect");
+            if(!quiet)
+            {
+                Console.WriteLine("Password incorrect");
+            }
+            
             return null;
         }
 
         public bool AutoLogin(int userId)
         {
 
-            currentUser = GetUser(GetName(userId));
+            currentUser = GetUser(GetName(userId),true);
             return true;
         }
 
@@ -434,11 +525,15 @@ namespace TrappistOS
             return currentUser.id;
         }
 
-        public string GetName()
+        public string GetName(bool quiet = false)
         {
             if (currentUser == null)
             {
-                Console.WriteLine("Invalid logged in user");
+                if(!quiet)
+                {
+                    Console.WriteLine("Invalid logged in user");
+                }
+                
                 currentUser = VisitorLogin();
             }
             return currentUser.username;
@@ -446,7 +541,7 @@ namespace TrappistOS
 
         public int GetId(string username)
         {
-            UserClass thisUser = GetUser(username);
+            UserClass thisUser = GetUser(username,true);
             if (thisUser is null)
             {
                 return 0;
@@ -454,7 +549,7 @@ namespace TrappistOS
             return thisUser.id;
         }
 
-        public string GetName(int userID)
+        public string GetName(int userID,bool quiet = false)
         {
             string[] users = File.ReadAllLines(filepath);
 
@@ -470,12 +565,20 @@ namespace TrappistOS
                 {
                     if (elements[0] == "")
                     { continue; }
-                    Console.Write($"Invalid user with amount of elements: {elements.Length}");
-                    if (elements.Length >= 1)
+                    if(!quiet)
+                    {
+                        Console.Write($"Invalid user with amount of elements: {elements.Length}");
+                    }
+                    
+                    if (elements.Length >= 1 && !quiet)
                     {
                         Console.Write(" with id" + elements[0]);
                     }
-                    Console.WriteLine();
+                    if(!quiet)
+                    {
+                        Console.WriteLine();
+                    }
+                    
                     continue;
                 }
                 if (elements[0] == userID.ToString()) //id name password
@@ -492,7 +595,7 @@ namespace TrappistOS
             return new UserClass("Visitor", visitorid,"Visitor");
         }
 
-        private UserClass GetUser(string username)
+        private UserClass GetUser(string username,bool quiet = false)
         {
 
             string[] users = File.ReadAllLines(filepath);
@@ -503,12 +606,15 @@ namespace TrappistOS
                 if (elements.Length != 3) {
                     if (elements[0] == "")
                     { continue; }
-                    Console.Write($"Invalid user with amount of elements: {elements.Length}");
-                    if (elements.Length >= 1)
-                    {
-                        Console.Write(" with id" + elements[0]);
+                    if (!quiet)
+                    { 
+                        Console.Write($"Invalid user with amount of elements: {elements.Length}");
+                        if (elements.Length >= 1)
+                        {
+                            Console.Write(" with id" + elements[0]);
+                        }
+                        Console.WriteLine();
                     }
-                    Console.WriteLine();
                     continue;
                 }
                 if (elements[1] == username) //id name password
@@ -519,23 +625,6 @@ namespace TrappistOS
                 }
             }
             return null;
-        }
-
-        protected static void Interrupthandler(object sender, ConsoleCancelEventArgs args)
-        {
-            Console.WriteLine("\nThe read operation has been interrupted.");
-
-            Console.WriteLine($"  Key pressed: {args.SpecialKey}");
-
-            Console.WriteLine($"  Cancel property: {args.Cancel}");
-
-            // Set the Cancel property to true to prevent the process from terminating.
-            Console.WriteLine("Setting the Cancel property to true...");
-            args.Cancel = true;
-
-            // Announce the new value of the Cancel property.
-            Console.WriteLine($"  Cancel property: {args.Cancel}");
-            
         }
         
         public string[] GetAllUsers()
@@ -551,7 +640,6 @@ namespace TrappistOS
                 {
                     if (elements[0] == "")
                     { continue; }
-                    Console.WriteLine();
                     continue;
                 }
 

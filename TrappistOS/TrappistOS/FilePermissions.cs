@@ -39,11 +39,9 @@ namespace TrappistOS
             Array.Resize(ref requiredSystemPaths, requiredSystemPaths.Length + 1); //array.addpend geht nicht, in zukunft Liste mehr nutzen.
             requiredSystemPaths[requiredSystemPaths.Length - 1] = filepath;
 
-            fileRightTable = new Hashtable(); 
-            //Console.WriteLine("Checking if " + filepath + " exists");
+            fileRightTable = new Hashtable();
             if (!File.Exists(filepath))
             {
-                //Console.WriteLine("Trying to create File " + filepath);
                 try
                 {
                     File.Create(filepath);
@@ -127,7 +125,6 @@ namespace TrappistOS
                 
                 if (!fileRightTable.ContainsKey(path.ToLower()))
                 {
-                    //Console.WriteLine(path);
                     //Cosmos.HAL.Global.PIT.Wait((uint)1000);
                     int[] system = { 0 };
                     FileRights SystemFile = new FileRights(system[0], system, system);
@@ -337,7 +334,7 @@ namespace TrappistOS
         public bool SetWriter(string path, int userID, bool quiet = false)
         {
             //valid path check
-            if (!PathValidation(path))
+            if (!PathValidation(path,quiet))
             {
                 return false;
             }
@@ -368,7 +365,10 @@ namespace TrappistOS
             }
             else
             {
-                Console.WriteLine($"parent directory {Directory.GetParent(path).FullName} has no rights, creating new...");
+                if (!quiet)
+                {
+                    Console.WriteLine($"parent directory {Directory.GetParent(path).FullName} has no rights, creating new...");
+                }
                 InitPermissions(Directory.GetParent(path).FullName);
                 if (!IsReader(Directory.GetParent(path).FullName, userID))
                 {
@@ -381,7 +381,7 @@ namespace TrappistOS
         public bool SetReader(string path, int userID, bool quiet = false)
         {
             //valid path check
-            if (!PathValidation(path))
+            if (!PathValidation(path,quiet))
             {
                 return false;
             }
@@ -429,7 +429,7 @@ namespace TrappistOS
         public bool RemoveWriter(string path, int userID,bool quiet = false)
         {
             //valid path check
-            if (!PathValidation(path))
+            if (!PathValidation(path, quiet))
             {
                 return false;
             }
@@ -452,7 +452,7 @@ namespace TrappistOS
         public bool RemoveReader(string path, int userID, string username, FileSystemManager fsManager, bool quiet = false)
         {
             //valid path check
-            if (!PathValidation(path))
+            if (!PathValidation(path, quiet))
             {
                 return false;
             }
@@ -491,7 +491,6 @@ namespace TrappistOS
                 foreach (string potentialpath in pathsToCheck) {
                     if(IsReader(fsManager.getFullPath(potentialpath), userID) || IsOwner(potentialpath,userID))
                     {
-                        Console.WriteLine($"is reader here: {potentialpath}");
                         confirm = true; break; 
                     }
                 }
@@ -499,7 +498,7 @@ namespace TrappistOS
                 //if user has to confirm, something has been found
                 if (confirm)
                 {
-                    if (username!="system")
+                    if (username!="system" && !quiet)
                     {
                         Console.WriteLine("There are files or Directories within this " + path + " that " + username + " has access to.\nAre you sure you want to remove his access?\n(y)es/(n)o");
                     }
@@ -507,7 +506,7 @@ namespace TrappistOS
                     
 
                     //If user agrees go through every path do remove permissions if they exist.
-                    if (Kernel.WaitForConfirmation() || username == "system")
+                    if (Kernel.WaitForConfirmation() || username == "system" || quiet)
                     {
                         foreach (string potentialpath in pathsToCheck)
                         {
@@ -578,7 +577,7 @@ namespace TrappistOS
 
         public bool SetOwner(string path, int userID, bool quiet = false)
         {
-            if (!PathValidation(path))
+            if (!PathValidation(path, quiet))
             {
                 return false;
             }
@@ -659,7 +658,7 @@ namespace TrappistOS
 
         public bool IsOwner(string path, int userID)
         {
-            if(!PathValidation(path))
+            if(!PathValidation(path,true))
             {
                 return false;
             }
@@ -671,7 +670,7 @@ namespace TrappistOS
 
         public bool IsReader(string path, int userID, bool acceptVisitor = true)
         {
-            if (!PathValidation(path))
+            if (!PathValidation(path, true))
             {
                 return false;
             }
@@ -682,7 +681,7 @@ namespace TrappistOS
 
         public bool IsWriter(string path, int userID, bool acceptVisitor = true)
         {
-            if (!PathValidation(path))
+            if (!PathValidation(path, true))
             {
                 return false;
             }
@@ -693,7 +692,7 @@ namespace TrappistOS
 
         public int GetOwnerID(string path)
         {
-            if (!PathValidation(path))
+            if (!PathValidation(path, true))
             {
                 return 0;
             }
@@ -702,7 +701,7 @@ namespace TrappistOS
 
         public int[] GetReaderIDs(string path)
         {
-            if (!PathValidation(path))
+            if (!PathValidation(path, true))
             {
                 return new[] { 0 };
             }
@@ -713,7 +712,10 @@ namespace TrappistOS
         {
             try
             {
-                fileRightTable.Remove(path.ToLower());
+                if(fileRightTable.ContainsKey(path))
+                {
+                    fileRightTable.Remove(path.ToLower());
+                }
                 return true;
             }
             catch (Exception e) { Console.WriteLine(e.ToString()); return false; }
@@ -721,7 +723,7 @@ namespace TrappistOS
 
         public int[] GetWriterIDs(string path)
         {
-            if (!PathValidation(path))
+            if (!PathValidation(path, true))
             {
                 return new[] { 0 };
             }
@@ -787,12 +789,10 @@ namespace TrappistOS
                         if (i < readers.Length - 1)
                         {
                             toSave = toSave + Convert.ToString(reader) + ',';
-                            //Console.WriteLine(" added " + Convert.ToString(reader) + ',' + " to " + filepath);
                         }
                         else
                         {
                             toSave = toSave + Convert.ToString(reader) + ' ';
-                            //Console.WriteLine(" added " + Convert.ToString(reader) + ' ' + " to " + filepath);
                         }
                     }
 
@@ -839,7 +839,7 @@ namespace TrappistOS
             catch (Exception e) { return false; }
         }
 
-        private bool PathValidation(string path)
+        private bool PathValidation(string path,bool quiet = false)
         {
             //if path is null someting went very wrong
             if (path == null)
@@ -849,13 +849,20 @@ namespace TrappistOS
             //File or dir needs to exist to work with it
             if (!File.Exists(path) && !Directory.Exists(path))
             {
-                Console.WriteLine(path + " does not exist");
+                if(!quiet)
+                {
+                    Console.WriteLine(path + " does not exist");
+                }
+                
                 return false;
             }
             //init permissions for legacy files
             if (!fileRightTable.ContainsKey(path.ToLower()))
             {
-                Console.WriteLine($"unknown permissions for " + path + ", creating new");
+                if (!quiet)
+                {
+                    Console.WriteLine($"unknown permissions for " + path + ", creating new");
+                }
                 InitPermissions(path);
             }
             //If this happens, something fundamentally broke.
