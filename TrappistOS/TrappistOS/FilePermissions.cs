@@ -263,21 +263,6 @@ namespace TrappistOS
             };
         }
 
-        public bool AppendPermission(string path)
-        {
-            try
-            {
-                string newPermLine = "";
-                FileRights newFile = (FileRights)fileRightTable[path];
-                newPermLine += newFile.owner.ToString();
-                newPermLine += " " + String.Join(",", newFile.reader.ToList());
-                newPermLine += " " + String.Join(",", newFile.writer.ToList());
-                newPermLine += " " + path;
-                File.AppendAllText(filepath, newPermLine);
-                return true;
-            }
-            catch (Exception e) { return false; }
-        }
 
         public bool removePath(string path)
         {
@@ -491,8 +476,15 @@ namespace TrappistOS
                 //value if user needs to be asked to confirm
                 bool confirm = false;
 
+                for (int i = 0; i > pathsToCheck.Count; i++)
+                {
+                    Console.WriteLine(pathsToCheck[i]);
+                    pathsToCheck[i] = pathsToCheck[i].ToLower();
+                }
+                Console.WriteLine();
                 //remove own path from paths to check
-                pathsToCheck.Remove(fsManager.getFullPath(path));
+                Console.WriteLine(fsManager.getFullPath(path).ToLower());
+                pathsToCheck.Remove(fsManager.getFullPath(path).ToLower());
 
                 //check if user is owner or reader of any of the files below (writer alone shouldn't be possible and is as such ignored)
                 foreach (string potentialpath in pathsToCheck) {
@@ -783,19 +775,7 @@ namespace TrappistOS
                     //put owners first
                     toSave = toSave + Convert.ToString(owner) + ' ';
 
-                    for (int i = 0; i < writers.Length; i++)
-                    {
-                        //put int list into string with , seperating them and a space at the end
-                        int writer = writers[i];
-                        if (i > writers.Length - 1)
-                        {
-                            toSave = toSave + Convert.ToString(writer) + ',';
-                        }
-                        else
-                        {
-                            toSave = toSave + Convert.ToString(writer) + ' ';
-                        }
-                    }
+
                     for (int i = 0; i < readers.Length; i++)
                     {
                         //put int list into string with , seperating them and a space at the end
@@ -811,6 +791,20 @@ namespace TrappistOS
                             //Console.WriteLine(" added " + Convert.ToString(reader) + ' ' + " to " + filepath);
                         }
                     }
+
+                    for (int i = 0; i < writers.Length; i++)
+                    {
+                        //put int list into string with , seperating them and a space at the end
+                        int writer = writers[i];
+                        if (i > writers.Length - 1)
+                        {
+                            toSave = toSave + Convert.ToString(writer) + ',';
+                        }
+                        else
+                        {
+                            toSave = toSave + Convert.ToString(writer) + ' ';
+                        }
+                    }
                     //add path and newline
                     toSave = toSave + file.Key.ToString() + Environment.NewLine;
                 }
@@ -823,6 +817,22 @@ namespace TrappistOS
                 Console.WriteLine("Error Encountered: " + e.Message);
                 return false; 
             }
+        }
+
+        public bool AppendPermission(string path)
+        {
+            try
+            {
+                string newPermLine = "";
+                FileRights newFile = (FileRights)fileRightTable[path];
+                newPermLine += newFile.owner.ToString();
+                newPermLine += " " + String.Join(",", newFile.reader.ToList());
+                newPermLine += " " + String.Join(",", newFile.writer.ToList());
+                newPermLine += " " + path;
+                File.AppendAllText(filepath, newPermLine);
+                return true;
+            }
+            catch (Exception e) { return false; }
         }
 
         private bool PathValidation(string path)

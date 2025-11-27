@@ -445,7 +445,11 @@ namespace TrappistOS
                         {
                             if(permManager.SetReader(fsManager.getFullPath(args[1]),userInfo.GetId(args[2]), (!args.Contains("-r") && args.Contains("-w"))))
                             {
-                                Console.WriteLine("Successfully added reading rights");
+                                if (args.Contains("-r") && !args.Contains("-w"))
+                                {
+                                    Console.WriteLine("Successfully added reading rights");
+                                }
+                                
                             }
                             else
                             {
@@ -502,7 +506,10 @@ namespace TrappistOS
                         {
                             if(permManager.RemoveWriter(fsManager.getFullPath(args[1]), userInfo.GetId(args[2]), (args.Contains("-r") && !args.Contains("-w"))))
                             {
-                                Console.WriteLine("Successfully removed writing rights");
+                                if (!args.Contains("-r") && args.Contains("-w"))
+                                {
+                                    Console.WriteLine("Successfully removed writing rights");
+                                }
                             }
                             else
                             {
