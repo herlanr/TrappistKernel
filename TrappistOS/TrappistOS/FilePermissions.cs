@@ -149,9 +149,32 @@ namespace TrappistOS
                 FileRights rootFile = new FileRights(visitor[0], visitor, visitor);
                 fileRightTable.Add(rootdir, rootFile);
             }
-
+            cleanup();
             //Cosmos.HAL.Global.PIT.Wait((uint)10000);
             return true;
+        }
+
+        public bool cleanup()
+        {
+            try
+            {
+                List<string> pathsToRemove = new List<string>();
+                foreach (string key in fileRightTable.Keys)
+                {
+                    if (!File.Exists(key) && !Directory.Exists(key))
+                    {
+                        pathsToRemove.Add(key);
+                    }
+                }
+                foreach (string key in pathsToRemove)
+                { fileRightTable.Remove(key); }
+                return true;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+                return false;
+            }
         }
 
         //Init permissions without User to initialize to
@@ -702,10 +725,14 @@ namespace TrappistOS
             return true;
         }
 
-        public bool switchPermissionPath(string oldpath, string newPath)
+        public bool switchPermissionPath(string oldpath, string newPath, bool quiet = true)
         {
             if (!fileRightTable.ContainsKey(oldpath.ToLower()) || fileRightTable.ContainsKey(newPath.ToLower()))
             {
+                if(!quiet)
+                {
+                    Console.WriteLine($"Containskey old {oldpath}: {fileRightTable.ContainsKey(oldpath.ToLower())} \nContainskey new {newPath}: {fileRightTable.ContainsKey(newPath.ToLower())}");
+                }
                 return false;
             }
             try
@@ -715,7 +742,13 @@ namespace TrappistOS
                 return true;
             }
             catch (Exception e)
-            { return false; }
+            {
+                if (!quiet)
+                {
+                    Console.WriteLine($"{e.Message}");
+                }
+                return false; 
+                }
             
         }
 

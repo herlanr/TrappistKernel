@@ -199,7 +199,11 @@ namespace TrappistOS
                         string newpath = fsManager.moveFile(args[1], args[2]);
                         if (newpath != null)
                         {
-                            permManager.switchPermissionPath(oldpath, newpath);
+                            permManager.switchPermissionPath(oldpath, newpath, false);
+                        }
+                        else
+                        {
+                            Console.WriteLine("Invalid new path");
                         }
                         break;
                     }
@@ -309,7 +313,12 @@ namespace TrappistOS
                         string newpath = fsManager.renameFileOrDir(args[1], args[2]);
                         if ( newpath != null)
                         {
+                            Console.WriteLine($"newpath: {newpath}, oldpath: {oldpath}");
                             permManager.switchPermissionPath(oldpath, newpath);
+                        }
+                        else
+                        {
+                            Console.WriteLine("Invalid new path");
                         }
                         break;
                     }

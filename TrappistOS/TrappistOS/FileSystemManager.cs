@@ -325,8 +325,8 @@ namespace TrappistOS
             string formatedFileName = filename.Replace("/", @"\");
             string formatedDestName = dest.Replace("/", @"\");
 
-            string filePath = filename.StartsWith(@"0:\") ? formatedFileName : Path.Combine(currentDir, formatedFileName);
-            string newPath = dest.StartsWith(@"0:\") ? formatedDestName : Path.Combine(@"0:\", formatedDestName);
+            string filePath = getFullPath(filename);
+            string newPath = getFullPath(dest);
 
             if (File.Exists(filePath) && Directory.Exists(newPath))
                 {
@@ -335,7 +335,7 @@ namespace TrappistOS
                         File.Copy(filePath, newPath);
                         File.Delete(filePath);
                         Console.WriteLine("File: " + filePath + " moved to " + newPath);
-                        return newPath;
+                        return Path.Combine(newPath, filename);
                     } catch (Exception ex) 
                     {
                         Console.WriteLine(ex.ToString());
@@ -370,17 +370,17 @@ namespace TrappistOS
 
                 if (File.Exists(path))
                 {
-                    var file = fs.GetFile(path);
-                    file.SetName(newName);
+                    fs.GetFile(path).SetName(newName);
                     Console.WriteLine("File renamed!");
-                    return file.mFullPath;
+                    int index = path.LastIndexOf(@"\");
+                    return Path.Combine(path.Substring(0,index+1),newName);
                 }
                 else if (Directory.Exists(path))
                 {
-                    var dir =  fs.GetDirectory(path);
-                    dir.SetName(newName);
+                    fs.GetDirectory(path).SetName(newName);
                     Console.WriteLine("Directory renamed!");
-                    return dir.mFullPath;
+                    int index = path.LastIndexOf(@"\");
+                    return Path.Combine(path.Substring(0, index + 1), newName);
                 }
                 else
                 {
