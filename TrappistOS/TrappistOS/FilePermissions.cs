@@ -704,6 +704,23 @@ namespace TrappistOS
             return true;
         }
 
+        public bool switchPermissionPath(string oldpath, string newPath)
+        {
+            if (!fileRightTable.ContainsKey(oldpath.ToLower()) || fileRightTable.ContainsKey(newPath.ToLower()))
+            {
+                return false;
+            }
+            try
+            {
+                fileRightTable.Add(newPath.ToLower(), fileRightTable[oldpath.ToLower()]);
+                fileRightTable.Remove(oldpath.ToLower());
+                return true;
+            }
+            catch (Exception e)
+            { return false; }
+            
+        }
+
         public bool SavePermissions()
         {
             try

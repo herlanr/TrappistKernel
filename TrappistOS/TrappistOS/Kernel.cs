@@ -195,7 +195,12 @@ namespace TrappistOS
                             Console.WriteLine("You do not have permissions to move this file.");
                             break;
                         }
-                        fsManager.moveFile(args[1], args[2]);
+                        string oldpath = fsManager.getFullPath(args[1]);
+                        string newpath = fsManager.moveFile(args[1], args[2]);
+                        if (newpath != null)
+                        {
+                            permManager.switchPermissionPath(oldpath, newpath);
+                        }
                         break;
                     }
 
@@ -300,8 +305,12 @@ namespace TrappistOS
                             Console.WriteLine("You do not have permissions to rename this file.");
                             break;
                         }
-
-                        fsManager.renameFileOrDir(args[1], args[2]);
+                        string oldpath = fsManager.getFullPath(args[1]);
+                        string newpath = fsManager.renameFileOrDir(args[1], args[2]);
+                        if ( newpath != null)
+                        {
+                            permManager.switchPermissionPath(oldpath, newpath);
+                        }
                         break;
                     }
 

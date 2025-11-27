@@ -319,7 +319,7 @@ namespace TrappistOS
 
         }
         
-        public bool moveFile(string filename, string dest)
+        public string moveFile(string filename, string dest)
         {
 
             string formatedFileName = filename.Replace("/", @"\");
@@ -335,28 +335,28 @@ namespace TrappistOS
                         File.Copy(filePath, newPath);
                         File.Delete(filePath);
                         Console.WriteLine("File: " + filePath + " moved to " + newPath);
-                        return true;
+                        return newPath;
                     } catch (Exception ex) 
                     {
                         Console.WriteLine(ex.ToString());
-                        return false;
+                        return null;
                 }
             } 
                 else 
                 {
                     Console.WriteLine("File or Dir doesn't exist. File: " + filePath + ". New Path: " + newPath);
-                    return false;
+                    return null;
                 }
 
         }
 
-        public bool renameFileOrDir(string filename, string newName)
+        public string renameFileOrDir(string filename, string newName)
         {
 
             if (newName.Length > 8)
             {
                 Console.WriteLine("File or Directory name can't be longer than 8 characters");
-                return false;
+                return null;
             }
             string path = getFullPath(filename);
 
@@ -365,31 +365,33 @@ namespace TrappistOS
                 if (currentDir.StartsWith(path, StringComparison.OrdinalIgnoreCase))
                 {
                     Console.WriteLine("Renaming the current directory or its ancestors is not allowed.");
-                    return false; 
+                    return null; 
                 }
 
                 if (File.Exists(path))
                 {
-                    fs.GetFile(path).SetName(newName);
+                    var file = fs.GetFile(path);
+                    file.SetName(newName);
                     Console.WriteLine("File renamed!");
-                    return true;
+                    return file.mFullPath;
                 }
                 else if (Directory.Exists(path))
                 {
-                    fs.GetDirectory(path).SetName(newName);
+                    var dir =  fs.GetDirectory(path);
+                    dir.SetName(newName);
                     Console.WriteLine("Directory renamed!");
-                    return true;
+                    return dir.mFullPath;
                 }
                 else
                 {
                     Console.WriteLine("File or Dir wasn't found!");
-                    return false;
+                    return null;
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error: {ex.Message}");
-                return false;
+                return null;
             }
         }
 
