@@ -572,6 +572,15 @@ namespace TrappistOS
                 {
                     return null;
                 }
+                if(key.Key == ConsoleKey.Backspace)
+                {
+                    if(password.Length - 1 < 0)
+                    {
+                        continue;
+                    }
+                    password = password.Substring(0, password.Length - 1);
+                    continue;
+                }
                 password += key.KeyChar;
             }
             return password;
