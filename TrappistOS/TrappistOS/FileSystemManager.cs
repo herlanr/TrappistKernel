@@ -2,6 +2,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace TrappistOS
 {
@@ -9,6 +12,7 @@ namespace TrappistOS
     {
         private CosmosVFS fs;
         string currentDir = @"0:\";
+        string rootdir = @"0:\";
         Stack<string> dirHistory = new Stack<string>();
 
         public void fsInitialize()
@@ -19,11 +23,11 @@ namespace TrappistOS
 
         public void showFreeSpace()
         {
-            var available_space = fs.GetAvailableFreeSpace(@"0:\");
+            var available_space = fs.GetAvailableFreeSpace(rootdir);
             Console.WriteLine("Available Free Space: " + available_space);
         }
 
-        public void listFiles()
+        public bool listFiles()
         {
 
             var dirs = Directory.GetDirectories(currentDir);
@@ -42,25 +46,99 @@ namespace TrappistOS
                 foreach (var file in files)
                 {
                     Console.ForegroundColor = ConsoleColor.Green;
-                    var fileInfo = new DirectoryInfo(file);
+                    var fileInfo = new FileInfo(file);
                     Console.WriteLine(fileInfo.Name);
                     Console.ForegroundColor = ConsoleColor.White;
                 }
+                return true;
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.ToString());
+                return false;
             }
         }
 
-        public bool createFile(string filename)
+        public string getFullPath(string filename)
         {
+            filename = filename.Replace('/','\\');
             string path = Path.Combine(currentDir, filename);
+
+            int dotlocation = -1;
+            dotlocation = path.IndexOf('.');
+            while(dotlocation != path.IndexOf("..") && dotlocation != path.IndexOf("..")+1)
+            {
+                path.Remove(dotlocation);
+                dotlocation = path.IndexOf('.', dotlocation+1);
+            }
+            
+
+            int backLocation = 0;       // .. resolution
+            int preLocation = 0;
+            backLocation = path.IndexOf(@"..");
+            while (backLocation != -1)
+            {
+                while (path.IndexOf(@"\", preLocation+1)< backLocation-1 && path.IndexOf(@"\", preLocation + 1) != -1)
+                {
+                    preLocation = path.IndexOf(@"\", preLocation+1);
+                }
+                if (preLocation == -1 || preLocation == 0)
+                {
+                    //Console.WriteLine("You are already in the home directory");
+                    return null;
+                }
+                path = path.Remove(preLocation+1, (backLocation - preLocation) + 1);
+                backLocation = path.IndexOf(@"..");
+            }
+            while (path.Contains(@"\\"))
+            {
+                path = path.Replace(@"\\", @"\");
+            }
+            if (path.EndsWith(@"\") && path != rootdir)
+            {
+                path = path.Remove(path.Length - 1);
+            }
+            return path;
+        }
+
+        public string[] getAllPaths(string path)
+        {
+            //Console.WriteLine($"looking at: {path}");
+            var result = new List<string>();
+            if (Directory.Exists(path))
+            {
+                result.Add(getFullPath(path));
+                string[] subdirs = Directory.GetDirectories(path);
+                
+                string[] files = Directory.GetFiles(path);
+                foreach (string file in files)
+                {
+                    //Console.WriteLine($"adding file: {Path.Combine(path, file)}");
+                    result.Add(getFullPath(Path.Combine(path, file)));
+                }
+                foreach (string dir in subdirs)
+                {
+                   // Console.WriteLine($"adding directory: {Path.Combine(path, dir)}");
+                    result.AddRange(getAllPaths(Path.Combine(path,dir)));
+                }
+            }
+
+            if (File.Exists(path))
+            {
+                result.Add(getFullPath(path));
+            }
+
+            return result.ToArray();
+        }
+
+        public string createFile(string filename)
+        {
+            string path = getFullPath(filename);
 
             if (filename.Length > 8)
             {
                 Console.WriteLine("File or Directory name can't be longer than 8 characters");
-                return false;
+                return null;
             }
 
             try
@@ -68,65 +146,79 @@ namespace TrappistOS
                 if (!File.Exists(path) && !Directory.Exists(path))
                 {
                     File.Create(path);
+
+
+
                     Console.WriteLine("File successfully created: " + path);
-                    return true;
+                    return path;
                 }
                 else
                 {
                     if (Directory.Exists(path))
                     {
                         Console.WriteLine("There is already a file or directory with this name.");
-                        return false;
+                        return null;
                     } else
                     {
                         Console.WriteLine("File already exist: " + path);
-                        return false;
+                        return null;
                     }
                 }
             }
             catch (Exception e)
             {
                 Console.WriteLine("Error creating file: " + e.Message);
-                return false;
+                return null;
             }
         }
 
-        public bool createDirectory(string dirName)
+        public string createDirectory(string dirName, bool quiet = false)
         {
-            string path = currentDir + @"\" + dirName;
-
+            string path = getFullPath(dirName);
+            Console.WriteLine(path);
             try
             {
                 if (!Directory.Exists(path) && !File.Exists(path))
                 {
-                    Directory.CreateDirectory(path);
-                    Console.WriteLine("Directory successfully created: " + path);
-                    return true;
+                    if(!quiet)
+                    {
+                        Console.WriteLine("Directory successfully created: " + path);
+                    }
+                    
+                    return path;
                 }
                 else
                 {
                     if (File.Exists(path))
                     {
-                        Console.WriteLine("There is already a file or directory with this name.");
-                        return false;
+                        if(!quiet)
+                        {
+                            Console.WriteLine("There is already a file or directory with this name.");
+                        }
+                        
+                        return null;
 
                     } else
                     {
-                        Console.WriteLine("Directory already exist or " + path);
-                        return false;
+                        if(!quiet)
+                        {
+                            Console.WriteLine("Directory already exist or " + path);
+                        }
+                        
+                        return null;
                     }
                 }
             }
             catch (Exception e)
             {
                 Console.WriteLine("Error creating directory: " + e.Message);
-                return false;
+                return null;
             }
         }
 
         public bool deleteFile(string name)
         {
-            string path = Path.Combine(currentDir, name);
+            string path = getFullPath(name);
 
             try
             {
@@ -153,12 +245,17 @@ namespace TrappistOS
         public bool deleteDir(string name)    
         {
 
-            string path = Path.Combine(currentDir, name);
+            string path = getFullPath(name);
 
             try
             {
                 if (Directory.Exists(path))
                 {
+                    if (currentDir.Contains(path))
+                    {
+                        Console.WriteLine("You cannot delete a Parent Directory");
+                        return false;
+                    }
                     Directory.Delete(path);
                     Console.WriteLine("Directory " + path + " deleted");
                     return true;
@@ -180,7 +277,7 @@ namespace TrappistOS
 
         public bool readFromFile(String filename)
         {
-            string path = currentDir + @"\" + filename;
+            string path = getFullPath(filename);
 
             try
             {
@@ -197,7 +294,7 @@ namespace TrappistOS
 
         public bool changeDirectory(string newDir)
         {
-
+            /*
             if(newDir == "..")
             {
                 if (dirHistory.Count > 0) 
@@ -211,8 +308,8 @@ namespace TrappistOS
                     return false;
                 }
             }
-
-            string path = Path.Combine(currentDir, newDir);
+            */
+            string path = getFullPath(newDir);
 
             if (Directory.Exists(path))
             {
@@ -228,14 +325,14 @@ namespace TrappistOS
 
         }
         
-        public bool moveFile(string filename, string dest)
+        public string moveFile(string filename, string dest)
         {
 
             string formatedFileName = filename.Replace("/", @"\");
             string formatedDestName = dest.Replace("/", @"\");
 
-            string filePath = filename.StartsWith(@"0:\") ? formatedFileName : Path.Combine(currentDir, formatedFileName);
-            string newPath = dest.StartsWith(@"0:\") ? formatedDestName : Path.Combine(@"0:\", formatedDestName);
+            string filePath = getFullPath(filename);
+            string newPath = getFullPath(dest);
 
             if (File.Exists(filePath) && Directory.Exists(newPath))
                 {
@@ -244,63 +341,63 @@ namespace TrappistOS
                         File.Copy(filePath, newPath);
                         File.Delete(filePath);
                         Console.WriteLine("File: " + filePath + " moved to " + newPath);
-                        return true;
+                        return Path.Combine(newPath, filename);
                     } catch (Exception ex) 
                     {
                         Console.WriteLine(ex.ToString());
-                        return false;
+                        return null;
                 }
             } 
                 else 
                 {
                     Console.WriteLine("File or Dir doesn't exist. File: " + filePath + ". New Path: " + newPath);
-                    return false;
+                    return null;
                 }
 
         }
 
-        public bool renameFileOrDir(string filename, string newName)
+        public string renameFileOrDir(string filename, string newName)
         {
 
             if (newName.Length > 8)
             {
                 Console.WriteLine("File or Directory name can't be longer than 8 characters");
-                return false;
+                return null;
             }
-
-            string formatedFileName = filename.Replace("/", @"\");
-            string path = filename.StartsWith(@"0:\") ? formatedFileName : Path.Combine(currentDir, formatedFileName);
+            string path = getFullPath(filename);
 
             try
             {
                 if (currentDir.StartsWith(path, StringComparison.OrdinalIgnoreCase))
                 {
                     Console.WriteLine("Renaming the current directory or its ancestors is not allowed.");
-                    return false; 
+                    return null; 
                 }
 
                 if (File.Exists(path))
                 {
                     fs.GetFile(path).SetName(newName);
                     Console.WriteLine("File renamed!");
-                    return true;
+                    int index = path.LastIndexOf(@"\");
+                    return Path.Combine(path.Substring(0,index+1),newName);
                 }
                 else if (Directory.Exists(path))
                 {
                     fs.GetDirectory(path).SetName(newName);
                     Console.WriteLine("Directory renamed!");
-                    return true;
+                    int index = path.LastIndexOf(@"\");
+                    return Path.Combine(path.Substring(0, index + 1), newName);
                 }
                 else
                 {
                     Console.WriteLine("File or Dir wasn't found!");
-                    return false;
+                    return null;
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error: {ex.Message}");
-                return false;
+                return null;
             }
         }
 
