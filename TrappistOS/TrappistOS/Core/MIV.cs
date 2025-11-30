@@ -292,29 +292,25 @@ namespace MIV
                                 {
                                     if (pos == 0)
                                     {
-                                        Console.WriteLine("doing nothing");
                                         printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor);
                                     }
                                     if (chars[pos - 1] == '\n')
                                     {
-                                        Console.WriteLine("removing: newline");
                                         if (cursor.row != 0)
                                         {
                                             cursor.row--;
                                         }
 
                                         pos--;
-                                        Console.WriteLine($"removing at {pos}");
                                         chars.RemoveAt(pos);
                                         if (cursor.column != 0)
                                         {
-                                            cursor.column = chars.LastIndexOf('\n', pos);
+                                            cursor.column = chars.IndexOf('\n', pos-1);
                                         }
 
                                     }
                                     else
                                     {
-                                        Console.WriteLine("removing normal ");
                                         if (cursor.column != 0)
                                         {
                                             cursor.column--;
@@ -331,7 +327,7 @@ namespace MIV
                                 {  //wenn wir auf newline stehen und nicht am ende, an den anfange der nächsten Zeile
                                     if (pos + 1 < chars.Count)
                                     {
-                                        if (chars[pos] != '\n' && (pos - chars.LastIndexOf('\n', pos - 1)) %80 < 79)
+                                        if (chars[pos] != '\n' && ((pos == 0) || (pos - chars.LastIndexOf('\n', pos - 1)) %80 < 79))
                                         {
                                             cursor.column++;
                                         }
@@ -339,6 +335,11 @@ namespace MIV
                                         {
                                             cursor.column = 0;
                                             cursor.row++;
+                                        }
+                                        if(cursor.column > 79)
+                                        {
+                                            editMode = false;
+                                            cursor.column = 0;
                                         }
                                         pos++;
                                     }
@@ -355,14 +356,20 @@ namespace MIV
                                         }
                                         else
                                         {
-                                            if (chars.LastIndexOf('\n', pos-1) == pos-1)
+                                            if(pos-1 == 0)
                                             {
-                                                int previous = chars.LastIndexOf('\n', pos - 1);
+                                                cursor.column = 0;
+                                            }
+                                            else if (chars[pos-1] == '\n')
+                                            {
+                                                int previous = chars.LastIndexOf('\n', pos - 2);
                                                 if (previous == -1)
                                                 {
                                                     previous = 0;
                                                 }
-                                                cursor.column = pos - previous-1; //length of this line
+
+                                                //Cosmos.HAL.Global.PIT.Wait((uint)5000);
+                                                cursor.column = pos - previous-2; //length of this line
                                             }
                                             else
                                             {
@@ -389,13 +396,13 @@ namespace MIV
                                         else
                                         {
                                             int currCol = cursor.column; //get current column
-                                            int startPrevLine = chars.LastIndexOf('\n', chars.LastIndexOf('\n', pos) - 1) + 1; //get start of previous line, by getting th newline before the previous newline
+                                            int startPrevLine = chars.LastIndexOf('\n', chars.LastIndexOf('\n', pos-1) - 1) + 1; //get start of previous line, by getting th newline before the previous newline
                                             if (chars.LastIndexOf('\n', pos) - startPrevLine < currCol) //check if line is actually long enough
                                             {
                                                 currCol = chars.LastIndexOf('\n',pos) - startPrevLine; //got to end of line if not
                                             }
                                             cursor.column = currCol;
-                                            pos = startPrevLine + currCol - 1;
+                                            pos = startPrevLine + currCol;
                                         }
                                     }
                                     printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor);
@@ -426,7 +433,7 @@ namespace MIV
                                                 currCol = chars.LastIndexOf('\n', pos) - startNextLine; //if not, set to beginning of this line
                                             }
                                             cursor.column = currCol;
-                                            pos = startNextLine + currCol - 1;
+                                            pos = startNextLine + currCol;
                                         }
                                         
                                     }
@@ -565,7 +572,7 @@ namespace MIV
                                     int previousNewLine = chars.LastIndexOf('\n', lastNewLine - 1);
                                     if (previousNewLine != -1)
                                     {
-                                        cursor.column = chars.Count - chars.LastIndexOf('\n', lastNewLine - 1)-1;
+                                        cursor.column = chars.Count - chars.LastIndexOf('\n', lastNewLine - 1)-2;
                                     }
                                     else
                                     {
