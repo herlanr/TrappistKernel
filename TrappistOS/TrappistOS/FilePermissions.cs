@@ -830,8 +830,37 @@ namespace TrappistOS
                 string newPermLine = "";
                 FileRights newFile = (FileRights)fileRightTable[path];
                 newPermLine += newFile.owner.ToString();
-                newPermLine += " " + String.Join(",", newFile.reader.ToList());
-                newPermLine += " " + String.Join(",", newFile.writer.ToList());
+
+                int[] readers = newFile.reader.ToArray();
+                int[] writers = newFile.writer.ToArray();
+
+                for (int i = 0; i < readers.Length; i++)
+                {
+                    //put int list into string with , seperating them and a space at the end
+                    int reader = readers[i];
+                    if (i < readers.Length - 1)
+                    {
+                        newPermLine = newPermLine + Convert.ToString(reader) + ',';
+                    }
+                    else
+                    {
+                        newPermLine = newPermLine + Convert.ToString(reader) + ' ';
+                    }
+                }
+
+                for (int i = 0; i < writers.Length; i++)
+                {
+                    //put int list into string with , seperating them and a space at the end
+                    int writer = writers[i];
+                    if (i > writers.Length - 1)
+                    {
+                        newPermLine = newPermLine + Convert.ToString(writer) + ',';
+                    }
+                    else
+                    {
+                        newPermLine = newPermLine + Convert.ToString(writer) + ' ';
+                    }
+                }
                 newPermLine += " " + path;
                 File.AppendAllText(filepath, newPermLine);
                 return true;

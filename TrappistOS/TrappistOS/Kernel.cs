@@ -56,6 +56,7 @@ namespace TrappistOS
 
                     permManager = new FilePermissions();
                     permManager.PermInit(userInfo, new[] { userpath });
+                    InitPerms(true);
                     Console.WriteLine("Filepermissions initialized");
                     Console.Clear();
                     Console.WriteLine("TrappistOS booted up!");
@@ -1205,17 +1206,20 @@ namespace TrappistOS
             Console.WriteLine();
         }
 
-        public void InitPerms()
+        public void InitPerms(bool quiet = false)
         {
 
             string[] allUsers = userInfo.GetAllUsers();
-            Console.WriteLine("Creating user specific Directories for the following users:");
-            foreach (string user in allUsers)
+            if (!quiet)
             {
-                Console.Write(user + " ");
+                Console.WriteLine("Creating user specific Directories for the following users:");
+                foreach (string user in allUsers)
+                {
+                    Console.Write(user + " ");
+                }
+                Console.WriteLine();
+                Console.WriteLine("Initializing root");
             }
-            Console.WriteLine();
-            Console.WriteLine("Initializing root");
             permManager.InitPermissions(rootdir,userInfo.visitorid);
             foreach (string user in allUsers)
             {
@@ -1233,7 +1237,10 @@ namespace TrappistOS
                 if (!Directory.Exists(dirpath)) 
                 {
                     dirpath = fsManager.createDirectory(user);
-                    Console.WriteLine("Created: " + dirpath);
+                    if (!quiet)
+                    {
+                        Console.WriteLine("Created: " + dirpath);
+                    }
                 }
                 //Console.WriteLine("getting all paths");
                 string[] allpaths = fsManager.getAllPaths(dirpath);
@@ -1242,22 +1249,38 @@ namespace TrappistOS
                     //Console.WriteLine("init permissions for " + path);
                     if (permManager.InitPermissions(path, userInfo.GetId(user),shouldsave: false))
                     {
-                        Console.WriteLine("Set Rights of " + path + " to " + user);
+                        if(!quiet)
+                        {
+                            Console.WriteLine("Set Rights of " + path + " to " + user);
+                        }
+                        
                     }
 
                 }
             }
-            Console.WriteLine();
-            Console.WriteLine("intializing Remaining files");
+            if(!quiet)
+            {
+                Console.WriteLine();
+                Console.WriteLine("intializing Remaining files");
+            }
+            
             string[] rootpaths = fsManager.getAllPaths(fsManager.getCurrentDir());
             foreach (string path in rootpaths)
             {
                 if (permManager.InitPermissions(fsManager.getFullPath(path),shouldsave: false))
                 {
-                    Console.WriteLine("Set Rights of " + fsManager.getFullPath(path) + " to " + userInfo.GetName(permManager.GetOwnerID(fsManager.getFullPath(path)), true));
+                    if(!quiet)
+                    {
+                        Console.WriteLine("Set Rights of " + fsManager.getFullPath(path) + " to " + userInfo.GetName(permManager.GetOwnerID(fsManager.getFullPath(path)), true));
+                    }
+                    
                 }
             }
-            Console.WriteLine("initialization Successful");
+            if(!quiet)
+            {
+                Console.WriteLine("initialization Successful");
+            }
+            
             permManager.SavePermissions();
         }
 
