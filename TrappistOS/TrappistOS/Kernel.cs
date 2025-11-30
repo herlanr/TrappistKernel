@@ -1221,6 +1221,10 @@ namespace TrappistOS
                 Console.WriteLine("Initializing root");
             }
             permManager.InitPermissions(rootdir,userInfo.visitorid);
+            if(quiet)
+            {
+                Console.Write("|");
+            }
             foreach (string user in allUsers)
             {
                 string dirpath = fsManager.getFullPath(user);
@@ -1236,7 +1240,7 @@ namespace TrappistOS
                 }
                 if (!Directory.Exists(dirpath)) 
                 {
-                    dirpath = fsManager.createDirectory(user);
+                    dirpath = fsManager.createDirectory(user,true);
                     if (!quiet)
                     {
                         Console.WriteLine("Created: " + dirpath);
@@ -1254,6 +1258,10 @@ namespace TrappistOS
                             Console.WriteLine("Set Rights of " + path + " to " + user);
                         }
                         
+                    }
+                    if (quiet)
+                    {
+                        Console.Write("|");
                     }
 
                 }
@@ -1274,6 +1282,10 @@ namespace TrappistOS
                         Console.WriteLine("Set Rights of " + fsManager.getFullPath(path) + " to " + userInfo.GetName(permManager.GetOwnerID(fsManager.getFullPath(path)), true));
                     }
                     
+                }
+                if (quiet)
+                {
+                    Console.Write("|");
                 }
             }
             if(!quiet)

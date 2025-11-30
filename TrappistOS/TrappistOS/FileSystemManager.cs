@@ -145,7 +145,7 @@ namespace TrappistOS
             {
                 if (!File.Exists(path) && !Directory.Exists(path))
                 {
-                    FileStream newfile = File.Create(path);
+                    File.Create(path);
 
 
 
@@ -172,7 +172,7 @@ namespace TrappistOS
             }
         }
 
-        public string createDirectory(string dirName)
+        public string createDirectory(string dirName, bool quiet = false)
         {
             string path = getFullPath(dirName);
             Console.WriteLine(path);
@@ -180,20 +180,31 @@ namespace TrappistOS
             {
                 if (!Directory.Exists(path) && !File.Exists(path))
                 {
-                    Directory.CreateDirectory(path);
-                    Console.WriteLine("Directory successfully created: " + path);
+                    if(!quiet)
+                    {
+                        Console.WriteLine("Directory successfully created: " + path);
+                    }
+                    
                     return path;
                 }
                 else
                 {
                     if (File.Exists(path))
                     {
-                        Console.WriteLine("There is already a file or directory with this name.");
+                        if(!quiet)
+                        {
+                            Console.WriteLine("There is already a file or directory with this name.");
+                        }
+                        
                         return null;
 
                     } else
                     {
-                        Console.WriteLine("Directory already exist or " + path);
+                        if(!quiet)
+                        {
+                            Console.WriteLine("Directory already exist or " + path);
+                        }
+                        
                         return null;
                     }
                 }

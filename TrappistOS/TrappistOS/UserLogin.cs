@@ -511,8 +511,8 @@ namespace TrappistOS
 
         public bool AutoLogin(int userId)
         {
-
-            currentUser = GetUser(GetName(userId),true);
+            string username = GetName(userId);
+            currentUser = GetUser(username,true);
             return true;
         }
 
