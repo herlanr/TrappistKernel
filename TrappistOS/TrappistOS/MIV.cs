@@ -60,52 +60,59 @@ namespace MIV
 
         private static void printMIVScreen(char[] chars, int pos, String infoBar, Boolean editMode, CursorPos cursor)
         {
-            int countNewLine = 0;
-            int countChars = 0;
-            Console.Clear();
-
-            for (int i = 0; i < chars.Length; i++)
+            try
             {
-                if(countNewLine > 22 && countNewLine >= cursor.row)
+                int countNewLine = 0;
+                int countChars = 0;
+                Console.Clear();
+
+                for (int i = 0; i < chars.Length; i++)
                 {
-                    break;
-                }
-                if (chars[i] == '\n')
-                {
-                    Console.WriteLine("");
-                    countNewLine++;
-                    countChars = 0;
-                }
-                else
-                {
-                    Console.Write(chars[i]);
-                    countChars++;
-                    if (countChars % 80 == 79)
+                    if (countNewLine > 22 && countNewLine >= cursor.row)
                     {
+                        break;
+                    }
+                    if (chars[i] == '\n')
+                    {
+                        Console.WriteLine("");
                         countNewLine++;
+                        countChars = 0;
+                    }
+                    else
+                    {
+                        Console.Write(chars[i]);
+                        countChars++;
+                        if ((countChars - 1) % 80 == 79)
+                        {
+                            countNewLine++;
+                        }
                     }
                 }
-            }
 
-            for (int i = 0; i < 23 - countNewLine; i++)
-            {
-                Console.WriteLine("");
-                Console.Write("~");
-            }
+                for (int i = 0; i < 23 - countNewLine; i++)
+                {
+                    Console.WriteLine("");
+                    Console.Write("~");
+                }
 
-            //PRINT INSTRUCTION
-            Console.WriteLine();
-            for (int i = 0; i < infoBar.Length; i++)
-            {
-                Console.Write(infoBar[i]);
-            }
-            Console.Write($"pos: {pos} x: {cursor.column} y: {cursor.row} ");
+                //PRINT INSTRUCTION
+                Console.WriteLine();
+                for (int i = 0; i < infoBar.Length; i++)
+                {
+                    Console.Write(infoBar[i]);
+                }
+                Console.Write($"pos: {pos} x: {cursor.column} y: {cursor.row} ");
 
-            if (editMode)
-            {
-                Console.Write(countNewLine + 1 + "," + countChars);
+                if (editMode)
+                {
+                    Console.Write(countNewLine + 1 + "," + countChars);
+                }
+                Console.SetCursorPosition(cursor.column, cursor.row);
             }
-            Console.SetCursorPosition(cursor.column, cursor.row);
+            catch (Exception e)
+            {
+                throw new SystemException($"Error while Drawing:{e.Message}");
+            }
         }
 
         public static int NewLines(char[] text)
@@ -165,7 +172,7 @@ namespace MIV
                 cursor.column = infoBar.Length;
                 printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor);
             }
-            pos = chars.Count;
+            pos = chars.Count-1;
             ConsoleKeyInfo keyInfo;
 
             //do
@@ -278,7 +285,7 @@ namespace MIV
                                     editMode = false;
                                     infoBar = ":";
                                     printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor);
-                                    continue;
+                                    break;
                                 }
                             case ConsoleKey.Enter:
                                 {
@@ -287,46 +294,52 @@ namespace MIV
                                     cursor.column = 0;
                                     cursor.row++;
                                     printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor);
-                                    continue;
+                                    break;
                                 }
                             case ConsoleKey.Backspace:
                                 {
                                     if (pos == 0)
                                     {
+                                        Console.WriteLine("doing nothing");
                                         printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor);
                                     }
                                     if (chars[pos - 1] == '\n')
                                     {
+                                        Console.WriteLine("removing: newline");
                                         if (cursor.row != 0)
                                         {
                                             cursor.row--;
                                         }
-                                        chars.RemoveAt(pos - 1);
+
                                         pos--;
+                                        Console.WriteLine($"removing at {pos}");
+                                        chars.RemoveAt(pos);
                                         if (cursor.column != 0)
                                         {
-                                            cursor.column = chars.LastIndexOf('\n', 0, pos);
+                                            cursor.column = chars.LastIndexOf('\n', pos, 0);
                                         }
 
                                     }
                                     else
                                     {
+                                        Console.WriteLine("removing normal ");
                                         if (cursor.column != 0)
                                         {
                                             cursor.column--;
                                         }
                                         pos--;
+                                        Console.WriteLine($"removing at {pos}");
                                         chars.RemoveAt(pos);
 
                                     }
                                     printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor);
-                                    continue;
+                                    break;
                                 }
                             case ConsoleKey.RightArrow:
                                 {  //wenn wir auf newline stehen und nicht am ende, an den anfange der nächsten Zeile
                                     if (pos + 1 < chars.Count)
                                     {
-                                        if (chars[pos] != '\n' && (pos - chars.LastIndexOf('\n',0,pos))%80 < 79)
+                                        if (chars[pos] != '\n' && (pos - chars.LastIndexOf('\n', pos - 1, 0)) %80 < 79)
                                         {
                                             cursor.column++;
                                         }
@@ -338,7 +351,7 @@ namespace MIV
                                         pos++;
                                     }
                                     printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor);
-                                    continue;
+                                    break;
                                 }
                             case ConsoleKey.LeftArrow:
                                 { //wenn vor uns ein newline ist, sind wir am anfang der Zeile und müssen ans ende der letzten Zeile
@@ -350,9 +363,13 @@ namespace MIV
                                         }
                                         else
                                         {
-                                            if(chars.LastIndexOf('\n', 0, pos-1) == pos-1)
+                                            if(chars.LastIndexOf('\n', pos , 0) == pos-1)
                                             {
-                                                int previous = chars.LastIndexOf('\n', 0, pos - 2);
+                                                int previous = chars.LastIndexOf('\n', pos - 1, 0);
+                                                if (previous != -1)
+                                                {
+                                                    previous = 0;
+                                                }
                                                 cursor.column = pos - previous; //length of this line
                                             }
                                             else
@@ -364,7 +381,7 @@ namespace MIV
                                         pos--;
                                     }
                                     printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor);
-                                    continue;
+                                    break;
                                 }
 
                             case ConsoleKey.UpArrow:
@@ -373,24 +390,24 @@ namespace MIV
                                     {
                                         cursor.row--; //go up
                                         
-                                        if (pos - chars.LastIndexOf('\n',0,pos-1) > 79)
+                                        if (pos - chars.LastIndexOf('\n',pos-1, 0) > 79)
                                         {
                                             pos -= 79;
                                         }
                                         else
                                         {
                                             int currCol = cursor.column; //get current column
-                                            int startPrevLine = chars.LastIndexOf('\n', 0, chars.LastIndexOf('\n', 0, pos) - 1) + 1; //get start of previous line, by getting th newline before the previous newline
-                                            if (chars.LastIndexOf('\n', 0, pos) - startPrevLine < currCol) //check if line is actually long enough
+                                            int startPrevLine = chars.LastIndexOf('\n', chars.LastIndexOf('\n', pos, 0) - 1, 0) + 1; //get start of previous line, by getting th newline before the previous newline
+                                            if (chars.LastIndexOf('\n', pos, 0) - startPrevLine < currCol) //check if line is actually long enough
                                             {
-                                                currCol = chars.LastIndexOf('\n', 0, pos) - startPrevLine; //got to end of line if not
+                                                currCol = chars.LastIndexOf('\n',pos, 0) - startPrevLine; //got to end of line if not
                                             }
                                             cursor.column = currCol;
                                             pos = startPrevLine + currCol - 1;
                                         }
                                     }
                                     printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor);
-                                    continue;
+                                    break;
                                 }
 
                             case ConsoleKey.DownArrow:
@@ -400,11 +417,11 @@ namespace MIV
                                         cursor.row++;
                                         if (chars.IndexOf('\n',pos)- (pos - cursor.column) > 79)
                                         {
-                                            int beginNextLine = chars.LastIndexOf('\n', 0, pos) + 79;
+                                            int beginNextLine = chars.LastIndexOf('\n', pos, 0) + 79;
                                             int endNextLine = chars.IndexOf('\n', beginNextLine);
                                             if (endNextLine < cursor.column)
                                             {
-                                                cursor.column = endNextLine - chars.LastIndexOf('\n', 0, endNextLine) + 1;
+                                                cursor.column = endNextLine - chars.LastIndexOf('\n', endNextLine, 0) + 1;
                                             }
                                             pos = beginNextLine + cursor.column;
                                         }
@@ -414,7 +431,7 @@ namespace MIV
                                             int startNextLine = chars.IndexOf('\n', pos) + 1; //get nextline beginning by character after end of this line
                                             if (chars.IndexOf('\n', chars.IndexOf('\n', pos) + 1) - startNextLine < currCol) //check next line is long enough
                                             {
-                                                currCol = chars.LastIndexOf('\n', 0, pos) - startNextLine; //if not, set to beginning of this line
+                                                currCol = chars.LastIndexOf('\n', pos, 0) - startNextLine; //if not, set to beginning of this line
                                             }
                                             cursor.column = currCol;
                                             pos = startNextLine + currCol - 1;
@@ -422,21 +439,30 @@ namespace MIV
                                         
                                     }
                                     printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor);
-                                    continue;
+                                    break;
                                 }
                             default: // Regular character insertion
                                 {
                                     chars.Insert(pos, keyInfo.KeyChar);
                                     pos++;
-                                    cursor.column = 0;
+                                    cursor.column++;
+                                    if((cursor.column)%80 == 79)
+                                    {
+                                        cursor.column = 0;
+                                        cursor.row++;
+                                    }
                                     printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor);
-                                    continue;
+                                    break;
                                 }
                         }
+
+                        continue;
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine(ex.Message + "\nExiting MIV...");
+                        Console.WriteLine();
+                        Console.WriteLine(ex.Message + "\nError Occured in edit Mode\nExiting MIV...");
+                        Cosmos.HAL.Global.PIT.Wait((uint)5000);
                         return null;
                     }
 
@@ -541,10 +567,18 @@ namespace MIV
                                 editMode = true;
                                 infoBar = "-- INSERT --";
                                 //find last char, find second to last newline if existent, put cursor on difference
-                                int lastNewLine = chars.LastIndexOf('\n', 0);
+                                int lastNewLine = chars.LastIndexOf('\n');
                                 if (lastNewLine-1 > 0)
                                 {
-                                    cursor.column = chars.Count - chars.LastIndexOf('\n', 0, lastNewLine - 1);
+                                    int previousNewLine = chars.LastIndexOf('\n', lastNewLine - 1, 0);
+                                    if (previousNewLine != -1)
+                                    {
+                                        cursor.column = chars.Count - chars.LastIndexOf('\n', lastNewLine - 1, 0)-1;
+                                    }
+                                    else
+                                    {
+                                        cursor.column = chars.Count-1;
+                                    }
                                     if (cursor.column < 0)
                                     {
                                         cursor.column = 0;
