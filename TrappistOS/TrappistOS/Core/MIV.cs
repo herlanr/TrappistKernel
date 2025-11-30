@@ -7,6 +7,17 @@ namespace MIV
 {
     internal class MIV
     {
+        internal class CursorPos
+        {
+            public uint row;
+            public uint column;
+            public CursorPos(uint line, uint col) 
+            {
+                row = line;
+                column = col;
+            }
+        }
+
         public static void printMIVStartScreen()
         {
             Console.Clear();
@@ -50,7 +61,7 @@ namespace MIV
             return newString;
         }
 
-        public static void printMIVScreen(char[] chars, int pos, String infoBar, Boolean editMode)
+        private static void printMIVScreen(char[] chars, int pos, String infoBar, Boolean editMode, CursorPos cursor)
         {
             int countNewLine = 0;
             int countChars = 0;
@@ -103,13 +114,20 @@ namespace MIV
             }
         }
 
+        public static bool IsNewLine(char x)
+        {
+            return x == '\n';
+        }
+
         public static String miv(String start)
         {
             Boolean editMode = false;
             int pos = 0;
-            char[] chars = new char[2000];
+            List<char> chars = new List<char>();
             String infoBar = String.Empty;
             infoBar += ":";
+
+            CursorPos cursor = new CursorPos(0, 0);
 
             if (start == null)
             {
@@ -117,13 +135,16 @@ namespace MIV
             }
             else
             {
-                pos = start.Length;
-
-                for (int i = 0; i < start.Length; i++)
+                chars = start.ToList();
+                if (chars.Count - 1 > chars.LastIndexOf('\n'))
                 {
-                    chars[i] = start[i];
+                    chars.Add('\n');
                 }
-                printMIVScreen(chars, pos, infoBar, editMode);
+                int lines = chars.Count(predicate: IsNewLine) -1;
+                int column = chars.LastIndexOf('\n');
+                cursor.row = Convert.ToUInt32(Math.Abs(lines));
+                cursor.column = Convert.ToUInt32(Math.Abs(column));
+                printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor);
             }
 
             ConsoleKeyInfo keyInfo;
@@ -233,28 +254,76 @@ namespace MIV
                     {
                         editMode = false;
                         infoBar = ":";
-                        printMIVScreen(chars, pos, infoBar, editMode);
+                        printMIVScreen(chars.ToArray(), pos, infoBar, editMode,cursor);
                         continue;
                     }
 
                     if (keyInfo.Key == ConsoleKey.Enter)
                     {
-                        chars[pos++] = '\n';
-                        printMIVScreen(chars, pos, infoBar, editMode);
+                        chars.Insert(pos,'\n');
+                        pos++;
+                        cursor.column = 0;
+                        cursor.row++;
+                        printMIVScreen(chars.ToArray(), pos, infoBar, editMode,cursor);
                         continue;
                     }
 
                     if (keyInfo.Key == ConsoleKey.Backspace)
                     {
-                        if (pos > 0) pos--;
-                        chars[pos] = '\0';
-                        printMIVScreen(chars, pos, infoBar, editMode);
+                        if(pos == 0)
+                        {
+                            printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor);
+                        }
+                        if (chars[pos-1] == '\n')
+                        {
+                            if (cursor.row != 0)
+                            {
+                                cursor.row--;
+                            }
+                            chars.RemoveAt(pos-1);
+                            pos--;
+                            if (cursor.column != 0)
+                            {
+                                cursor.column = Convert.ToUInt32(chars.LastIndexOf('\n', 0, pos));
+                            }
+                            
+                        }
+                        else
+                        {
+                            if (cursor.column != 0)
+                            {
+                                cursor.column--;
+                            }
+                            pos--;
+                            chars.RemoveAt(pos);
+                            
+                        }
+                            printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor);
                         continue;
                     }
 
+                    if (keyInfo.Key == ConsoleKey.RightArrow)
+                    {
+                        if (pos + 1 < chars.Count)
+                        {
+                            if (chars[pos] != '\n')
+                            {
+                                cursor.column++;
+                            }
+                            else
+                            {
+                                cursor.column = 0;
+                                cursor.row++;
+                            }
+                            pos++;
+                        }
+                        
+                    }
+
                     // Regular character insertion
-                    chars[pos++] = keyInfo.KeyChar;
-                    printMIVScreen(chars, pos, infoBar, editMode);
+                    chars.Insert(pos++, keyInfo.KeyChar);
+                    cursor.column = 0;
+                    printMIVScreen(chars.ToArray(), pos, infoBar, editMode,cursor);
                     continue;
                 }
 
@@ -432,44 +501,43 @@ namespace MIV
         {
             try
             {
-                if (File.Exists(file))
-                {
-                    Console.WriteLine("File found!");
-                    Console.WriteLine("Do you want to see the MIV Commands before opening the file? (yes/y/no/n)");
-                    Console.WriteLine("Type \"exit\" to quit.");
-                    string input = Console.ReadLine().ToLower().Trim();
-                    PrintMivCommands(input);
-                }
-                else if (!File.Exists(file))
+                if (!File.Exists(file))
                 {
                     string input = String.Empty;
                     Console.WriteLine("File couldn't found. Do you want to create the file: " + file + "? (yes/y/no/n)");
-                    Console.WriteLine("Type \"exit\" to quit.");
                     input = Console.ReadLine().ToLower().Trim();
 
                     if (input == "yes" || input == "y")
                     {
-                        if (file.Length > 8)
+                        if (!fsManager.createFile(file))
                         {
-                            Console.WriteLine("File name can't be longer than 8 characters. Exiting MIV...");
+                            Console.WriteLine("Exiting MIV...");
                             return;
                         }
-                        fsManager.createFile(file);
+
                     }
-                    else if (input == "no" || input == "n") {
-                        Console.WriteLine("Exiting MIV...");
-                        return;
-                    }
-                    else if (input == "exit")
+                    else if (input == "no" || input == "n")
                     {
                         Console.WriteLine("Exiting MIV...");
-                        Console.WriteLine();
                         return;
                     }
-                    else {
+                    else
+                    {
                         Console.WriteLine("Invalid input. Exiting MIV...");
                         return;
                     }
+                }
+                else
+                {
+                    Console.WriteLine("File found!");
+                }
+
+                if (File.Exists(file))
+                {
+                    Console.WriteLine("Do you want to see the MIV Commands before opening the file? (yes/y/no/n)");
+                    Console.WriteLine("Type \"exit\" to quit.");
+                    string input = Console.ReadLine().ToLower().Trim();
+                    PrintMivCommands(input);
                 }
                 Console.Clear();
             }
