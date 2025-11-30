@@ -5,7 +5,7 @@ using System.IO;
 
 namespace TrappistOS
 {
-    internal class FileSystemManager
+    public class FileSystemManager
     {
         private CosmosVFS fs;
         string currentDir = @"0:\";
