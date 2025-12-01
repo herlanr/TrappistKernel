@@ -76,7 +76,7 @@ namespace MIV
                     {
                         Console.Write(chars[i]);
                         countChars++;
-                        if ((countChars - 1) % (lineLength + 1) == lineLength & i+1 < chars.Length & chars[i+1] != '\n')
+                        if ((countChars - 1) % (lineLength + 1) == lineLength && i+1 < chars.Length && chars[i+1] != '\n')
                         {
                             Console.WriteLine();
                             countNewLine++;
@@ -96,7 +96,7 @@ namespace MIV
                 {
                     Console.Write(infoBar[i]);
                 }
-                if(cursor.row < 0 || cursor.column < 0)
+                if(cursor.row < 0 || cursor.column < 0 || pos == 0)
                 {
                     pos = 0;
                     cursor.column = 0;
@@ -278,6 +278,10 @@ namespace MIV
                 {
                     try
                     {
+                        if(cursor.row == 0 && cursor.column == 0)
+                        {
+                            pos = 0;
+                        }
                         // Edit mode: behave like insert mode
                         switch (keyInfo.Key)
                         {
@@ -310,13 +314,14 @@ namespace MIV
                                         {
                                             cursor.row--;
                                         }
-
                                         pos--;
-                                        cursor.column = chars.IndexOf('\n', pos - 1) - chars.LastIndexOf('\n', pos - 1) - 1;
-                                        if (cursor.column > lineLength)
-                                        {
-                                            cursor.column = cursor.column % (lineLength + 1);
-                                        }
+                                        chars.RemoveAt(pos);
+                                    }
+                                    else if (((pos - chars.LastIndexOf('\n', pos - 1)) % (lineLength+1) - 1) <= 0)
+                                    {
+                                        cursor.row--;
+                                        pos--;
+                                        cursor.column = lineLength;
                                         chars.RemoveAt(pos);
                                     }
                                     else
@@ -326,7 +331,6 @@ namespace MIV
                                             cursor.column--;
                                         }
                                         pos--;
-                                        Console.WriteLine($"removing at {pos}");
                                         chars.RemoveAt(pos);
 
                                     }
@@ -339,9 +343,18 @@ namespace MIV
                                 }
                             case ConsoleKey.RightArrow:
                                 {  //wenn wir auf newline stehen und nicht am ende, an den anfange der nächsten Zeile
+                                    
                                     if (pos + 1 < chars.Count)
                                     {
-                                        if (chars[pos] != '\n' && ((pos == 0) || (pos - chars.LastIndexOf('\n', pos - 1)) %(lineLength + 1) < lineLength))
+                                        if(pos == 0 && chars[pos+1] == '\n')
+                                        {
+                                            cursor.column++;
+                                        }
+                                        else if (pos == 0)
+                                        {
+                                            cursor.column++;
+                                        }
+                                        else if (chars[pos] != '\n' && ((chars.LastIndexOf('\n', pos - 1) == -1 && pos < lineLength) || (pos - chars.LastIndexOf('\n', pos - 1)) % (lineLength + 1) < lineLength))
                                         {
                                             cursor.column++;
                                         }
@@ -409,13 +422,14 @@ namespace MIV
 
                             case ConsoleKey.UpArrow:
                                 {
-                                    if (pos > chars.IndexOf('\n') && chars.IndexOf('\n') != -1 || chars.Count >= (lineLength + 1)) //check we aren't in top row
+                                    if (cursor.row != 0 && (pos > chars.IndexOf('\n') && chars.IndexOf('\n') != -1 || chars.Count >= (lineLength + 1))) //check we aren't in top row
                                     {
                                         cursor.row--; //go up
                                         
                                         if (pos - chars.LastIndexOf('\n',pos-1) > lineLength)
                                         {
                                             pos -= lineLength;
+                                            pos++;
                                         }
                                         else
                                         {
@@ -425,11 +439,12 @@ namespace MIV
                                             {
                                                 currCol = chars.LastIndexOf('\n',pos-1) - startPrevLine; //got to end of line if not
                                             }
-
+                                            int lengthLine = chars.IndexOf('\n', startPrevLine) - startPrevLine;
                                             //Console.WriteLine($"{chars.LastIndexOf('\n', pos)} - {startPrevLine} - 1 = {chars.LastIndexOf('\n', pos) - startPrevLine -1}");
                                             //Cosmos.HAL.Global.PIT.Wait((uint)5000);
+                                            currCol = currCol % (lineLength + 1);
                                             cursor.column = currCol;
-                                            pos = startPrevLine + currCol;
+                                            pos = startPrevLine + ((lengthLine/(lineLength + 1)) * lineLength) + currCol + 1;
                                         }
                                     }
                                     printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor);
@@ -495,8 +510,6 @@ namespace MIV
                                     {
                                         cursor.column = 0;
                                         cursor.row++;
-                                        printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor);
-                                        Cosmos.HAL.Global.PIT.Wait((uint)5000);
                                     }
                                     printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor);
                                     
@@ -509,9 +522,17 @@ namespace MIV
                     catch (Exception ex)
                     {
                         Console.WriteLine();
-                        Console.WriteLine(ex.Message + "\nError Occured in edit Mode\nExiting MIV...");
-                        Cosmos.HAL.Global.PIT.Wait((uint)5000);
+                        pos = 0;
+                        cursor.column = 0;
+                        cursor.row = 0;
                         editMode = false;
+                        infoBar = ":";
+                        printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor);
+                        Console.WriteLine(ex.Message + "\nError Occured in edit Mode\nExiting Edit mode");
+                        Console.ReadKey();
+                        printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor);
+
+                        continue;
                     }
 
                 }
