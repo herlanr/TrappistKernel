@@ -40,6 +40,17 @@ namespace TrappistOS
 
                 switch (key.Key)
                 {
+                    case ConsoleKey.C:
+                        if ((key.Modifiers & ConsoleModifiers.Control) != 0)
+                        {
+                            Console.WriteLine("^C");
+                            Kernel.AbortRequest = true;
+                            _buffer.Clear();
+                            _cursor = 0;
+                            return string.Empty;
+                        }
+                        goto default;
+
                     case ConsoleKey.Enter:
                         Console.WriteLine();
                         var line = _buffer.ToString();

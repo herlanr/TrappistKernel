@@ -19,6 +19,7 @@ namespace TrappistOS
         UserLogin userInfo;
         FilePermissions permManager;
         Snake snake;
+        public static bool AbortRequest = false;
         protected override void BeforeRun()
         {
             Console.WriteLine("TrappistOS booting");
@@ -82,6 +83,7 @@ namespace TrappistOS
 
         protected override void Run()
         {
+            AbortRequest = false;
 
             var cmd = new CommandHistory();
             var input = cmd.ReadLine(userInfo.GetName(true), fsManager.getCurrentDir());
