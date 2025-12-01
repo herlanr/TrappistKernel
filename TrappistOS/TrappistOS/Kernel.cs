@@ -18,6 +18,7 @@ namespace TrappistOS
 
         UserLogin userInfo;
         FilePermissions permManager;
+        Snake snake;
         protected override void BeforeRun()
         {
             Console.WriteLine("TrappistOS booting");
@@ -59,6 +60,7 @@ namespace TrappistOS
                     InitPerms(true);
                     Console.WriteLine("Filepermissions initialized");
                     Console.Clear();
+
                     Console.WriteLine("TrappistOS booted up!");
                     break;
                 }
@@ -894,18 +896,99 @@ namespace TrappistOS
                         }
                         break;
                     }
-                case "help":
-                    {
-                        HelpOutput();
+                    case "snake":
+                        snake = new Snake();
+                        snake.configSnake();
+                        ConsoleKey x;
+                        while (true)
+                        {
+                            while (snake.gameover())
+                            {
+                                snake.printGame();
+                                Boolean endGame = false;
+                                switch (Console.ReadKey(true).Key)
+                                {
+                                    case ConsoleKey.R:
+                                        snake.configSnake();
+                                        break;
+                                    case ConsoleKey.Escape:
+                                        endGame = true;
+                                        break;
+                                }
+
+                                if (endGame)
+                                {
+                                    break;
+                                }
+                            }
+                            while (!Console.KeyAvailable && !snake.gameover())
+                            {
+
+                                snake.updateDirections();
+
+                                snake.updatePosotion();
+
+                                snake.checkIfTouchFood();
+
+                                Console.Clear();
+                                snake.changeArray();
+                                snake.printGame();
+                                snake.delay(10000000);
+                            }
+
+                            x = Console.ReadKey(true).Key;
+
+                            if (x == ConsoleKey.LeftArrow)
+                            {
+                                if (snake.snake[0][1] != 3)
+                                {
+                                    snake.commands.Add(new int[2] { 1, 0 });
+                                }
+                            }
+                            else if (x == ConsoleKey.UpArrow)
+                            {
+                                if (snake.snake[0][1] != 2)
+                                {
+                                    snake.commands.Add(new int[2] { 4, 0 });
+                                }
+                            }
+                            else if (x == ConsoleKey.RightArrow)
+                            {
+                                if (snake.snake[0][1] != 1)
+                                {
+                                    snake.commands.Add(new int[2] { 3, 0 });
+                                }
+                            }
+                            else if (x == ConsoleKey.DownArrow)
+                            {
+                                if (snake.snake[0][1] != 4)
+                                {
+                                    snake.commands.Add(new int[2] { 2, 0 });
+                                }
+                            }
+                            else if (x == ConsoleKey.Escape)
+                            {
+                                Console.Clear();
+                                break;
+                            }
+                            else if (x == ConsoleKey.R)
+                            {
+                                snake.configSnake();
+                            }
+                        }
                         break;
-                    }
-                default:
-                    {
-                        Console.WriteLine("Not a valid command use \"help\" for list of commands");
-                        break;
-                    }
-                
-            }
+                    case "help":
+                        {
+                            HelpOutput();
+                            break;
+                        }
+                    default:
+                        {
+                            Console.WriteLine("Not a valid command use \"help\" for list of commands");
+                            break;
+                        }
+                    
+                }
             
         }
         protected static void myHandler(object sender, ConsoleCancelEventArgs args)
