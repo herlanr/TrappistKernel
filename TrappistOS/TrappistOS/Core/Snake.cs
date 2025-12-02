@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Sys = Cosmos.System;
 
 public class Snake
 {
