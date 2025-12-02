@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 public class HelpCommand : AbstractCommand
 {
@@ -7,7 +8,7 @@ public class HelpCommand : AbstractCommand
     public override string Name => "help";
     public override string Description => "Displays help information for all commands.";
     public override string Usage => "Usage: help\nDescription: Shows available commands and their usage.";
-
+    public override IEnumerable<string> Parameters => new[] { "-h" };
     public override void Execute(string[] args)
     {
         int pagecount = 10;

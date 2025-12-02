@@ -1,6 +1,7 @@
 using TrappistOS;
 using System;
 using Sys = Cosmos.System;
+using System.Collections.Generic;
 
 public class FreeSpaceCommand : AbstractCommand
 {
@@ -14,6 +15,7 @@ public class FreeSpaceCommand : AbstractCommand
     public override string Name => "freespace";
     public override string Description => "Get available free space.";
     public override string Usage => "Usage: freespace [-h]";
+    public override IEnumerable<string> Parameters => new[] { "-h" };
 
     public override void Execute(string[] args)
     {
@@ -33,6 +35,7 @@ public class ClearCommand : AbstractCommand
     public override string Name => "clear";
     public override string Description => "Clears the console screen.";
     public override string Usage => "Usage: clear\nDescription: Clears the terminal screen.";
+    public override IEnumerable<string> Parameters => new[] { "-h" };
 
     public override void Execute(string[] args)
     {
@@ -52,6 +55,7 @@ public class ShutdownCommand : AbstractCommand
     public override string Name => "shutdown";
     public override string Description => "Shuts down the system.";
     public override string Usage => "Usage: shutdown\nDescription: Saves permissions and powers off the system.";
+    public override IEnumerable<string> Parameters => new[] { "-h" };
 
     public override void Execute(string[] args)
     {
@@ -72,7 +76,7 @@ public class RebootCommand : AbstractCommand
     public override string Name => "reboot";
     public override string Description => "Reboots the system.";
     public override string Usage => "Usage: reboot\nDescription: Saves permissions and restarts the system.";
-
+    public override IEnumerable<string> Parameters => new[] { "-h" };
     public override void Execute(string[] args)
     {
         permManager.SavePermissions();
@@ -85,7 +89,7 @@ public class ForceShutdownCommand : AbstractCommand
     public override string Name => "force-shutdown";
     public override string Description => "Forcefully shuts down the system without saving changes.";
     public override string Usage => "Usage: force-shutdown\nDescription: Immediately powers off the system without saving changes.";
-
+    public override IEnumerable<string> Parameters => new[] { "-h" };
     public override void Execute(string[] args)
     {
         Console.WriteLine("Are you sure you want to forcefully shutdown? Not all changes will be saved.\n(y)es/(n)o");
@@ -107,6 +111,7 @@ public class ForceRebootCommand : AbstractCommand
     public override string Name => "force-reboot";
     public override string Description => "Forcefully reboots the system without saving changes.";
     public override string Usage => "Usage: force-reboot\nDescription: Immediately restarts the system without saving changes.";
+    public override IEnumerable<string> Parameters => new[] { "-h" };
 
     public override void Execute(string[] args)
     {
@@ -140,7 +145,7 @@ public class MivCommand : AbstractCommand
     public override string Name => "miv";
     public override string Description => "Opens the MIV editor to edit the specified file.";
     public override string Usage => "Usage: miv <file name>\nDescription: Edit the specified file using MIV editor.\nAvailable Arguments:\n  -h: help";
-
+    public override IEnumerable<string> Parameters => new[] { "-h" };
     public override void Execute(string[] args)
     {
         if (args.Length < 2 || args[1] == "-h")
@@ -169,7 +174,7 @@ public class SnakeCommand : AbstractCommand
     public override string Name => "snake";
     public override string Description => "Starts the Snake game.";
     public override string Usage => "Usage: snake\nDescription: Play the Snake game.";
-
+    public override IEnumerable<string> Parameters => new[] { "-h" };
     public override void Execute(string[] args)
     {
         Snake snake = new Snake();

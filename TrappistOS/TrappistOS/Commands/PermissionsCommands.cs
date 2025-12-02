@@ -2,6 +2,7 @@ using TrappistOS;
 using System;
 using System.IO;
 using System.Linq;
+using System.Collections.Generic;
 
 public class SetOwnerCommand : AbstractCommand
 {
@@ -23,7 +24,7 @@ public class SetOwnerCommand : AbstractCommand
                                     "Can only be done by the current file owner.\n" +
                                     "Available Arguments:\n" +
                                     "  -h: help";
-
+    public override IEnumerable<string> Parameters => new[] { "-h" };
     public override void Execute(string[] args)
     {
         if (args.Length < 3 || args[1] == "-h")
@@ -98,6 +99,7 @@ public class GivePermissionsCommand : AbstractCommand
                                     "  -h: help\n" +
                                     "  -r: grant read permission\n" +
                                     "  -w: grant write permission";
+    public override IEnumerable<string> Parameters => new[] { "-h", "-r", "w"};
 
     public override void Execute(string[] args)
     {
@@ -181,7 +183,7 @@ public class TakePermissionsCommand : AbstractCommand
                                     "  -h: help\n" +
                                     "  -r: remove read permission\n" +
                                     "  -w: remove write permission";
-
+    public override IEnumerable<string> Parameters => new[] { "-h", "-r", "w"};
     public override void Execute(string[] args)
     {
         if (args.Length < 4 || args.Contains("-h"))
@@ -257,7 +259,7 @@ public class InitPermsCommand : AbstractCommand
     public override string Name => "initperms";
     public override string Description => "Initializes file permissions. Only available to Admins.";
     public override string Usage => "Usage: initperms\nDescription: Initializes file permissions. Only available to Admins.";
-
+    public override IEnumerable<string> Parameters => new[] { "-h" };
     public override void Execute(string[] args)
     {
         if (args.Length != 1)
@@ -383,7 +385,7 @@ public class ClearPermsCommand : AbstractCommand
     public override string Name => "clearperms";
     public override string Description => "Clears all file permissions. Only available to Admins.";
     public override string Usage => "Usage: clearperms\nDescription: Clears all file permissions. Only available to Admins.";
-
+    public override IEnumerable<string> Parameters => new[] { "-h" };
     public override void Execute(string[] args)
     {
         if (args.Length != 1)
@@ -420,7 +422,7 @@ public class PermissionsCommand : AbstractCommand
                                     "Description: Displays the owner, readers, and writers of a file or directory.\n" +
                                     "Available Arguments:\n" +
                                     "  -h: help";
-
+    public override IEnumerable<string> Parameters => new[] { "-h" };
     public override void Execute(string[] args)
     {
         if (args.Length < 2 || args[1] == "-h")
@@ -488,7 +490,7 @@ public class SavePermsCommand : AbstractCommand
     public override string Name => "saveperms";
     public override string Description => "Saves all current file permissions.";
     public override string Usage => "Usage: saveperms\nDescription: Saves all file permissions.";
-
+    public override IEnumerable<string> Parameters => new[] { "-h" };
     public override void Execute(string[] args)
     {
         if (args.Length == 1)

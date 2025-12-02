@@ -1,6 +1,7 @@
 using TrappistOS;
 using System;
 using System.IO;
+using System.Collections.Generic;
 
 
 public class TouchCommand : AbstractCommand
@@ -24,7 +25,7 @@ public class TouchCommand : AbstractCommand
                                     "  -h: help\n" +
                                     "  -o: give yourself complete ownership.\n" +
                                     "      If not set, it will inherit the ownership of the current directory.";
-
+    public override IEnumerable<string> Parameters => new[] { "-h", "-o"};
     public override void Execute(string[] args)
     {
         if (args.Length < 2 || args[1] == "-h")
@@ -71,6 +72,7 @@ public class MkdirCommand : AbstractCommand
                                     "  -h: help\n" +
                                     "  -o: give yourself complete ownership.\n" +
                                     "      If not set, it will inherit the ownership of the current directory.";
+    public override IEnumerable<string> Parameters => new[] { "-h", "-o"};
 
     public override void Execute(string[] args)
     {
@@ -119,7 +121,7 @@ public class LsCommand : AbstractCommand
                                     "Description: List all the files in a directory.\n" +
                                     "Available Arguments:\n" +
                                     "  -h: help";
-
+    public override IEnumerable<string> Parameters => new[] { "-h" };
     public override void Execute(string[] args)
     {
         if (args.Length > 1)
@@ -153,6 +155,7 @@ public class MvCommand : AbstractCommand
                                     "Description: Move file between directories.\n" +
                                     "Available Arguments:\n" +
                                     "  -h: help";
+    public override IEnumerable<string> Parameters => new[] { "-h" };
 
     public override void Execute(string[] args)
     {
@@ -208,7 +211,7 @@ public class CatCommand : AbstractCommand
                                     "Description: Opens a text file, reads all the text in the file, and then closes the file.\n" +
                                     "Available Arguments:\n" +
                                     "  -h: help";
-
+    public override IEnumerable<string> Parameters => new[] { "-h" };
     public override void Execute(string[] args)
     {
         if (args.Length < 2 || args[1] == "-h")
@@ -259,7 +262,7 @@ public class RmFileCommand : AbstractCommand
                                     "Description: Deletes the specified file.\n" +
                                     "Available Arguments:\n" +
                                     "  -h: help";
-
+    public override IEnumerable<string> Parameters => new[] { "-h" };
     public override void Execute(string[] args)
     {
         if (args.Length < 2 || args[1] == "-h")
@@ -305,7 +308,7 @@ public class RmDirCommand : AbstractCommand
                                     "Description: Deletes the specified directory.\n" +
                                     "Available Arguments:\n" +
                                     "  -h: help";
-
+    public override IEnumerable<string> Parameters => new[] { "-h" };
     public override void Execute(string[] args)
     {
         if (args.Length < 2 || args[1] == "-h")
@@ -350,7 +353,7 @@ public class RenameCommand : AbstractCommand
                                     "Description: Renames the selected directory or file.\n" +
                                     "Available Arguments:\n" +
                                     "  -h: help";
-
+    public override IEnumerable<string> Parameters => new[] { "-h" };
     public override void Execute(string[] args)
     {
         if (args.Length < 3 || args[1] == "-h")
@@ -404,6 +407,8 @@ public class CdCommand : AbstractCommand
                                     "Available Arguments:\n" +
                                     "  -h: help";
 
+    public override IEnumerable<string> Parameters => new[] { "-h" };
+
     public override void Execute(string[] args)
     {
         if (args.Length < 2 || args[1] == "-h")
@@ -451,6 +456,8 @@ public class PwdCommand : AbstractCommand
     public override string Name => "pwd";
     public override string Description => "Displays the current working directory.";
     public override string Usage => "Usage: pwd\nDescription: Shows your current directory.";
+
+    public override IEnumerable<string> Parameters => new[] { "-h" };
 
     public override void Execute(string[] args)
     {

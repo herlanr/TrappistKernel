@@ -1,6 +1,7 @@
 using TrappistOS;
 using System;
 using System.IO;
+using System.Collections.Generic;
 public class LoginCommand : AbstractCommand
 {
     private UserLogin userInfo;
@@ -19,7 +20,7 @@ public class LoginCommand : AbstractCommand
     public override string Name => "login";
     public override string Description => "Logs into your account.";
     public override string Usage => "Usage: login\nDescription: Login to your account.";
-
+    public override IEnumerable<string> Parameters => new[] { "-h" };
     public override void Execute(string[] args)
     {
         if (args.Length == 1)
@@ -55,7 +56,7 @@ public class LogoutCommand : AbstractCommand
     public override string Name => "logout";
     public override string Description => "Logs out of your account.";
     public override string Usage => "Usage: logout\nDescription: Logout from your account.";
-
+    public override IEnumerable<string> Parameters => new[] { "-h" };
     public override void Execute(string[] args)
     {
         if (args.Length == 1)
@@ -85,7 +86,7 @@ public class ListUsersCommand : AbstractCommand
     public override string Name => "listusers"; 
     public override string Description => "Lists all registered users.";
     public override string Usage => "Usage: lusrs / listusers\nDescription: Displays all users in the system.";
-
+    public override IEnumerable<string> Parameters => new[] { "-h" };
     public override void Execute(string[] args)
     {
         string[] userList = userInfo.GetAllUsers();
@@ -114,7 +115,7 @@ public class DeleteUserCommand : AbstractCommand
     public override string Name => "delusr";
     public override string Description => "Deletes a user account (admin only).";
     public override string Usage => "Usage: delusr / deleteuser [username]\nDescription: Deletes a user account (only available to admins).";
-
+    public override IEnumerable<string> Parameters => new[] { "-h" };
     public override void Execute(string[] args)
     {
          if (args.Length == 2 && args[1] != "-h")
@@ -219,7 +220,7 @@ public class CreateUserCommand : AbstractCommand
                                     "Available Arguments:\n" +
                                     "  -h: help\n" +
                                     "  -a: create Admin (Only Admins can create Admins)";
-
+    public override IEnumerable<string> Parameters => new[] { "-h", "-a"};
     public override void Execute(string[] args)
     {
         if (args.Length == 1)
@@ -278,7 +279,7 @@ public class ChangePwdCommand : AbstractCommand
     public override string Name => "changepwd";
     public override string Description => "Changes the password of the current user.";
     public override string Usage => "Usage: changepwd\nDescription: Change your account password.";
-
+    public override IEnumerable<string> Parameters => new[] { "-h" };
     public override void Execute(string[] args)
     {
         if(args.Length != 1)
