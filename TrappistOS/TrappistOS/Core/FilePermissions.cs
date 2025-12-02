@@ -1,19 +1,12 @@
-﻿using Cosmos.System.FileSystem.VFS;
-using Cosmos.System.Graphics.Fonts;
-using System;
-using System.CodeDom.Compiler;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection.PortableExecutable;
-using System.Runtime.CompilerServices;
-using System.Text;
-using Sys = Cosmos.System;
 
 namespace TrappistOS
 {
-    internal class FilePermissions
+    public class FilePermissions
     {
         private class FileRights
         {

@@ -1,16 +1,12 @@
-﻿using Cosmos.System.FileSystem.VFS;
+﻿
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace TrappistOS
 {
     public class CommandHistory
     {
-        // statisch, damit die Historie erhalten bleibt, auch wenn eine neue Instanz erstellt wird
         private static readonly List<string> _history = new List<string>();
         private int _historyIndex = -1;
 
