@@ -16,7 +16,7 @@ namespace TrappistOS
         UserLogin userInfo;
         FilePermissions permManager;
         CommandRegistry registry;
-
+        
         protected override void BeforeRun()
         {
             Console.WriteLine("TrappistOS booting");

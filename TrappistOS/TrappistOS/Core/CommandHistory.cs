@@ -34,6 +34,20 @@ namespace TrappistOS
             {
                 var key = Console.ReadKey(true);
 
+                if ((key.Modifiers & ConsoleModifiers.Control) != 0)
+                {
+                    if (key.Key == ConsoleKey.C)
+                    {
+                        Console.WriteLine();
+                        _buffer.Clear();
+                        _cursor = 0;
+
+                        Console.ForegroundColor = ConsoleColor.Magenta;
+                        Console.Write(_prompt);
+                        Console.ResetColor();
+                    }
+                }
+
                 switch (key.Key)
                 {
                     case ConsoleKey.Enter:
