@@ -16,8 +16,7 @@ namespace TrappistOS
         UserLogin userInfo;
         FilePermissions permManager;
         CommandRegistry registry;
-        public static bool AbortRequest = false;
-
+        
         protected override void BeforeRun()
         {
             Console.WriteLine("TrappistOS booting");
@@ -75,8 +74,6 @@ namespace TrappistOS
         protected override void Run()
         {
 
-            AbortRequest = false;
-            
             var cmd = new CommandHistory();
             var input = cmd.ReadLine(userInfo.GetName(true), fsManager.getCurrentDir());
 
