@@ -2,13 +2,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace TrappistOS
 {
-    internal class FileSystemManager
+    public class FileSystemManager
     {
         private CosmosVFS fs;
         string currentDir = @"0:\";

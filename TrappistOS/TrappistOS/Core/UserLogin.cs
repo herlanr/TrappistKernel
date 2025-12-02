@@ -1,16 +1,10 @@
-﻿using Cosmos.System.Graphics.Fonts;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using Sys = Cosmos.System;
 
 namespace TrappistOS
 {
-
-
-    internal class UserLogin
+    public class UserLogin
     {
         public int maxAdminID { private set; get; } = 20; //TODO: move into systemfile
         public int visitorid { private set; get; } = 200;
