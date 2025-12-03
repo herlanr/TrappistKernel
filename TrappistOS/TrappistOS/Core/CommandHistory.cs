@@ -1,12 +1,23 @@
 ﻿
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using static Cosmos.HAL.Drivers.PCI.Video.VMWareSVGAII;
 
 namespace TrappistOS
 {
     public class CommandHistory
     {
+        private List<string> _commandList;
+
+        public CommandHistory(List<string> commandList)
+        {
+            _commandList = commandList;
+        }
+
+
         private static readonly List<string> _history = new List<string>();
         private int _historyIndex = -1;
 
@@ -15,6 +26,10 @@ namespace TrappistOS
 
         private string _prompt = "";
         private int _prevBufferLen = 0;
+
+        private List<string> _matches = new List<string>();
+        private string _lastSearchTerm = ""; // The original text user typed ("he")
+        private int _tabIndex = 0;
 
         public int MaxHistory { get; set; } = 200;
 
@@ -108,7 +123,16 @@ namespace TrappistOS
                             }
                         }
                         break;
-
+                    case ConsoleKey.Tab:
+                        try 
+                        {
+                            AutoComplete(_buffer);
+                        }
+                        catch (Exception ex)
+                        {
+                            ReplaceInput($"\nAutocomplete error: {ex.Message}");
+                        }
+                        break;
                     default:
                         if (!char.IsControl(key.KeyChar))
                         {
@@ -156,6 +180,59 @@ namespace TrappistOS
             Console.SetCursorPosition(cursorAbsolute, lineTop);
 
             _prevBufferLen = totalLen;
+        }
+
+        private void AutoComplete(StringBuilder currentBuffer)
+        {
+            string input = currentBuffer.ToString();
+
+            // 1. Sanity Check: Don't autocomplete empty strings
+            if (string.IsNullOrWhiteSpace(input)) return;
+
+            // 2. Check if we are continuing a previous cycle
+            // We are cycling if matches exist AND the current buffer equals the last thing we suggested
+            bool _isCycling = _matches.Count > 0 &&
+                             _tabIndex > 0 &&
+                             input == _matches[_tabIndex - 1];
+
+            // 3. If NOT cycling, this is a new search
+            if (!_isCycling)
+            {
+                _lastSearchTerm = input;
+
+                // Fetch commands from your registry
+                var allCommands = _commandList;
+                //var allCommands = new List<string> { "help", "hello", "shutdown", "reboot", "clear" };
+                
+                if (allCommands.Count == 0)
+                {
+                    Console.Write("Command-List is empty.");
+                    return;
+                }
+
+                // Find matches (Case insensitive)
+                _matches = allCommands
+                    .Where(c => c.StartsWith(_lastSearchTerm, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+
+                _tabIndex = 0;
+            }
+
+            // 4. Handle No Matches
+            if (_matches.Count == 0) return;
+
+            // 5. Pick the Suggestion
+            string suggestion = _matches[_tabIndex];
+
+            // 6. VISUAL UPDATE: Update the Console
+            ReplaceInput(suggestion);
+
+            // 7. INTERNAL UPDATE: Update the StringBuilder (Crucial!)
+            currentBuffer.Clear();
+            currentBuffer.Append(suggestion);
+
+            // 8. Advance Index for next time (Loop back to 0 if at end)
+            _tabIndex = (_tabIndex + 1) % _matches.Count;
         }
     }
 }
