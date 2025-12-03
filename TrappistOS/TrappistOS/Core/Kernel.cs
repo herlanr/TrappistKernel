@@ -1,6 +1,8 @@
 using Cosmos.System.ScanMaps;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Sys = Cosmos.System;
 
 //wait function: Cosmos.HAL.Global.PIT.Wait((uint)10000);
@@ -16,7 +18,8 @@ namespace TrappistOS
         UserLogin userInfo;
         FilePermissions permManager;
         CommandRegistry registry;
-        
+        List<string> commandList;
+
         protected override void BeforeRun()
         {
             Console.WriteLine("TrappistOS booting");
@@ -46,8 +49,9 @@ namespace TrappistOS
 
                     //regitring commands
                     registry = new CommandRegistry();
-
                     includeCommandsToRegister();
+                    //erstelle eine command liste und gibt die zu CommandHistory() im Run() weiter (f�r AutoComplete)
+                    commandList = registry.GetAllCommandNames().ToList();
 
                     Console.WriteLine("Commands initialized");
 
@@ -70,11 +74,9 @@ namespace TrappistOS
         }
 
 
-
         protected override void Run()
         {
-
-            var cmd = new CommandHistory();
+            var cmd = new CommandHistory(commandList);
             var input = cmd.ReadLine(userInfo.GetName(true), fsManager.getCurrentDir());
 
             string[] args = input.Split(' ');
@@ -254,5 +256,6 @@ namespace TrappistOS
             registry.Register(new SnakeCommand());
             registry.Register(new HelpCommand());
         }
+        
     }
 }
