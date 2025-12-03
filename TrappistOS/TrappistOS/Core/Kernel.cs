@@ -18,7 +18,6 @@ namespace TrappistOS
         UserLogin userInfo;
         FilePermissions permManager;
         CommandRegistry registry;
-
         List<string> commandList;
 
         protected override void BeforeRun()
@@ -51,7 +50,7 @@ namespace TrappistOS
                     //regitring commands
                     registry = new CommandRegistry();
                     includeCommandsToRegister();
-                    //erstelle eine command liste und gibt die zu CommandHistory() im Run() weiter (für AutoComplete)
+                    //erstelle eine command liste und gibt die zu CommandHistory() im Run() weiter (fï¿½r AutoComplete)
                     commandList = registry.GetAllCommandNames().ToList();
 
                     Console.WriteLine("Commands initialized");
