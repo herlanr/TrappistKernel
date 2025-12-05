@@ -175,18 +175,44 @@ public class SnakeCommand : AbstractCommand
     public override string Description => "Starts the Snake game.";
     public override string Usage => "Usage: snake\nDescription: Play the Snake game.";
     public override IEnumerable<string> Parameters => new[] { "-h" };
+
     public override void Execute(string[] args)
     {
         Snake snake = new Snake();
         snake.configSnake();
+
         ConsoleKey x;
+        ConsoleKeyInfo keyInfo;
+
+        Console.Clear();
+        Console.SetCursorPosition(0, 0);
+
         while (true)
         {
+            // --- GAME-OVER-SCREEN ---
             while (snake.gameover())
             {
+                Console.SetCursorPosition(0, 0);
+                snake.changeArray();
                 snake.printGame();
-                Boolean endGame = false;
-                switch (Console.ReadKey(true).Key)
+
+                // Cursor unten links parken
+                Console.SetCursorPosition(0, 24);
+
+                bool endGame = false;
+
+                keyInfo = Console.ReadKey(true);
+
+                if ((keyInfo.Modifiers & ConsoleModifiers.Control) != 0 &&
+                    keyInfo.Key == ConsoleKey.C)
+                {
+                    Kernel.AbortRequest = true;
+                    Console.Clear();
+                    Console.SetCursorPosition(0, 0);
+                    return; // Snake komplett verlassen
+                }
+
+                switch (keyInfo.Key)
                 {
                     case ConsoleKey.R:
                         snake.configSnake();
@@ -198,25 +224,42 @@ public class SnakeCommand : AbstractCommand
 
                 if (endGame)
                 {
-                    break;
+                    Console.Clear();
+                    Console.SetCursorPosition(0, 0);
+                    return;
                 }
             }
+
+            // --- HAUPTSCHLEIFE (AUTO-BEWEGUNG) ---
             while (!Console.KeyAvailable && !snake.gameover())
             {
-
                 snake.updateDirections();
-
                 snake.updatePosotion();
-
                 snake.checkIfTouchFood();
 
-                Console.Clear();
+                Console.SetCursorPosition(0, 0);
                 snake.changeArray();
                 snake.printGame();
+
+                // Cursor unten links parken
+                Console.SetCursorPosition(0, 24);
+
                 snake.delay(10000000);
             }
 
-            x = Console.ReadKey(true).Key;
+            // --- TASTE LESEN ---
+            keyInfo = Console.ReadKey(true);
+
+            if ((keyInfo.Modifiers & ConsoleModifiers.Control) != 0 &&
+                keyInfo.Key == ConsoleKey.C)
+            {
+                Kernel.AbortRequest = true;
+                Console.Clear();
+                Console.SetCursorPosition(0, 0);
+                return;
+            }
+
+            x = keyInfo.Key;
 
             if (x == ConsoleKey.LeftArrow)
             {
@@ -249,7 +292,8 @@ public class SnakeCommand : AbstractCommand
             else if (x == ConsoleKey.Escape)
             {
                 Console.Clear();
-                break;
+                Console.SetCursorPosition(0, 0);
+                return;
             }
             else if (x == ConsoleKey.R)
             {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using Console = System.Console;
+using TrappistOS;
 
 namespace MIV
 {
@@ -131,6 +132,14 @@ namespace MIV
             do
             {
                 keyInfo = Console.ReadKey(true);
+
+                // Strg+C -> Editor abbrechen
+                if ((keyInfo.Modifiers & ConsoleModifiers.Control) != 0 &&
+                    keyInfo.Key == ConsoleKey.C)
+                {
+                    Kernel.AbortRequest = true;
+                    return null;
+                }
 
                 if (isForbiddenKey(keyInfo.Key)) continue;
 
@@ -329,6 +338,15 @@ namespace MIV
 
             String text = String.Empty;
             text = miv(File.ReadAllText(file));
+
+            // Wenn Strg+C gedrückt wurde -> nichts speichern, nur Meldung
+            if (Kernel.AbortRequest)
+            {
+                Kernel.AbortRequest = false;
+                Console.Clear();
+                Console.WriteLine("MIV aborted. No changes were saved to " + file);
+                return;
+            }
 
             if (text != null && File.Exists(file))
             {

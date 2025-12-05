@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using static Cosmos.HAL.Drivers.PCI.Video.VMWareSVGAII;
 
+
 namespace TrappistOS
 {
     public class CommandHistory
@@ -49,18 +50,16 @@ namespace TrappistOS
             {
                 var key = Console.ReadKey(true);
 
-                if ((key.Modifiers & ConsoleModifiers.Control) != 0)
+                if ((key.Modifiers & ConsoleModifiers.Control) != 0 && key.Key == ConsoleKey.C)
                 {
-                    if (key.Key == ConsoleKey.C)
-                    {
-                        Console.WriteLine();
-                        _buffer.Clear();
-                        _cursor = 0;
+                    Kernel.AbortRequest = true;
+                    Console.WriteLine("^C");
 
-                        Console.ForegroundColor = ConsoleColor.Magenta;
-                        Console.Write(_prompt);
-                        Console.ResetColor();
-                    }
+                    _buffer.Clear();
+                    _cursor = 0;
+                    _prevBufferLen = 0;
+
+                    return string.Empty;
                 }
 
                 switch (key.Key)
@@ -70,9 +69,12 @@ namespace TrappistOS
                         var line = _buffer.ToString();
                         if (!string.IsNullOrWhiteSpace(line))
                         {
-                            _history.Add(line);
-                            if (_history.Count > MaxHistory)
-                                _history.RemoveAt(0);
+                            if (_history.Count == 0 || _history[_history.Count - 1] != line)
+                            {
+                                _history.Add(line);
+                                if (_history.Count > MaxHistory)
+                                    _history.RemoveAt(0);
+                            }
                         }
                         _historyIndex = _history.Count;
                         _prevBufferLen = 0;

@@ -11,6 +11,8 @@ namespace TrappistOS
 {
     public class Kernel : Sys.Kernel
     {
+        public static bool AbortRequest { get; set; } = false;
+
         string userpath = @"0:\users.sys";
         string rootdir = @"0:\";
 
@@ -82,8 +84,11 @@ namespace TrappistOS
             if (string.IsNullOrWhiteSpace(input))
             {
                 // Einfach nichts machen und nächste Run()-Iteration abwarten
+                Kernel.AbortRequest = false;
                 return;
             }
+
+            Kernel.AbortRequest = false;
 
             string[] args = input.Split(' ');
             args[0] = args[0].ToLower();
@@ -99,22 +104,26 @@ namespace TrappistOS
             }
 
         }
- 
+
         static internal bool WaitForConfirmation()
-        //waits for enter (true) or escape (false);
         {
             char confirmation = ' ';
             do
-            { confirmation = Console.ReadKey(true).KeyChar; }
+            {
+                var keyInfo = Console.ReadKey(true);
+
+                if ((keyInfo.Modifiers & ConsoleModifiers.Control) != 0 &&
+                    keyInfo.Key == ConsoleKey.C)
+                {
+                    Kernel.AbortRequest = true;
+                    return false; // Abbruch = „nein“
+                }
+
+                confirmation = keyInfo.KeyChar;
+            }
             while (confirmation != 'y' && confirmation != 'n');
-            if (confirmation == 'y')
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+
+            return confirmation == 'y';
         }
 
         public void InitPerms(bool quiet = false)
