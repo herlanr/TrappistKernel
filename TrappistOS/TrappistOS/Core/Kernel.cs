@@ -79,6 +79,12 @@ namespace TrappistOS
             var cmd = new CommandHistory(commandList);
             var input = cmd.ReadLine(userInfo.GetName(true), fsManager.getCurrentDir());
 
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                // Einfach nichts machen und nächste Run()-Iteration abwarten
+                return;
+            }
+
             string[] args = input.Split(' ');
             args[0] = args[0].ToLower();
             AbstractCommand command = registry.Get(args[0]);
