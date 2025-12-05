@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using TrappistOS;
 
 public class HelpCommand : AbstractCommand
 {
@@ -260,16 +261,24 @@ public class HelpCommand : AbstractCommand
         Console.WriteLine();
     }
 
-        static internal bool WaitForResponse()
-        //waits for enter (true) or escape (false);
+    static internal bool WaitForResponse()
+    {
+        while (true)
         {
-            while (true)
+            var key = System.Console.ReadKey(true);
+
+            // Strg+C = Abort
+            if ((key.Modifiers & ConsoleModifiers.Control) != 0 &&
+                key.Key == ConsoleKey.C)
             {
-                var key = System.Console.ReadKey(true);
-                if (key.Key == ConsoleKey.Enter)
-                    return true;
-                if (key.Key == ConsoleKey.Escape)
-                { return false; }
+                Kernel.AbortRequest = true;
+                return false;
             }
+
+            if (key.Key == ConsoleKey.Enter)
+                return true;
+            if (key.Key == ConsoleKey.Escape)
+                return false;
         }
+    }
 }

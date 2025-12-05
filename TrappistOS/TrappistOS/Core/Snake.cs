@@ -197,16 +197,51 @@ public class Snake
 
         public int randomFood()
         {
-            int rand = rnd.Next(81, 1700);
-            if (rand != randomNumber)
+            int rand;
+            bool ok;
+
+            int maxTries = 1000;
+            int tries = 0;
+
+            do
             {
-                randomNumber = rand;
-                return rand;
-            }
-            else
-            {
-                return 1400;
-            }
+                rand = rnd.Next(0, matrix.Length);
+                ok = true;
+                tries++;
+
+                if (rand <= 79 || rand >= 1680 || rand % 80 == 0 || rand % 80 == 79)
+                    ok = false;
+
+                // Nicht auf der Schlange
+                if (ok)
+                {
+                    foreach (var part in snake)
+                    {
+                        if (part[0] == rand)
+                        {
+                            ok = false;
+                            break;
+                        }
+                    }
+                }
+
+                // Nicht auf vorhandenem Essen
+                if (ok && food != null)
+                {
+                    foreach (var f in food)
+                    {
+                        if (f == rand)
+                        {
+                            ok = false;
+                            break;
+                        }
+                    }
+                }
+
+            } while (!ok && tries < maxTries);
+
+            randomNumber = rand;
+            return rand;
         }
 
         public void configSnake()

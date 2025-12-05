@@ -144,53 +144,84 @@ public class MivCommand : AbstractCommand
 
     public override string Name => "miv";
     public override string Description => "Opens the MIV editor to edit the specified file.";
-    public override string Usage => "Usage: miv <file name>\nDescription: Edit the specified file using MIV editor.\nAvailable Arguments:\n  -h: help";
+    public override string Usage =>
+        "Usage: miv <file name>\n" +
+        "Description: Edit the specified file using MIV editor.\n" +
+        "Available Arguments:\n  -h: help";
     public override IEnumerable<string> Parameters => new[] { "-h" };
+
     public override void Execute(string[] args)
     {
         if (args.Length < 2 || args[1] == "-h")
+        {
+            Console.WriteLine(Usage);
+            return;
+        }
+
+        if (args.Length == 2)
+        {
+            string filePath = fsManager.getFullPath(args[1]);
+
+            if (!permManager.IsWriter(filePath, userInfo.GetId()) && !userInfo.IsAdmin())
             {
-                Console.WriteLine(Usage);
+                Console.WriteLine("You do not have permission to edit this file");
                 return;
             }
-            if (args.Length == 2)
+
+            if (MIV.MIV.PrintMivCommands())
             {
-                string filePath = fsManager.getFullPath(args[1]);
-                if(!permManager.IsWriter(filePath,userInfo.GetId()) && !userInfo.IsAdmin())
-                {
-                    Console.WriteLine("You do not have permission to edit this file");
-                    return;
-                }
-                if (MIV.MIV.PrintMivCommands() == true)
-                {
-                    MIV.MIV.StartMIV(filePath);
-                }
+                MIV.MIV.StartMIV(filePath);
             }
+        }
     }
 }
-
 public class SnakeCommand : AbstractCommand
 {
     public override string Name => "snake";
     public override string Description => "Starts the Snake game.";
-    public override string Usage => "Usage: snake\nDescription: Play the Snake game.";
+    public override string Usage =>
+        "Usage: snake\n" +
+        "Description: Play the Snake game.";
     public override IEnumerable<string> Parameters => new[] { "-h" };
+
     public override void Execute(string[] args)
     {
         Snake snake = new Snake();
         snake.configSnake();
+
         ConsoleKey x;
+        ConsoleKeyInfo keyInfo;
+
+        Console.Clear();
+        Console.SetCursorPosition(0, 0);
+
         while (true)
         {
             while (snake.gameover())
             {
+                Console.SetCursorPosition(0, 0);
+                snake.changeArray();
                 snake.printGame();
-                Boolean endGame = false;
-                switch (Console.ReadKey(true).Key)
+
+                bool endGame = false;
+
+                keyInfo = Console.ReadKey(true);
+
+                if ((keyInfo.Modifiers & ConsoleModifiers.Control) != 0 &&
+                    keyInfo.Key == ConsoleKey.C)
+                {
+                    Kernel.AbortRequest = true;
+                    Console.Clear();
+                    Console.SetCursorPosition(0, 0);
+                    return;
+                }
+
+                switch (keyInfo.Key)
                 {
                     case ConsoleKey.R:
                         snake.configSnake();
                         break;
+
                     case ConsoleKey.Escape:
                         endGame = true;
                         break;
@@ -198,58 +229,63 @@ public class SnakeCommand : AbstractCommand
 
                 if (endGame)
                 {
-                    break;
+                    Console.Clear();
+                    Console.SetCursorPosition(0, 0);
+                    return;
                 }
             }
+
             while (!Console.KeyAvailable && !snake.gameover())
             {
-
                 snake.updateDirections();
-
                 snake.updatePosotion();
-
                 snake.checkIfTouchFood();
 
-                Console.Clear();
+                Console.SetCursorPosition(0, 0);
                 snake.changeArray();
                 snake.printGame();
+
                 snake.delay(10000000);
             }
 
-            x = Console.ReadKey(true).Key;
+            keyInfo = Console.ReadKey(true);
+
+            if ((keyInfo.Modifiers & ConsoleModifiers.Control) != 0 &&
+                keyInfo.Key == ConsoleKey.C)
+            {
+                Kernel.AbortRequest = true;
+                Console.Clear();
+                Console.SetCursorPosition(0, 0);
+                return;
+            }
+
+            x = keyInfo.Key;
 
             if (x == ConsoleKey.LeftArrow)
             {
                 if (snake.snake[0][1] != 3)
-                {
                     snake.commands.Add(new int[2] { 1, 0 });
-                }
             }
             else if (x == ConsoleKey.UpArrow)
             {
                 if (snake.snake[0][1] != 2)
-                {
                     snake.commands.Add(new int[2] { 4, 0 });
-                }
             }
             else if (x == ConsoleKey.RightArrow)
             {
                 if (snake.snake[0][1] != 1)
-                {
                     snake.commands.Add(new int[2] { 3, 0 });
-                }
             }
             else if (x == ConsoleKey.DownArrow)
             {
                 if (snake.snake[0][1] != 4)
-                {
                     snake.commands.Add(new int[2] { 2, 0 });
-                }
             }
             else if (x == ConsoleKey.Escape)
             {
                 Console.Clear();
-                break;
+                Console.SetCursorPosition(0, 0);
+                return;
             }
             else if (x == ConsoleKey.R)
             {
