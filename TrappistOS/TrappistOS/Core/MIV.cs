@@ -2,11 +2,27 @@
 using System.IO;
 using Console = System.Console;
 using TrappistOS;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace MIV
 {
-    public class MIV
+    
+    internal class MIV
     {
+        const int lineLength = 77;
+        const int maxlines = 24;
+        internal class CursorPos
+        {
+            public int row;
+            public int column;
+            public CursorPos(int line, int col) 
+            {
+                row = line;
+                column = col;
+            }
+        }
+
         public static void printMIVStartScreen()
         {
             Console.Clear();
@@ -25,133 +41,461 @@ namespace MIV
             Console.WriteLine("~");
             Console.WriteLine("~");
             Console.WriteLine("~");
-            Console.WriteLine("~                     type :help<Enter>          for information");
+            Console.WriteLine("~");
             Console.WriteLine("~                     type :q<Enter>             to exit");
             Console.WriteLine("~                     type :wq<Enter>            to save file and exit");
-            Console.WriteLine("~                     press i                    to enter writing mode");
-            Console.WriteLine("~                     press escape               to exit file options mode");
-            Console.WriteLine("~");
-            Console.WriteLine("~");
+            Console.WriteLine("~                     type :i<Enter>             to enter writing mode");
+            Console.WriteLine("~                     press escape               to exit writing mode");
+            Console.WriteLine("~                                                                    ");
+            Console.WriteLine("~                     press any key to return to the text editor     ");
             Console.WriteLine("~");
             Console.WriteLine("~");
             Console.WriteLine("~");
             Console.Write("~");
         }
 
-        public static String stringCopy(String value)
+
+        private static void printMIVScreen(char[] chars, int pos, String infoBar, Boolean editMode, CursorPos cursor,string controlbar)
         {
-            String newString = String.Empty;
-
-            for (int i = 0; i < value.Length - 1; i++)
+            try
             {
-                newString += value[i];
-            }
+                int countNewLine = 0;
+                int countChars = 0;
+                Console.Clear();
 
-            return newString;
-        }
-
-        public static void printMIVScreen(char[] chars, int pos, String infoBar, Boolean editMode)
-        {
-            int countNewLine = 0;
-            int countChars = 0;
-            delay(10000000);
-            Console.Clear();
-
-            for (int i = 0; i < pos; i++)
-            {
-                if (chars[i] == '\n')
+                for (int i = 0; i < chars.Length; i++)
                 {
-                    Console.WriteLine("");
-                    countNewLine++;
-                    countChars = 0;
-                }
-                else
-                {
-                    Console.Write(chars[i]);
-                    countChars++;
-                    if (countChars % 80 == 79)
+                    if (countNewLine > maxlines-2 && countNewLine >= cursor.row)
                     {
+                        break;
+                    }
+                    if (chars[i] == '\n')
+                    {
+                        Console.WriteLine("");
                         countNewLine++;
+                        countChars = 0;
+                    }
+                    else
+                    {
+                        Console.Write(chars[i]);
+                        countChars++;
+                        if ((countChars - 1) % (lineLength + 1) == lineLength && i+1 < chars.Length && chars[i+1] != '\n')
+                        {
+                            Console.WriteLine();
+                            countNewLine++;
+                        }
                     }
                 }
-            }
 
-            Console.Write("/");
-
-            for (int i = 0; i < 23 - countNewLine; i++)
-            {
-                Console.WriteLine("");
-                Console.Write("~");
-            }
-
-            //PRINT INSTRUCTION
-            Console.WriteLine();
-            for (int i = 0; i < 72; i++)
-            {
-                if (i < infoBar.Length)
+                for (int i = 0; i < maxlines - 1 - countNewLine; i++)
                 {
-                    Console.Write(infoBar[i]);
+                    Console.WriteLine("~");
+                }
+
+                //PRINT INSTRUCTION
+                Console.WriteLine(controlbar);
+                Console.Write(infoBar);
+                if((cursor.row < 0 || cursor.column < 0 || pos == 0) && editMode)
+                {
+                    pos = 0;
+                    cursor.column = 0;
+                    cursor.row = 0;
+                }
+                //Console.Write($"pos: {pos} x: {cursor.column} y: {cursor.row} ");
+
+                if (editMode)
+                {
+                    Console.Write(countNewLine + 1 + "," + countChars);
+                }
+                Console.SetCursorPosition(cursor.column, cursor.row);
+            }
+            catch (Exception e)
+            {
+                throw new SystemException($"Error while Drawing:{e.Message}");
+            }
+        }
+
+        public static int NewLines(char[] text)
+        {
+            int countChars = 0;
+            int countNewLine = 0;
+            for (int i = 0; i < text.Length; i++)
+            {
+                if (text[i] == '\n')
+                {
+                    countChars = 0;
+                    countNewLine++;
                 }
                 else
                 {
-                    Console.Write(" ");
+                    if (countChars % (lineLength + 1) == lineLength)
+                    {
+                        countChars = 0;
+                        countNewLine++;
+                    }
+                    countChars++;
                 }
             }
+            return countNewLine;
 
-            if (editMode)
-            {
-                Console.Write(countNewLine + 1 + "," + countChars);
-            }
+        }
 
+        public static bool IsNewLine(char x)
+        {
+            return x == '\n';
         }
 
         public static String miv(String start)
         {
             Boolean editMode = false;
             int pos = 0;
-            char[] chars = new char[2000];
-            String infoBar = String.Empty;
+            List<char> chars = new List<char>();
+            String infoBar = ":";
+            String controlbar = "i: Edit Mode; q: quite; wq: write and quit";
+            CursorPos cursor = new CursorPos(maxlines, infoBar.Length);
 
             if (start == null)
             {
-                printMIVStartScreen();
+                printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor, controlbar);
+                
             }
             else
             {
-                pos = start.Length;
-
-                for (int i = 0; i < start.Length; i++)
+                chars = start.ToList();
+                
+                if (chars.Last() != '\n')
                 {
-                    chars[i] = start[i];
+                    chars.Add('\n');
                 }
-                printMIVScreen(chars, pos, infoBar, editMode);
+                printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor, controlbar);
             }
-
+            pos = chars.Count-1;
             ConsoleKeyInfo keyInfo;
 
-            do
+            while (true)
             {
+                // Read exactly once per loop iteration
                 keyInfo = Console.ReadKey(true);
-
-                // Strg+C -> Editor abbrechen
-                if ((keyInfo.Modifiers & ConsoleModifiers.Control) != 0 &&
-                    keyInfo.Key == ConsoleKey.C)
-                {
-                    Kernel.AbortRequest = true;
-                    return null;
-                }
-
                 if (isForbiddenKey(keyInfo.Key)) continue;
 
-                else if (!editMode && keyInfo.KeyChar == ':')
+                if (editMode)
                 {
-                    infoBar = ":";
-                    printMIVScreen(chars, pos, infoBar, editMode);
-                    do
+                    try
                     {
-                        keyInfo = Console.ReadKey(true);
-                        if (keyInfo.Key == ConsoleKey.Enter)
+                        if(cursor.row == 0 && cursor.column == 0)
                         {
+                            pos = 0;
+                        }
+                        // Edit mode: behave like insert mode
+                        switch (keyInfo.Key)
+                        {
+                            case ConsoleKey.Escape:
+                                {
+                                    editMode = false;
+                                    infoBar = ":";
+                                    controlbar = "i: Edit Mode; q: quite; wq: write and quit";
+                                    printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor, controlbar);
+                                    break;
+                                }
+                            case ConsoleKey.Enter:
+                                {
+                                    chars.Insert(pos, '\n');
+                                    pos++;
+                                    cursor.column = 0;
+                                    cursor.row++;
+                                    printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor, controlbar);
+                                    break;
+                                }
+                            case ConsoleKey.Backspace:
+                                {
+                                    if (pos == 0)
+                                    {
+                                        printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor, controlbar);
+                                        break;
+                                    }
+                                    if (chars[pos - 1] == '\n')
+                                    {
+                                        if(pos-1 != 0)
+                                        {   //-1 für ein pos vorher, +1 da wir ein zuviel zählen, da wir das \n der zeile davor mitzählen
+                                            cursor.column = (pos - 1 - (chars.LastIndexOf('\n', pos - 2) + 1)) % (lineLength+1);
+                                        }
+                                        else
+                                        {
+                                            cursor.column = 0;
+                                        }
+                                        if(cursor.row > 0)
+                                        {
+                                            cursor.row--;
+                                        }
+                                        pos--;
+                                        chars.RemoveAt(pos);
+                                    }
+                                    else if (((pos - chars.LastIndexOf('\n', pos - 1)) % (lineLength+1) - 1) <= 0)
+                                    {
+                                        cursor.row--;
+                                        pos--;
+                                        cursor.column = lineLength;
+                                        chars.RemoveAt(pos);
+                                    }
+                                    else
+                                    {
+                                        if (cursor.column != 0)
+                                        {
+                                            cursor.column--;
+                                        }
+                                        pos--;
+                                        chars.RemoveAt(pos);
+
+                                    }
+                                    if (cursor.column < 0)
+                                    {
+                                        cursor.column = 0;
+                                    }
+                                    printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor, controlbar);
+                                    break;
+                                }
+                            case ConsoleKey.RightArrow:
+                                {  //wenn wir auf newline stehen und nicht am ende, an den anfange der nächsten Zeile
+                                    
+                                    if (pos + 1 < chars.Count)
+                                    {
+                                        if(pos == 0 && chars[pos+1] == '\n')
+                                        {
+                                            cursor.column++;
+                                        }
+                                        else if (pos == 0)
+                                        {
+                                            cursor.column++;
+                                        }
+                                        else if (chars[pos] == '\n' || ((chars.LastIndexOf('\n', pos - 1) != -1 && pos / lineLength-1 >= 1) || (pos - chars.LastIndexOf('\n', pos - 1)) / (lineLength-1)>= 1))
+                                        {
+                                            cursor.column = 0;
+                                            cursor.row++;
+                                        }
+                                        else
+                                        {
+                                            cursor.column++;
+                                        }
+                                        if(cursor.column > lineLength+1)
+                                        {
+                                            Console.WriteLine("Error in navigation");
+                                            Console.ReadKey();
+                                            editMode = false;
+                                            cursor.column = 0;
+                                        }
+                                        pos++;
+                                    }
+                                    printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor, controlbar);
+                                    break;
+                                }
+                            case ConsoleKey.LeftArrow:
+                                { //wenn vor uns ein newline ist, sind wir am anfang der Zeile und müssen ans ende der letzten Zeile
+
+
+                                    if (pos == 0)
+                                    {
+                                        cursor.column = 0;
+                                        cursor.row = 0;
+                                        printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor, controlbar);
+                                        break;
+                                    }
+                                    if (pos == 1)
+                                    {
+                                        cursor.row = 0;
+                                        cursor.column = 0;
+                                        pos = 0;
+                                        printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor, controlbar);
+                                        break;
+                                    }
+                                    if (pos - 1 > 0)
+                                    {
+                                        if (chars[pos - 1] != '\n' && cursor.column!=0 )
+                                        {
+                                            cursor.column--;
+                                        }
+                                        else
+                                        {
+                                            if (chars[pos-1] == '\n')
+                                            {
+                                                int previous = chars.LastIndexOf('\n', pos - 2);
+                                                //Console.WriteLine($"{pos} - {previous} - 2 = {pos - previous - 2}");
+                                                //Cosmos.HAL.Global.PIT.Wait((uint)5000);
+                                                cursor.column = pos - previous - 2; //length of this line
+                                                cursor.column = cursor.column % (lineLength + 1);
+                                            }
+                                            else
+                                            {
+                                                cursor.column = lineLength;
+                                            }
+                                            cursor.row--;
+                                        }
+                                        pos--;
+                                    }
+                                    printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor, controlbar);
+                                    break;
+                                }
+
+                            case ConsoleKey.UpArrow:
+                                {
+                                    if (cursor.row != 0 && (pos > chars.IndexOf('\n') && chars.IndexOf('\n') != -1 || chars.Count >= (lineLength + 1))) //check we aren't in top row
+                                    {
+                                        cursor.row--; //go up
+                                        
+                                        if ((pos - chars.LastIndexOf('\n',pos-1) > lineLength) || (chars.LastIndexOf('\n', pos - 1) == -1) && (pos > lineLength))
+                                        {
+                                            pos -= lineLength + 1;
+                                        }
+                                        else
+                                        {
+                                            int currCol = cursor.column; //get current column
+                                            int startPrevLine = chars.LastIndexOf('\n', chars.LastIndexOf('\n', pos-1) - 1) + 1; //get start of previous line, by getting th newline before the previous newline
+                                            if (chars.LastIndexOf('\n', pos-1) - startPrevLine < currCol) //check if line is actually long enough
+                                            {
+                                                currCol = chars.LastIndexOf('\n',pos-1) - startPrevLine; //got to end of line if not
+                                            }
+                                            int lengthLine = chars.IndexOf('\n', startPrevLine) - startPrevLine;
+                                            //Console.WriteLine($"{chars.LastIndexOf('\n', pos)} - {startPrevLine} - 1 = {chars.LastIndexOf('\n', pos) - startPrevLine -1}");
+                                            //Cosmos.HAL.Global.PIT.Wait((uint)5000);
+                                            currCol = currCol % (lineLength + 1);
+                                            cursor.column = currCol;
+                                            pos = startPrevLine + ((lengthLine/(lineLength)) * (lineLength+1)) + currCol;
+                                        }
+                                    }
+                                    printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor, controlbar);
+                                    break;
+                                }
+
+                            case ConsoleKey.DownArrow:
+                                {
+                                    if (chars.IndexOf('\n', pos) < chars.LastIndexOf('\n') || chars.IndexOf('\n', pos) - (pos - cursor.column) > lineLength) //check we aren't in last line
+                                    {
+                                        cursor.row++;
+                                        int endRow = chars.IndexOf('\n', pos);
+                                        int startThisRow = chars.LastIndexOf('\n', pos)+1;
+                                        int lenRow = startThisRow / endRow;
+                                        int amountRows = lenRow / lineLength;
+                                        if (chars[pos] != '\n' && pos < (startThisRow + (amountRows*lineLength)))
+                                        {
+                                            if((pos < (startThisRow + ((amountRows-1) * lineLength)) || (pos-startThisRow)%lineLength > lenRow%lineLength))
+                                            {
+                                                pos = pos + lineLength;
+                                            }
+                                            else
+                                            {
+                                                cursor.column = lenRow % lineLength - 1;
+                                                pos = endRow;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            int currCol = cursor.column;
+                                            int startNextLine = endRow + 1; //get nextline beginning by character after end of this line
+                                            if (chars.IndexOf('\n', startNextLine) - startNextLine < currCol) //check next line is long enough
+                                            {
+                                                currCol = chars.IndexOf('\n', startNextLine) - startNextLine; //if not, set to end of next line
+                                            }
+                                            cursor.column = currCol;
+                                            //Console.WriteLine($"{currCol}");
+                                            //Cosmos.HAL.Global.PIT.Wait((uint)5000);
+                                            pos = startNextLine + currCol;
+                                        }
+                                        
+                                    }
+                                    printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor, controlbar);
+                                    break;
+                                }
+                                /*
+                            case ConsoleKey.End: //wird nicht erkannt
+                                {
+                                    int endLine = chars.IndexOf('\n', pos);
+                                    if (pos - endLine > lineLength)
+                                    {
+                                        int diff = lineLength - cursor.column;
+                                        pos = pos + diff;
+                                        cursor.column = lineLength;
+                                    }
+                                    else
+                                    {
+                                        int diff = endLine - pos;
+                                        cursor.column += diff;
+                                        pos = endLine;
+                                    }
+                                    printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor);
+                                    break;
+                                }*/
+                            default: // Regular character insertion
+                                {
+                                    chars.Insert(pos, keyInfo.KeyChar);
+                                    pos++;
+                                    cursor.column++;
+                                    if((cursor.column-1)%(lineLength + 1) == lineLength)
+                                    {
+                                        cursor.column = 0;
+                                        cursor.row++;
+                                    }
+                                    printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor, controlbar);
+                                    
+                                    break;
+                                }
+                        }
+
+                        continue;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine();
+                        pos = 0;
+                        cursor.column = 1;
+                        cursor.row = maxlines;
+                        editMode = false;
+                        controlbar = "i: Edit Mode; q: quite; wq: write and quit";
+                        infoBar = ":";
+                        printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor, controlbar);
+                        Console.WriteLine(ex.Message + "\nError Occured in edit Mode\nExiting Edit mode");
+                        Console.ReadKey();
+                        printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor, controlbar);
+
+                        continue;
+                    }
+
+                }
+
+
+                else
+                {
+                    if (keyInfo.Key == ConsoleKey.Spacebar)
+                    {
+                        continue; // Ignore Spacebar in command mode
+                    }
+                    // Command mode: single key read is used for decisions
+                    //if (keyInfo.Key == ConsoleKey.Escape)
+                    //{
+                    //    editMode = false;
+                    //    infoBar = ":";
+                    //    printMIVScreen(chars, pos, infoBar, editMode);
+                    //    continue;
+                    //}
+                    cursor.row = maxlines;
+                    if (keyInfo.Key == ConsoleKey.Backspace)
+                    {
+                        if (infoBar.Length > 1)
+                        {
+                            infoBar = infoBar.Remove(infoBar.Length - 1);
+                            if(!infoBar.StartsWith(':'))
+                            {
+                                infoBar=":";
+                            }
+                            cursor.column = infoBar.Length;
+                            printMIVScreen(chars.ToArray(), pos, infoBar, editMode,cursor, controlbar);
+                        }
+                        // if infoBar is just ":" do nothing
+                        continue;
+                    }
+
+                    if (keyInfo.Key == ConsoleKey.Enter)
+                    {
+                        try
+                        { 
                             if (infoBar == ":wq")
                             {
                                 String returnString = String.Empty;
@@ -164,108 +508,72 @@ namespace MIV
                             else if (infoBar == ":q")
                             {
                                 return null;
-
                             }
-                            else if (infoBar == ":help")
+                            else if (infoBar == ":i")
                             {
-                                printMIVStartScreen();
-                                break;
+                                editMode = true;
+                                infoBar = "-- INSERT --";
+                                controlbar = "Esc to stop edit";
+                                //find last char, find second to last newline if existent, put cursor on difference
+                                int lastNewLine = chars.LastIndexOf('\n');
+                                if (lastNewLine-1 > 0)
+                                {
+                                    int previousNewLine = chars.LastIndexOf('\n', lastNewLine - 1);
+                                    if (previousNewLine != -1)
+                                    {   //get line length for column (-1 weil chars.count bei 1 anfängt zu zählen, -1 weil das letzt \n nicht mitgezählt wird
+                                        cursor.column = chars.Count - chars.LastIndexOf('\n', lastNewLine - 1)-2;
+                                    }
+                                    else
+                                    {
+                                        cursor.column = lastNewLine;
+                                    }
+                                    if (cursor.column < 0)
+                                    {
+                                        cursor.column = 0;
+                                    }
+                                }
+                                else
+                                {
+                                    cursor.column = chars.Count - 1;
+                                }
+                                cursor.row = chars.Count(IsNewLine) - 1;
+                                pos = chars.Count - 1;
+
+                                printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor, controlbar);
+                                //Console.WriteLine($"{chars.Count},{lastNewLine},{chars.LastIndexOf('\n', lastNewLine - 1)}");
+                                continue;
                             }
                             else
                             {
-                                infoBar = "ERROR: No such command";
-                                printMIVScreen(chars, pos, infoBar, editMode);
-                                break;
+                                infoBar = "ERROR: No such command. Press any key to continue. (Command ex. \":help\")";
+                                printMIVScreen(chars.ToArray(), pos, infoBar, editMode,cursor, controlbar);
+                                Console.ReadKey(true);
+
+                                infoBar = ":";
+                                cursor.column = infoBar.Length;
+                                printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor, controlbar);
+                                continue;
                             }
-                        }
-                        else if (keyInfo.Key == ConsoleKey.Backspace)
-                        {
-                            infoBar = stringCopy(infoBar);
-                            printMIVScreen(chars, pos, infoBar, editMode);
-                        }
-                        else if (keyInfo.KeyChar == 'q')
-                        {
-                            infoBar += "q";
-                        }
-                        else if (keyInfo.KeyChar == ':')
-                        {
-                            infoBar += ":";
-                        }
-                        else if (keyInfo.KeyChar == 'w')
-                        {
-                            infoBar += "w";
-                        }
-                        else if (keyInfo.KeyChar == 'h')
-                        {
-                            infoBar += "h";
-                        }
-                        else if (keyInfo.KeyChar == 'e')
-                        {
-                            infoBar += "e";
-                        }
-                        else if (keyInfo.KeyChar == 'l')
-                        {
-                            infoBar += "l";
-                        }
-                        else if (keyInfo.KeyChar == 'p')
-                        {
-                            infoBar += "p";
-                        }
-                        else
-                        {
-                            continue;
-                        }
-                        printMIVScreen(chars, pos, infoBar, editMode);
+                        } catch (Exception e) {Console.WriteLine(e.Message); Cosmos.HAL.Global.PIT.Wait((uint)5000); }
+                    }
+                    
 
-
-
-                    } while (keyInfo.Key != ConsoleKey.Escape);
+                    // Append allowed command characters (ignore other keys)
+                    char c = keyInfo.KeyChar;
+                    if (c == 'q' || c == 'w' || c == 'i')
+                    {
+                        infoBar += c;
+                        cursor.column = infoBar.Length;
+                        printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor, controlbar);
+                    }
+                    // otherwise ignore the keypress
                 }
-
-                else if (keyInfo.Key == ConsoleKey.Escape)
-                {
-                    editMode = false;
-                    infoBar = String.Empty;
-                    printMIVScreen(chars, pos, infoBar, editMode);
-                    continue;
-                }
-
-                else if (keyInfo.Key == ConsoleKey.I && !editMode)
-                {
-                    editMode = true;
-                    infoBar = "-- INSERT --";
-                    printMIVScreen(chars, pos, infoBar, editMode);
-                    continue;
-                }
-
-                else if (keyInfo.Key == ConsoleKey.Enter && editMode && pos >= 0)
-                {
-                    chars[pos++] = '\n';
-                    printMIVScreen(chars, pos, infoBar, editMode);
-                    continue;
-                }
-                else if (keyInfo.Key == ConsoleKey.Backspace && editMode && pos >= 0)
-                {
-                    if (pos > 0) pos--;
-
-                    chars[pos] = '\0';
-
-                    printMIVScreen(chars, pos, infoBar, editMode);
-                    continue;
-                }
-
-                if (editMode && pos >= 0)
-                {
-                    chars[pos++] = keyInfo.KeyChar;
-                    printMIVScreen(chars, pos, infoBar, editMode);
-                }
-
-            } while (true);
+            }
         }
 
         public static bool isForbiddenKey(ConsoleKey key)
         {
-            ConsoleKey[] forbiddenKeys = { ConsoleKey.Print, ConsoleKey.PrintScreen, ConsoleKey.Pause, ConsoleKey.Home, ConsoleKey.PageUp, ConsoleKey.PageDown, ConsoleKey.End, ConsoleKey.NumPad0, ConsoleKey.NumPad1, ConsoleKey.NumPad2, ConsoleKey.NumPad3, ConsoleKey.NumPad4, ConsoleKey.NumPad5, ConsoleKey.NumPad6, ConsoleKey.NumPad7, ConsoleKey.NumPad8, ConsoleKey.NumPad9, ConsoleKey.Insert, ConsoleKey.F1, ConsoleKey.F2, ConsoleKey.F3, ConsoleKey.F4, ConsoleKey.F5, ConsoleKey.F6, ConsoleKey.F7, ConsoleKey.F8, ConsoleKey.F9, ConsoleKey.F10, ConsoleKey.F11, ConsoleKey.F12, ConsoleKey.Add, ConsoleKey.Divide, ConsoleKey.Multiply, ConsoleKey.Subtract, ConsoleKey.LeftWindows, ConsoleKey.RightWindows };
+            ConsoleKey[] forbiddenKeys = { ConsoleKey.Print, ConsoleKey.PrintScreen, ConsoleKey.Pause, ConsoleKey.Home, ConsoleKey.PageUp, ConsoleKey.PageDown, ConsoleKey.End, ConsoleKey.Delete, ConsoleKey.Insert, ConsoleKey.NumPad0, ConsoleKey.NumPad1, ConsoleKey.NumPad2, ConsoleKey.NumPad3, ConsoleKey.NumPad4, ConsoleKey.NumPad5, ConsoleKey.NumPad6, ConsoleKey.NumPad7, ConsoleKey.NumPad8, ConsoleKey.NumPad9, ConsoleKey.Insert, ConsoleKey.F1, ConsoleKey.F2, ConsoleKey.F3, ConsoleKey.F4, ConsoleKey.F5, ConsoleKey.F6, ConsoleKey.F7, ConsoleKey.F8, ConsoleKey.F9, ConsoleKey.F10, ConsoleKey.F11, ConsoleKey.F12, ConsoleKey.Add, ConsoleKey.Divide, ConsoleKey.Multiply, ConsoleKey.Subtract, ConsoleKey.LeftWindows, ConsoleKey.RightWindows };
             for (int i = 0; i < forbiddenKeys.Length; i++)
             {
                 if (key == forbiddenKeys[i]) return true;
@@ -273,16 +581,11 @@ namespace MIV
             return false;
         }
 
-        public static void delay(int time)
+        public static bool PrintMivCommands(string input)
         {
-            for (int i = 0; i < time; i++) ;
-        }
-
-        public static bool PrintMivCommands()
-        {
-            Console.WriteLine("Do you want to see the MIV Commands before opening the file? (yes/y/no/n)");
-            Console.WriteLine("Type \"exit\" to quit.");
-            string input = Console.ReadLine().ToLower().Trim();
+            //Console.WriteLine("Do you want to see the MIV Commands before opening the file? (yes/y/no/n)");
+            //Console.WriteLine("Type \"exit\" to quit.");
+            //string input = Console.ReadLine().ToLower().Trim();
 
             if (input == "yes" || input == "y")
             {
@@ -291,8 +594,8 @@ namespace MIV
                 Console.WriteLine(":wq - Save file and exit");
                 Console.WriteLine(":q - Exit without saving");
                 Console.WriteLine(":help - Show this help message");
-                Console.WriteLine("i - Enter writing mode");
-                Console.WriteLine("Escape - Exit writing mode or command mode");
+                Console.WriteLine(":i - Enter writing mode");
+                Console.WriteLine("Escape - Exit writing mode");
                 Console.WriteLine();
                 Console.WriteLine("Press any key to continue...");
                 Console.ReadKey();
@@ -310,25 +613,55 @@ namespace MIV
             }
             else
             {
-                Console.WriteLine("Invalid input");
-                Console.WriteLine();
-                return PrintMivCommands();
+                Console.WriteLine("Invalid input, please try again (yes/y/no/n) ");
+                input = Console.ReadLine().ToLower().Trim();
+                return PrintMivCommands(input);
             }
         }
 
-        public static void StartMIV(string file)
+        public static void StartMIV(string file, FileSystemManager fsManager)
         {
             try
             {
+                if (!File.Exists(file))
+                {
+                    string input = String.Empty;
+                    Console.WriteLine("File couldn't found. Do you want to create the file: " + file + "? (yes/y/no/n)");
+                    input = Console.ReadLine().ToLower().Trim();
+
+                    if (input == "yes" || input == "y")
+                    {
+                        if (fsManager.createFile(file) == null)
+                        {
+                            Console.WriteLine("Exiting MIV...");
+                            return;
+                        }
+
+                    }
+                    else if (input == "no" || input == "n")
+                    {
+                        Console.WriteLine("Exiting MIV...");
+                        return;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Invalid input. Exiting MIV...");
+                        return;
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("File found!");
+                }
+                /*
                 if (File.Exists(file))
                 {
-                    Console.WriteLine("Found file!");
+                    Console.WriteLine("Do you want to see the MIV Commands before opening the file? (yes/y/no/n)");
+                    Console.WriteLine("Type \"exit\" to quit.");
+                    string input = Console.ReadLine().ToLower().Trim();
+                    PrintMivCommands(input);
                 }
-                else if (!File.Exists(file))
-                {
-                    Console.WriteLine("Creating file!");
-                    File.Create(file);
-                }
+                */
                 Console.Clear();
             }
             catch (Exception ex)
@@ -357,7 +690,7 @@ namespace MIV
             else
             {
                 Console.Clear();
-                Console.WriteLine("No changes were made to " + file + " or invalid path");
+                Console.WriteLine("No changes were made on " + file);
                 
             }
         }

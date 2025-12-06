@@ -168,10 +168,7 @@ public class MivCommand : AbstractCommand
                 return;
             }
 
-            if (MIV.MIV.PrintMivCommands())
-            {
-                MIV.MIV.StartMIV(filePath);
-            }
+            MIV.MIV.StartMIV(filePath,fsManager);
         }
     }
 }
