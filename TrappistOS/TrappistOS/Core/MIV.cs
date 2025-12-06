@@ -2,6 +2,8 @@
 using System.IO;
 using Console = System.Console;
 using TrappistOS;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace MIV
 {
@@ -629,7 +631,7 @@ namespace MIV
 
                     if (input == "yes" || input == "y")
                     {
-                        if (!fsManager.createFile(file))
+                        if (fsManager.createFile(file) == null)
                         {
                             Console.WriteLine("Exiting MIV...");
                             return;
