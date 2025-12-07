@@ -6,10 +6,10 @@ public class TrappistCommand : AbstractCommand
 {
     public override string Name => "trappist";
 
-    public override string Description => "Shows a small easter egg about the TRAPPIST-1 system.";
+    public override string Description => "Description: Shows information about the TRAPPIST-1 star system.";
 
 
-    public override string Usage => "Usage: trappist\n" + "Description: Shows information about the TRAPPIST-1 star system.";
+    public override string Usage => "Usage: trappist";
     public override IEnumerable<string> Parameters => Array.Empty<string>();
 
     public override void Execute(string[] args)
