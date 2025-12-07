@@ -94,16 +94,20 @@ public class ForceShutdownCommand : AbstractCommand
     public override void Execute(string[] args)
     {
         Console.WriteLine("Are you sure you want to forcefully shutdown? Not all changes will be saved.\n(y)es/(n)o");
-        if (WaitForConfirmation())
-        {
-            Sys.Power.Shutdown();
-        }
-    }
 
-    private bool WaitForConfirmation()
-    {
-        string input = Console.ReadLine()?.Trim().ToLower();
-        return input == "y" || input == "yes";
+        if (!Kernel.WaitForConfirmation())
+        {
+            Console.WriteLine("Force shutdown aborted");
+
+            if (Kernel.AbortRequest)
+            {
+                Kernel.AbortRequest = false;
+            }
+
+            return;
+        }
+
+        Sys.Power.Shutdown();
     }
 }
 
@@ -117,16 +121,20 @@ public class ForceRebootCommand : AbstractCommand
     public override void Execute(string[] args)
     {
         Console.WriteLine("Are you sure you want to forcefully reboot? Not all changes will be saved.\n(y)es/(n)o");
-        if (WaitForConfirmation())
-        {
-            Sys.Power.Reboot();
-        }
-    }
 
-    private bool WaitForConfirmation()
-    {
-        string input = Console.ReadLine()?.Trim().ToLower();
-        return input == "y" || input == "yes";
+        if (!Kernel.WaitForConfirmation())
+        {
+            Console.WriteLine("Force reboot aborted");
+
+            if (Kernel.AbortRequest)
+            {
+                Kernel.AbortRequest = false;
+            }
+
+            return;
+        }
+
+        Sys.Power.Reboot();
     }
 }
 
