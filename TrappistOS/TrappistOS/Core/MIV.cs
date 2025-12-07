@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.AccessControl;
 using System.Data;
+using System.Threading;
 
 namespace MIV
 {
@@ -66,6 +67,14 @@ namespace MIV
                 int countChars = 0;
                 Console.Clear();
                 int writingpos = 0;
+                if (pos > chars.Length)
+                {
+                    pos = chars.Length-1;
+                }
+                if (pos < 0)
+                {
+                    pos = 0;
+                }
                 for (int i = 0; i < chars.Length; i++)
                 {
                     if (countNewLine >= lastVisibleLine)
@@ -259,17 +268,20 @@ namespace MIV
                                 }
                             case ConsoleKey.Enter:
                                 {
-                                    chars.Insert(pos, '\n');
+                                    if(pos < chars.Count)
+                                    {
+                                        chars.Insert(pos, '\n');
+                                    }
+                                    else
+                                    {
+                                        pos = chars.Count - 2;
+                                        chars.Insert(pos, '\n');
+                                    }
                                     pos++;
-                                    cursor.column = 0;
                                     if (cursor.row == maxEditorLine)
                                     {
                                         firstvisibleline++;
                                         lastVisibleLine++;
-                                    }
-                                    else
-                                    {
-                                        cursor.row++;
                                     }
                                     printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor, controlbar, firstvisibleline, lastVisibleLine);
                                     break;
@@ -603,7 +615,15 @@ namespace MIV
                                 }*/
                             default: // Regular character insertion
                                 {
-                                    chars.Insert(pos, keyInfo.KeyChar);
+                                    if (pos < chars.Count)
+                                    {
+                                        chars.Insert(pos, keyInfo.KeyChar);
+                                    }
+                                    else
+                                    {
+                                        pos = chars.Count - 2;
+                                        chars.Insert(pos, keyInfo.KeyChar);
+                                    }
                                     pos++;
                                     cursor.column++;
                                     if((cursor.column-1)%(lineLength + 1) == lineLength)
