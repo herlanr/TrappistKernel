@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 
@@ -74,12 +75,15 @@ namespace TrappistOS
                     continue; 
                 }
 
-                int[] readRights = Array.Empty<int>();
+                List<int> readRights = new List<int>();
                 string[] readerList = permissionDetails[1].Split(","); //Split readerlist into array to use
                 foreach (string reader in readerList)
                 {
-                    Array.Resize(ref readRights, readRights.Length + 1);    //convert string array to int array
-                    if (int.TryParse(reader, out readRights[readRights.Length-1])) { }
+                    int parseHelperInt;
+                    if (int.TryParse(reader, out parseHelperInt)) 
+                    {
+                        readRights.Add(parseHelperInt);
+                    }
                     else 
                     {
                         Console.WriteLine(line + " reader not int: " + reader);
@@ -87,12 +91,15 @@ namespace TrappistOS
                     }
                 }
 
-                int[] writeRights = Array.Empty<int>();
+                List<int> writeRights = new List<int>();
                 string[] writerList = permissionDetails[2].Split(","); //Split Writerlist into array to use
                 foreach (string writer in writerList)
                 {
-                    Array.Resize(ref writeRights, writeRights.Length + 1); //convert string array to int array
-                    if (int.TryParse(writer, out writeRights[writeRights.Length-1])) { }
+                    int parseHelperInt;
+                    if (int.TryParse(writer, out parseHelperInt)) 
+                    {
+                        writeRights.Add(parseHelperInt);
+                    }
                     else 
                     {
                         Console.WriteLine(line + " writer not int: " + writer);
@@ -100,7 +107,7 @@ namespace TrappistOS
                     }
                 }
 
-                FileRights currentFileRights = new FileRights(owner,readRights,writeRights); //create new object with got data
+                FileRights currentFileRights = new FileRights(owner,readRights.ToArray(),writeRights.ToArray()); //create new object with got data
 
                 try
                 {

@@ -140,13 +140,13 @@ namespace TrappistOS
         public void InitPerms(bool quiet = false)
         {
 
-            string[] allUsers = userInfo.GetAllUsers();
+            Tuple<string, int>[] allUsers = userInfo.GetAllUsersWithID();
             if (!quiet)
             {
                 Console.WriteLine("Creating user specific Directories for the following users:");
-                foreach (string user in allUsers)
+                foreach (Tuple<string, int> user in allUsers)
                 {
-                    Console.Write(user + " ");
+                    Console.Write(user.Item1 + " ");
                 }
                 Console.WriteLine();
                 Console.WriteLine("Initializing root");
@@ -156,9 +156,9 @@ namespace TrappistOS
             {
                 Console.Write("|");
             }
-            foreach (string user in allUsers)
+            foreach (Tuple<string, int> user in allUsers)
             {
-                string dirpath = fsManager.getFullPath(user);
+                string dirpath = fsManager.getFullPath(user.Item1);
                 if (dirpath == null)
                 {
                     //Console.WriteLine("inavild path creation");
@@ -171,22 +171,22 @@ namespace TrappistOS
                 }
                 if (!Directory.Exists(dirpath)) 
                 {
-                    dirpath = fsManager.createDirectory(user,true);
+                    dirpath = fsManager.createDirectory(user.Item1,true);
                     if (!quiet)
                     {
                         Console.WriteLine("Created: " + dirpath);
                     }
                 }
-                //Console.WriteLine("getting all paths");
+                Console.WriteLine("getting all paths");
                 string[] allpaths = fsManager.getAllPaths(dirpath);
                 foreach (string path in allpaths)
                 {
                     //Console.WriteLine("init permissions for " + path);
-                    if (permManager.InitPermissions(path, userInfo.GetId(user),shouldsave: false))
+                    if (permManager.InitPermissions(path, user.Item2,shouldsave: false))
                     {
                         if(!quiet)
                         {
-                            Console.WriteLine("Set Rights of " + path + " to " + user);
+                            Console.WriteLine("Set Rights of " + path + " to " + user.Item1);
                         }
                         
                     }
