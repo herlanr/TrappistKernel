@@ -9,7 +9,7 @@ public class HelpCommand : AbstractCommand
     public HelpCommand(CommandRegistry registry){ this.registry = registry; }
     public override string Name => "help";
     public override string Description => "Description: Shows available commands and their usage.";
-    public override string Usage => "Usage: help\n";
+    public override string Usage => "Usage: help";
     public override IEnumerable<string> Parameters => new[] { "-h" };
 
     public override void Execute(string[] args)
