@@ -320,23 +320,14 @@ public class InitPermsCommand : AbstractCommand
                 }
             }
             //Console.WriteLine("getting all paths");
-            string[] allpaths = fsManager.getAllPaths(dirpath);
-            foreach (string path in allpaths)
+            permManager.InitPermissions(dirpath, user.Item2, shouldsave: false);
+            if (!quiet)
             {
-                //Console.WriteLine("init permissions for " + path);
-                if (permManager.InitPermissions(path, user.Item2, shouldsave: false))
-                {
-                    if (!quiet)
-                    {
-                        Console.WriteLine("Set Rights of " + path + " to " + user.Item1);
-                    }
-
-                }
-                if (quiet)
-                {
-                    Console.Write("|");
-                }
-
+                Console.WriteLine("Set Rights of " + fsManager.getFullPath(dirpath) + " to " + userInfo.GetName(permManager.GetOwnerID(fsManager.getFullPath(dirpath)), true));
+            }
+            if (quiet)
+            {
+                Console.Write("|");
             }
         }
         if (!quiet)
