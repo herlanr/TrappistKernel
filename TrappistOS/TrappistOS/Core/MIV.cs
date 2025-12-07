@@ -113,7 +113,7 @@ namespace MIV
                     cursor.column = 0;
                     cursor.row = 0;
                 }
-                Console.Write($"pos: {pos} x: {cursor.column} y: {cursor.row} fvl:{firstVisibleLine} lvv: {lastVisibleLine} mvl: {maxEditorLine}");
+                //Console.Write($"pos: {pos} x: {cursor.column} y: {cursor.row} fvl:{firstVisibleLine} lvv: {lastVisibleLine} mvl: {maxEditorLine}");
                 if (editMode)
                 {
                     Console.Write(" " + (countNewLine + 1) + "," + countChars);
