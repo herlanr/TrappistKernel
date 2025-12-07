@@ -280,7 +280,7 @@ namespace TrappistOS
             registry.Register(new ChangePwdCommand(userInfo));
             registry.Register(new MivCommand(fsManager, permManager, userInfo));
             registry.Register(new SnakeCommand());
-            registry.Register(new HelpCommand());
+            registry.Register(new HelpCommand(registry));
             registry.Register(new TrappistCommand());
         }
         
