@@ -2,6 +2,7 @@ using TrappistOS;
 using System;
 using Sys = Cosmos.System;
 using System.Collections.Generic;
+using System.IO;
 
 public class FreeSpaceCommand : AbstractCommand
 {
@@ -93,16 +94,20 @@ public class ForceShutdownCommand : AbstractCommand
     public override void Execute(string[] args)
     {
         Console.WriteLine("Are you sure you want to forcefully shutdown? Not all changes will be saved.\n(y)es/(n)o");
-        if (WaitForConfirmation())
-        {
-            Sys.Power.Shutdown();
-        }
-    }
 
-    private bool WaitForConfirmation()
-    {
-        string input = Console.ReadLine()?.Trim().ToLower();
-        return input == "y" || input == "yes";
+        if (!Kernel.WaitForConfirmation())
+        {
+            Console.WriteLine("Force shutdown aborted");
+
+            if (Kernel.AbortRequest)
+            {
+                Kernel.AbortRequest = false;
+            }
+
+            return;
+        }
+
+        Sys.Power.Shutdown();
     }
 }
 
@@ -116,16 +121,20 @@ public class ForceRebootCommand : AbstractCommand
     public override void Execute(string[] args)
     {
         Console.WriteLine("Are you sure you want to forcefully reboot? Not all changes will be saved.\n(y)es/(n)o");
-        if (WaitForConfirmation())
-        {
-            Sys.Power.Reboot();
-        }
-    }
 
-    private bool WaitForConfirmation()
-    {
-        string input = Console.ReadLine()?.Trim().ToLower();
-        return input == "y" || input == "yes";
+        if (!Kernel.WaitForConfirmation())
+        {
+            Console.WriteLine("Force reboot aborted");
+
+            if (Kernel.AbortRequest)
+            {
+                Kernel.AbortRequest = false;
+            }
+
+            return;
+        }
+
+        Sys.Power.Reboot();
     }
 }
 
@@ -158,23 +167,29 @@ public class MivCommand : AbstractCommand
             return;
         }
 
-        if (args.Length == 2)
+        string filePath = fsManager.getFullPath(args[1]);
+
+        if (System.IO.Directory.Exists(filePath))
         {
-            string filePath = fsManager.getFullPath(args[1]);
+            Console.WriteLine("Cannot open a directory in MIV.");
+            return;
+        }
 
-            if (!permManager.IsWriter(filePath, userInfo.GetId()) && !userInfo.IsAdmin())
-            {
-                Console.WriteLine("You do not have permission to edit this file");
-                return;
-            }
+        if (!permManager.IsWriter(filePath, userInfo.GetId()) && !userInfo.IsAdmin())
+        {
+            Console.WriteLine("You do not have permission to edit this file.");
+            return;
+        }
 
-            if (MIV.MIV.PrintMivCommands())
-            {
-                MIV.MIV.StartMIV(filePath);
-            }
+        Kernel.AbortRequest = false;
+
+        if (MIV.MIV.PrintMivCommands())
+        {
+            MIV.MIV.StartMIV(filePath);
         }
     }
 }
+
 public class SnakeCommand : AbstractCommand
 {
     public override string Name => "snake";

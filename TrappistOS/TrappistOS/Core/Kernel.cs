@@ -22,6 +22,8 @@ namespace TrappistOS
         CommandRegistry registry;
         List<string> commandList;
 
+        private static readonly Random _rng = new Random();
+
         protected override void BeforeRun()
         {
             Console.WriteLine("TrappistOS booting");
@@ -58,6 +60,15 @@ namespace TrappistOS
                     Console.WriteLine("Commands initialized");
 
                     Console.Clear();
+
+                    if (_rng.Next(10) == 0)   // 0..9 → genau 10 %
+                    {
+                        Console.WriteLine();
+                        Console.WriteLine("Orbit locked.");
+                        Console.WriteLine("Habitable zone detected around TRAPPIST-1.");
+                        Console.WriteLine("Preparing TrappistOS command interface...");
+                        Console.WriteLine();
+                    }
 
                     Console.WriteLine("TrappistOS booted up!");
                     break;
@@ -269,7 +280,8 @@ namespace TrappistOS
             registry.Register(new ChangePwdCommand(userInfo));
             registry.Register(new MivCommand(fsManager, permManager, userInfo));
             registry.Register(new SnakeCommand());
-            registry.Register(new HelpCommand(registry));
+            registry.Register(new HelpCommand());
+            registry.Register(new TrappistCommand());
         }
         
     }

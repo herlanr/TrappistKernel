@@ -55,28 +55,24 @@ public class SetOwnerCommand : AbstractCommand
             return;
         }
         Console.WriteLine($"Do you want to give Ownership of {args[1]} to {args[2]}?\nThis action is not reversable.\n(y)es/(n)o");
-        
-        if (WaitForConfirmation())
-        {
-            permManager.SetOwner(fsManager.getFullPath(args[1]), userInfo.GetId(args[2]));
-            permManager.SetReader(fsManager.getFullPath(args[1]), userInfo.GetId(args[2]),true);
-            permManager.SetWriter(fsManager.getFullPath(args[1]), userInfo.GetId(args[2]),true);
-            Console.WriteLine("Successfully changed Owner to " + args[2]);
-            permManager.SavePermissions();
-        }
-        else
+
+        if (!Kernel.WaitForConfirmation())
         {
             Console.WriteLine("Change aborted.");
+
+            if (Kernel.AbortRequest)
+            {
+                Kernel.AbortRequest = false;
+            }
+
+            return;
         }
 
-        
-
-    }
-
-    private bool WaitForConfirmation()
-    {
-        string input = Console.ReadLine()?.Trim().ToLower();
-        return input == "y" || input == "yes";
+        permManager.SetOwner(fsManager.getFullPath(args[1]), userInfo.GetId(args[2]));
+        permManager.SetReader(fsManager.getFullPath(args[1]), userInfo.GetId(args[2]), true);
+        permManager.SetWriter(fsManager.getFullPath(args[1]), userInfo.GetId(args[2]), true);
+        Console.WriteLine("Successfully changed Owner to " + args[2]);
+        permManager.SavePermissions();
     }
 }
 
