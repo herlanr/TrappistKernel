@@ -107,11 +107,17 @@ namespace MIV
                 //PRINT INSTRUCTION
                 Console.WriteLine(controlbar);
                 Console.Write(infoBar);
-                if((cursor.row < 0 || cursor.column < 0 || pos == 0) && editMode)
+                if(pos<0 && editMode)
                 {
-                    pos = 0;
-                    cursor.column = 0;
-                    cursor.row = 0;
+                    throw new ArgumentOutOfRangeException($"Pos below 0, recieved Value: {pos}");
+                }
+                if(cursor.column < 0)
+                {
+                    throw new ArgumentOutOfRangeException($"Column below 0, recieved Value: {cursor.column}");
+                }
+                if (cursor.row < 0)
+                {
+                    throw new ArgumentOutOfRangeException($"Row below 0, recieved Value: {cursor.row}");
                 }
                 //Console.Write($"pos: {pos} x: {cursor.column} y: {cursor.row} fvl:{firstVisibleLine} lvv: {lastVisibleLine} mvl: {maxEditorLine}");
                 if (editMode)
@@ -122,7 +128,7 @@ namespace MIV
             }
             catch (Exception e)
             {
-                throw new SystemException($"Error while Drawing:{e.Message}");
+                throw new SystemException($"Error while Drawing: {e.Message}");
             }
         }
 
@@ -225,6 +231,10 @@ namespace MIV
                         if(cursor.row == 0 && cursor.column == 0 && firstvisibleline == 0)
                         {
                             pos = 0;
+                        }
+                        if (pos < 0)
+                        {
+                            throw new ArgumentOutOfRangeException("pos", null, "Pos is below 0");
                         }
                         // Edit mode: behave like insert mode
                         switch (keyInfo.Key)
