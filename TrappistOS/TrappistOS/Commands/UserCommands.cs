@@ -227,10 +227,11 @@ public class CreateUserCommand : AbstractCommand
     {
         if (args.Length == 1)
         {  
+
             int newUser = userInfo.CreateUser(false); 
             string newdir = fsManager.createDirectory(rootDir + userInfo.GetName(newUser,true));
 
-            Console.WriteLine("init perms now");
+            Console.WriteLine($"init perms for {newdir}");
             permManager.InitPermissions(newdir, newUser);
             Console.WriteLine("Login as this User? \n(y)es/(n)o");
 
@@ -247,7 +248,7 @@ public class CreateUserCommand : AbstractCommand
                 {
                     int newUser = userInfo.CreateUser(true);
                     string newdir = fsManager.createDirectory(rootDir + userInfo.GetName(newUser,true));
-                    Console.WriteLine("init perms second");
+                    Console.WriteLine($"init perms for {newdir}");
                     permManager.InitPermissions(newdir, newUser);
                 }
                 else

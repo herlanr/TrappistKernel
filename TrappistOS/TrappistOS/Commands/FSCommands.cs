@@ -322,7 +322,7 @@ public class RmDirCommand : AbstractCommand
             return;
         }
 
-        if (!permManager.IsWriter(fsManager.getFullPath(args[1]), userInfo.GetId()) && !userInfo.IsAdmin())
+        if (!permManager.IsWriter(fsManager.getFullPath(args[1]), userInfo.GetId(), false) && !userInfo.IsAdmin())
         {
             Console.WriteLine("You do not have permissions to delete this directory.");
             return;
