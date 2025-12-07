@@ -18,8 +18,8 @@ public class LoginCommand : AbstractCommand
     }
 
     public override string Name => "login";
-    public override string Description => "Logs into your account.";
-    public override string Usage => "Usage: login\nDescription: Login to your account.";
+    public override string Description => "Description: Login to your account.";
+    public override string Usage => "Usage: login";
     public override IEnumerable<string> Parameters => new[] { "-h" };
     public override void Execute(string[] args)
     {
@@ -34,6 +34,7 @@ public class LoginCommand : AbstractCommand
         else
         {
             Console.WriteLine(Usage);
+            Console.WriteLine(Description);
         }
     }
 }
@@ -54,8 +55,8 @@ public class LogoutCommand : AbstractCommand
     }
 
     public override string Name => "logout";
-    public override string Description => "Logs out of your account.";
-    public override string Usage => "Usage: logout\nDescription: Logout from your account.";
+    public override string Description => "Description: Logout from your account.";
+    public override string Usage => "Usage: logout";
     public override IEnumerable<string> Parameters => new[] { "-h" };
     public override void Execute(string[] args)
     {
@@ -70,6 +71,7 @@ public class LogoutCommand : AbstractCommand
         else
         {
             Console.WriteLine(Usage);
+            Console.WriteLine(Description);
         }
     }
 }
@@ -84,8 +86,8 @@ public class ListUsersCommand : AbstractCommand
     }
 
     public override string Name => "listusers"; 
-    public override string Description => "Lists all registered users.";
-    public override string Usage => "Usage: lusrs / listusers\nDescription: Displays all users in the system.";
+    public override string Description => "Description: Displays all users in the system.";
+    public override string Usage => "Usage: listusers";
     public override IEnumerable<string> Parameters => new[] { "-h" };
     public override void Execute(string[] args)
     {
@@ -113,8 +115,8 @@ public class DeleteUserCommand : AbstractCommand
     }
 
     public override string Name => "delusr";
-    public override string Description => "Deletes a user account (admin only).";
-    public override string Usage => "Usage: delusr / deleteuser [username]\nDescription: Deletes a user account (only available to admins).";
+    public override string Description => "Description: Deletes a user account (admin only).";
+    public override string Usage => "Usage: delusr [username]";
     public override IEnumerable<string> Parameters => new[] { "-h" };
     public override void Execute(string[] args)
     {
@@ -187,6 +189,7 @@ public class DeleteUserCommand : AbstractCommand
         else
         {
             Console.WriteLine(Usage);
+            Console.WriteLine(Description);
 
         }
     }
@@ -214,12 +217,11 @@ public class CreateUserCommand : AbstractCommand
     }
 
     public override string Name => "createuser";
-    public override string Description => "Creates a new user account.";
-    public override string Usage => "Usage: mkusr / createuser [-a]\n" +
-                                    "Description: Creates a new user account.\n" +
-                                    "Available Arguments:\n" +
-                                    "  -h: help\n" +
-                                    "  -a: create Admin (Only Admins can create Admins)";
+    public override string Description =>   "Description: Creates a new user account.\n" +
+                                            "Available Arguments:\n" +
+                                            "  -h: help\n" +
+                                            "  -a: create Admin (Only Admins can create Admins)";
+    public override string Usage => "Usage: createuser [-a]";
     public override IEnumerable<string> Parameters => new[] { "-h", "-a"};
     public override void Execute(string[] args)
     {
@@ -255,6 +257,7 @@ public class CreateUserCommand : AbstractCommand
             else
             {
                 Console.WriteLine(Usage);
+                Console.WriteLine(Description);
             }
         }
         
@@ -278,13 +281,14 @@ public class ChangePwdCommand : AbstractCommand
 
     public override string Name => "changepwd";
     public override string Description => "Changes the password of the current user.";
-    public override string Usage => "Usage: changepwd\nDescription: Change your account password.";
+    public override string Usage => "Usage: changepwd";
     public override IEnumerable<string> Parameters => new[] { "-h" };
     public override void Execute(string[] args)
     {
         if(args.Length != 1)
         {
             Console.WriteLine(Usage);
+            Console.WriteLine(Description);
             return;
         }
         if (!(userInfo.GetName(true) == "Visitor"))

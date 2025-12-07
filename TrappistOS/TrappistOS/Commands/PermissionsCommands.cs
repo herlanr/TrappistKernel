@@ -18,18 +18,19 @@ public class SetOwnerCommand : AbstractCommand
     }
 
     public override string Name => "setowner";
-    public override string Description => "Changes the owner of the specified file/directory to the specified account.";
-    public override string Usage => "Usage: setowner <path> <new owner>\n" +
-                                    "Description: Changes the owner of the specified file/directory to the specified account.\n" +
-                                    "Can only be done by the current file owner.\n" +
-                                    "Available Arguments:\n" +
-                                    "  -h: help";
+    public override string Description =>   "Description: Changes the owner of the specified file/directory to the specified account.\n" +
+                                            "Can only be done by the current file owner.\n" +
+                                            "Available Arguments:\n" +
+                                            "  -h: help";
+    public override string Usage => "Usage: setowner <path> <new owner>";
+                                    
     public override IEnumerable<string> Parameters => new[] { "-h" };
     public override void Execute(string[] args)
     {
         if (args.Length < 3 || args[1] == "-h")
         {
             Console.WriteLine(Usage);
+            Console.WriteLine(Description);
             return;
         }
         if (args[2] == "system")
@@ -92,13 +93,12 @@ public class GivePermissionsCommand : AbstractCommand
     }
 
     public override string Name => "gperm";
-    public override string Description => "Gives read/write permissions to a specified user for a file or directory.";
-    public override string Usage => "Usage: gperm / givepermissions <path> <user> [-r] [-w]\n" +
-                                    "Description: Grants read and/or write permissions to a user for the specified file/directory.\n" +
-                                    "Available Arguments:\n" +
-                                    "  -h: help\n" +
-                                    "  -r: grant read permission\n" +
-                                    "  -w: grant write permission";
+    public override string Description =>   "Description: Grants read and/or write permissions to a user for the specified file/directory.\n" +
+                                            "Available Arguments:\n" +
+                                            "  -h: help\n" +
+                                            "  -r: grant read permission\n" +
+                                            "  -w: grant write permission";
+    public override string Usage => "Usage: gperm / givepermissions <path> <user> [-r] [-w]";
     public override IEnumerable<string> Parameters => new[] { "-h", "-r", "w"};
 
     public override void Execute(string[] args)
@@ -106,6 +106,7 @@ public class GivePermissionsCommand : AbstractCommand
         if (args.Length < 4 || args.Contains("-h"))
         {
             Console.WriteLine(Usage);
+            Console.WriteLine(Description);
             return;
         }
         if (args[2] == "system")
@@ -176,19 +177,19 @@ public class TakePermissionsCommand : AbstractCommand
     }
 
     public override string Name => "tperm"; 
-    public override string Description => "Removes read/write permissions from a specified user for a file or directory.";
-    public override string Usage => "Usage: tperm / takepermissions <path> <user> [-r] [-w]\n" +
-                                    "Description: Removes read and/or write permissions from a user for the specified file/directory.\n" +
-                                    "Available Arguments:\n" +
-                                    "  -h: help\n" +
-                                    "  -r: remove read permission\n" +
-                                    "  -w: remove write permission";
+    public override string Description =>   "Description: Removes read and/or write permissions from a user for the specified file/directory.\n" +
+                                            "Available Arguments:\n" +
+                                            "  -h: help\n" +
+                                            "  -r: remove read permission\n" +
+                                            "  -w: remove write permission";
+    public override string Usage => "Usage: tperm / takepermissions <path> <user> [-r] [-w]";
     public override IEnumerable<string> Parameters => new[] { "-h", "-r", "w"};
     public override void Execute(string[] args)
     {
         if (args.Length < 4 || args.Contains("-h"))
         {
             Console.WriteLine(Usage);
+            Console.WriteLine(Description);
             return;
         }
         if (args[2] == "system")
@@ -257,15 +258,16 @@ public class InitPermsCommand : AbstractCommand
     }
 
     public override string Name => "initperms";
-    public override string Description => "Initializes file permissions. Only available to Admins.";
-    public override string Usage => "Usage: initperms\nDescription: Initializes file permissions. Only available to Admins.";
+    public override string Description => "Description: Initializes file permissions. Only available to Admins.";
+    public override string Usage => "Usage: initperms\n";
     public override IEnumerable<string> Parameters => new[] { "-h" };
     public override void Execute(string[] args)
     {
         if (args.Length != 1)
             { 
                 Console.WriteLine(Usage);
-                return;
+                Console.WriteLine(Description);
+            return;
             }
             if (!userInfo.IsAdmin())
             {
@@ -384,13 +386,14 @@ public class ClearPermsCommand : AbstractCommand
 
     public override string Name => "clearperms";
     public override string Description => "Clears all file permissions. Only available to Admins.";
-    public override string Usage => "Usage: clearperms\nDescription: Clears all file permissions. Only available to Admins.";
+    public override string Usage => "Usage: clearperms";
     public override IEnumerable<string> Parameters => new[] { "-h" };
     public override void Execute(string[] args)
     {
         if (args.Length != 1)
         {
             Console.WriteLine(Usage);
+            Console.WriteLine(Description);
             return;
         }
         if (!userInfo.IsAdmin())
@@ -417,17 +420,18 @@ public class PermissionsCommand : AbstractCommand
     }
 
     public override string Name => "perm";
-    public override string Description => "Shows the owner, readers, and writers of a file or directory.";
-    public override string Usage => "Usage: perm / permissions <file name>\n" +
-                                    "Description: Displays the owner, readers, and writers of a file or directory.\n" +
-                                    "Available Arguments:\n" +
-                                    "  -h: help";
+    public override string Description => "Description: Displays the owner, readers, and writers of a file or directory.\n" +
+                                          "Available Arguments:\n" +
+                                          "  -h: help";
+    public override string Usage => "Usage: perm / permissions <file name>";
+                                    
     public override IEnumerable<string> Parameters => new[] { "-h" };
     public override void Execute(string[] args)
     {
         if (args.Length < 2 || args[1] == "-h")
         {
             Console.WriteLine(Usage);
+            Console.WriteLine(Description);
             return;
         }
 
@@ -488,8 +492,8 @@ public class SavePermsCommand : AbstractCommand
     }
 
     public override string Name => "saveperms";
-    public override string Description => "Saves all current file permissions.";
-    public override string Usage => "Usage: saveperms\nDescription: Saves all file permissions.";
+    public override string Description => "Description: Saves all file permissions.";
+    public override string Usage => "Usage: saveperms";
     public override IEnumerable<string> Parameters => new[] { "-h" };
     public override void Execute(string[] args)
     {
@@ -500,6 +504,7 @@ public class SavePermsCommand : AbstractCommand
         else
         {
             Console.WriteLine(Usage);
+            Console.WriteLine(Description);
         }
     }
 }
