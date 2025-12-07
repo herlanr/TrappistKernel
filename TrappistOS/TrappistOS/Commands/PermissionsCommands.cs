@@ -280,94 +280,85 @@ public class InitPermsCommand : AbstractCommand
     }
 
     public void InitPerms(bool quiet = false)
-        {
+    {
 
-            string[] allUsers = userInfo.GetAllUsers();
+        Tuple<string, int>[] allUsers = userInfo.GetAllUsersWithID();
+        if (!quiet)
+        {
+            Console.WriteLine("Creating user specific Directories for the following users:");
+            foreach (Tuple<string, int> user in allUsers)
+            {
+                Console.Write(user.Item1 + " ");
+            }
+            Console.WriteLine();
+            Console.WriteLine("Initializing root");
+        }
+        permManager.InitPermissions(rootDir, userInfo.visitorid);
+        if (quiet)
+        {
+            Console.Write("|");
+        }
+        foreach (Tuple<string, int> user in allUsers)
+        {
+            string dirpath = fsManager.getFullPath(user.Item1);
+            if (dirpath == null)
+            {
+                //Console.WriteLine("inavild path creation");
+                continue;
+            }
+            if (File.Exists(dirpath))
+            {
+                //Console.WriteLine("Error: File with Username " + user + " already exists.");
+                continue;
+            }
+            if (!Directory.Exists(dirpath))
+            {
+                dirpath = fsManager.createDirectory(user.Item1, true);
+                if (!quiet)
+                {
+                    Console.WriteLine("Created: " + dirpath);
+                }
+            }
+            //Console.WriteLine("getting all paths");
+            permManager.InitPermissions(dirpath, user.Item2, shouldsave: false);
             if (!quiet)
             {
-                Console.WriteLine("Creating user specific Directories for the following users:");
-                foreach (string user in allUsers)
-                {
-                    Console.Write(user + " ");
-                }
-                Console.WriteLine();
-                Console.WriteLine("Initializing root");
+                Console.WriteLine("Set Rights of " + fsManager.getFullPath(dirpath) + " to " + userInfo.GetName(permManager.GetOwnerID(fsManager.getFullPath(dirpath)), true));
             }
-            permManager.InitPermissions(rootDir,userInfo.visitorid);
-            if(quiet)
+            if (quiet)
             {
                 Console.Write("|");
             }
-            foreach (string user in allUsers)
-            {
-                string dirpath = fsManager.getFullPath(user);
-                if (dirpath == null)
-                {
-                    //Console.WriteLine("inavild path creation");
-                    continue;
-                }
-                if (File.Exists(dirpath))
-                {
-                    //Console.WriteLine("Error: File with Username " + user + " already exists.");
-                    continue;
-                }
-                if (!Directory.Exists(dirpath)) 
-                {
-                    dirpath = fsManager.createDirectory(user,true);
-                    if (!quiet)
-                    {
-                        Console.WriteLine("Created: " + dirpath);
-                    }
-                }
-                //Console.WriteLine("getting all paths");
-                string[] allpaths = fsManager.getAllPaths(dirpath);
-                foreach (string path in allpaths)
-                {
-                    //Console.WriteLine("init permissions for " + path);
-                    if (permManager.InitPermissions(path, userInfo.GetId(user),shouldsave: false))
-                    {
-                        if(!quiet)
-                        {
-                            Console.WriteLine("Set Rights of " + path + " to " + user);
-                        }
-                        
-                    }
-                    if (quiet)
-                    {
-                        Console.Write("|");
-                    }
-
-                }
-            }
-            if(!quiet)
-            {
-                Console.WriteLine();
-                Console.WriteLine("intializing Remaining files");
-            }
-            
-            string[] rootpaths = fsManager.getAllPaths(fsManager.getCurrentDir());
-            foreach (string path in rootpaths)
-            {
-                if (permManager.InitPermissions(fsManager.getFullPath(path),shouldsave: false))
-                {
-                    if(!quiet)
-                    {
-                        Console.WriteLine("Set Rights of " + fsManager.getFullPath(path) + " to " + userInfo.GetName(permManager.GetOwnerID(fsManager.getFullPath(path)), true));
-                    }
-                    
-                }
-                if (quiet)
-                {
-                    Console.Write("|");
-                }
-            }
-            if(!quiet)
-            {
-                Console.WriteLine("initialization Successful");
-            }
-            
-            permManager.SavePermissions();
         }
+        if (!quiet)
+        {
+            Console.WriteLine();
+            Console.WriteLine("intializing Remaining files");
+        }
+
+        string[] rootpaths = fsManager.getAllPaths(fsManager.getCurrentDir());
+        foreach (string path in rootpaths)
+        {
+            if (permManager.InitPermissions(fsManager.getFullPath(path), shouldsave: false))
+            {
+                if (!quiet)
+                {
+                    Console.WriteLine("Set Rights of " + fsManager.getFullPath(path) + " to " + userInfo.GetName(permManager.GetOwnerID(fsManager.getFullPath(path)), true));
+                }
+
+            }
+            if (quiet)
+            {
+                Console.Write("|");
+            }
+        }
+        if (!quiet)
+        {
+            Console.WriteLine("initialization Successful");
+        }
+
+        permManager.SavePermissions();
+    }
 }
 
 public class ClearPermsCommand : AbstractCommand

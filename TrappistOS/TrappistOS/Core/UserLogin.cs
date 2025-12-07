@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
+using System.Reflection.PortableExecutable;
 
 namespace TrappistOS
 {
@@ -650,6 +652,31 @@ namespace TrappistOS
                 }
 
                 result.Add(elements[1]);
+            }
+            return result.ToArray();
+        }
+
+        public Tuple<string,int>[] GetAllUsersWithID()
+        {
+            string[] users = File.ReadAllLines(filepath);
+            List<Tuple<string,int>> result = new List<Tuple<string, int>>();
+
+            foreach (string user in users) //look through file for user
+            {
+                string[] elements = user.Split(' ');
+
+                if (elements.Length != 3)
+                {
+                    if (elements[0] == "")
+                    { continue; }
+                    continue;
+                }
+                int parseHelperInt = 0;
+                if (int.TryParse(elements[0], out parseHelperInt))
+                {
+                    result.Add(new Tuple<string, int>(elements[1], parseHelperInt));
+                }
+                
             }
             return result.ToArray();
         }
