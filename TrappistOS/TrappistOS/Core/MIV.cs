@@ -4,6 +4,7 @@ using Console = System.Console;
 using TrappistOS;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.AccessControl;
 
 namespace MIV
 {
@@ -149,7 +150,7 @@ namespace MIV
         {
             Boolean editMode = false;
             int pos = 0;
-            List<char> chars = new List<char>();
+            List<char> chars = new List<char>('\n');
             String infoBar = ":";
             String controlbar = "i: Edit Mode; q: quite; wq: write and quit";
             CursorPos cursor = new CursorPos(maxlines, infoBar.Length);
@@ -162,7 +163,10 @@ namespace MIV
             else
             {
                 chars = start.ToList();
-                
+                if(chars.Count <= 0)
+                {
+                    chars.Add('\n');
+                }
                 if (chars.Last() != '\n')
                 {
                     chars.Add('\n');
@@ -670,8 +674,12 @@ namespace MIV
             }
 
             String text = String.Empty;
-            text = miv(File.ReadAllText(file));
-
+            try
+            {
+                string filetext = File.ReadAllText(file);
+                text = miv(filetext);
+            }
+            catch(Exception ex) {Console.WriteLine($"{ex.Message}\nExiting MIV..."); return; }
             // Wenn Strg+C gedrückt wurde -> nichts speichern, nur Meldung
             if (Kernel.AbortRequest)
             {
