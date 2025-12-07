@@ -139,7 +139,7 @@ public class DeleteUserCommand : AbstractCommand
                 }
                 Console.WriteLine($"Are you sure you want to delete {args[1]}? (y)es/(n)o");
 
-                if (!WaitForConfirmation())
+                if (!Kernel.WaitForConfirmation())
                 {
                     Console.WriteLine("Deletion aborted");
                     return;
@@ -190,12 +190,6 @@ public class DeleteUserCommand : AbstractCommand
 
         }
     }
-
-    private bool WaitForConfirmation()
-    {
-        string input = Console.ReadLine()?.Trim().ToLower();
-        return input == "y" || input == "yes";
-    }
 }
 
 public class CreateUserCommand : AbstractCommand
@@ -233,7 +227,16 @@ public class CreateUserCommand : AbstractCommand
             permManager.InitPermissions(newdir, newUser);
             Console.WriteLine("Login as this User? \n(y)es/(n)o");
 
-            if (WaitForConfirmation())
+            if (!Kernel.WaitForConfirmation())
+            {
+                Console.WriteLine("Auto-login aborted");
+
+                if (Kernel.AbortRequest)
+                {
+                    Kernel.AbortRequest = false;
+                }
+            }
+            else
             {
                 userInfo.AutoLogin(newUser);
             }
@@ -259,12 +262,6 @@ public class CreateUserCommand : AbstractCommand
             }
         }
         
-    }
-
-    private bool WaitForConfirmation()
-    {
-        string input = Console.ReadLine()?.Trim().ToLower();
-        return input == "y" || input == "yes";
     }
 }
 
