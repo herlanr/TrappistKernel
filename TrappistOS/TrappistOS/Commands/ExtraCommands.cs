@@ -174,10 +174,8 @@ public class MivCommand : AbstractCommand
 
         Kernel.AbortRequest = false;
 
-        if (MIV.MIV.PrintMivCommands())
-        {
-            MIV.MIV.StartMIV(filePath);
-        }
+        MIV.MIV.StartMIV(filePath,fsManager);
+
     }
 }
 

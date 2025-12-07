@@ -198,6 +198,7 @@ namespace MIV
                                     editMode = false;
                                     infoBar = ":";
                                     controlbar = "i: Edit Mode; q: quite; wq: write and quit";
+                                    cursor = new CursorPos(maxlines, infoBar.Length);
                                     printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor, controlbar);
                                     break;
                                 }
@@ -525,11 +526,11 @@ namespace MIV
                                     int previousNewLine = chars.LastIndexOf('\n', lastNewLine - 1);
                                     if (previousNewLine != -1)
                                     {   //get line length for column (-1 weil chars.count bei 1 anfängt zu zählen, -1 weil das letzt \n nicht mitgezählt wird
-                                        cursor.column = chars.Count - chars.LastIndexOf('\n', lastNewLine - 1)-2;
+                                        cursor.column = (chars.Count - chars.LastIndexOf('\n', lastNewLine - 1)-2)%(lineLength+1);
                                     }
                                     else
                                     {
-                                        cursor.column = lastNewLine;
+                                        cursor.column = lastNewLine %( lineLength+1);
                                     }
                                     if (cursor.column < 0)
                                     {
@@ -540,7 +541,7 @@ namespace MIV
                                 {
                                     cursor.column = chars.Count - 1;
                                 }
-                                cursor.row = chars.Count(IsNewLine) - 1;
+                                cursor.row = NewLines(chars.ToArray())-1;
                                 pos = chars.Count - 1;
 
                                 printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor, controlbar);
