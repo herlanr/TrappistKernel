@@ -304,7 +304,7 @@ public class RmDirCommand : AbstractCommand
 
     public override string Name => "rmd";
     public override string Description => "Deletes the specified directory.";
-    public override string Usage => "Usage: rmd / rmdir <directory name>\n" +
+    public override string Usage => "Usage: rmd <directory name>\n" +
                                     "Description: Deletes the specified directory.\n" +
                                     "Available Arguments:\n" +
                                     "  -h: help";
@@ -322,7 +322,7 @@ public class RmDirCommand : AbstractCommand
             return;
         }
 
-        if (!permManager.IsWriter(fsManager.getFullPath(args[1]), userInfo.GetId()) && !userInfo.IsAdmin())
+        if (!permManager.IsWriter(fsManager.getFullPath(args[1]), userInfo.GetId(), false) && !userInfo.IsAdmin())
         {
             Console.WriteLine("You do not have permissions to delete this directory.");
             return;

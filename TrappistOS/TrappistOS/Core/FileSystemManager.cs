@@ -60,13 +60,20 @@ namespace TrappistOS
         {
             filename = filename.Replace('/','\\');
             string path = Path.Combine(currentDir, filename);
-
             int dotlocation = -1;
             dotlocation = path.IndexOf('.');
-            while(dotlocation != path.IndexOf("..") && dotlocation != path.IndexOf("..")+1)
+            while (dotlocation != -1)
             {
-                path.Remove(dotlocation);
-                dotlocation = path.IndexOf('.', dotlocation+1);
+                if (dotlocation != path.IndexOf("..") && dotlocation != path.IndexOf("..") + 1 && path[dotlocation - 1] == '\\')
+                {
+                    path = path.Remove(dotlocation);
+                    dotlocation = path.IndexOf('.', dotlocation+1);
+                }
+                else
+                {
+                    dotlocation = path.IndexOf('.', dotlocation + 1);
+                }
+                
             }
             
 
@@ -172,7 +179,6 @@ namespace TrappistOS
         public string createDirectory(string dirName, bool quiet = false)
         {
             string path = getFullPath(dirName);
-            Console.WriteLine(path);
             try
             {
                 if (!Directory.Exists(path) && !File.Exists(path))
@@ -181,7 +187,7 @@ namespace TrappistOS
                     {
                         Console.WriteLine("Directory successfully created: " + path);
                     }
-                    
+                    Directory.CreateDirectory(path);
                     return path;
                 }
                 else
