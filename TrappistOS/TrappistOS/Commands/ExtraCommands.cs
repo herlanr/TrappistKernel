@@ -174,19 +174,16 @@ public class MivCommand : AbstractCommand
             Console.WriteLine("Cannot open a directory in MIV.");
             return;
         }
-
         if (!permManager.IsWriter(filePath, userInfo.GetId()) && !userInfo.IsAdmin())
         {
-            Console.WriteLine("You do not have permission to edit this file.");
+            Console.WriteLine("You do not have permission to edit this file");
             return;
         }
 
         Kernel.AbortRequest = false;
 
-        if (MIV.MIV.PrintMivCommands())
-        {
-            MIV.MIV.StartMIV(filePath);
-        }
+        MIV.MIV.StartMIV(filePath,fsManager);
+
     }
 }
 

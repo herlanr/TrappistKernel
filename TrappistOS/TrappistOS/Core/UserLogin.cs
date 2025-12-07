@@ -43,7 +43,7 @@ namespace TrappistOS
             {
                 currentUser = VisitorLogin();
             }
-            return currentUser.id < maxAdminID;
+            return currentUser.id <= maxAdminID;
         }
 
         public bool IsVisitor() //Admincheck
