@@ -266,9 +266,21 @@ namespace TrappistOS
 
         public int CreateUser(bool isAdmin)
         {
-            Console.Write("username: ");
-            string username = Console.ReadLine();
-            
+            string username = string.Empty;
+            while (true)
+            {
+                Console.Write("username: ");
+                username = Console.ReadLine();
+                if(username.Length > 8)
+                {
+                    Console.WriteLine("username too long, it can't be longer than 8 characters.");
+                }
+                else
+                {
+                    break;
+                }
+            }
+
             if (GetUser(username,true) != null)
             {
                 Console.WriteLine($"{username} is already exists");

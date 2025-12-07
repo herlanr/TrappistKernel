@@ -114,7 +114,7 @@ public class DeleteUserCommand : AbstractCommand
 
     public override string Name => "delusr";
     public override string Description => "Deletes a user account (admin only).";
-    public override string Usage => "Usage: delusr / deleteuser [username]\nDescription: Deletes a user account (only available to admins).";
+    public override string Usage => "Usage: delusr [username]\nDescription: Deletes a user account (only available to admins).";
     public override IEnumerable<string> Parameters => new[] { "-h" };
     public override void Execute(string[] args)
     {
@@ -215,7 +215,7 @@ public class CreateUserCommand : AbstractCommand
 
     public override string Name => "createuser";
     public override string Description => "Creates a new user account.";
-    public override string Usage => "Usage: mkusr / createuser [-a]\n" +
+    public override string Usage => "Usage: createuser [-a]\n" +
                                     "Description: Creates a new user account.\n" +
                                     "Available Arguments:\n" +
                                     "  -h: help\n" +
@@ -225,10 +225,11 @@ public class CreateUserCommand : AbstractCommand
     {
         if (args.Length == 1)
         {  
+
             int newUser = userInfo.CreateUser(false); 
             string newdir = fsManager.createDirectory(rootDir + userInfo.GetName(newUser,true));
 
-            Console.WriteLine("init perms now");
+            Console.WriteLine($"init perms for {newdir}");
             permManager.InitPermissions(newdir, newUser);
             Console.WriteLine("Login as this User? \n(y)es/(n)o");
 
@@ -245,7 +246,7 @@ public class CreateUserCommand : AbstractCommand
                 {
                     int newUser = userInfo.CreateUser(true);
                     string newdir = fsManager.createDirectory(rootDir + userInfo.GetName(newUser,true));
-                    Console.WriteLine("init perms second");
+                    Console.WriteLine($"init perms for {newdir}");
                     permManager.InitPermissions(newdir, newUser);
                 }
                 else
