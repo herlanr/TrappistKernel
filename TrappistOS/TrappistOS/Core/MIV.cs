@@ -306,7 +306,15 @@ namespace MIV
                                         }
                                         else
                                         {
-                                            cursor.row--;
+                                             if(cursor.row == 0)
+                                            {
+                                                firstvisibleline--;
+                                                lastVisibleLine--;
+                                            }
+                                            else
+                                            {
+                                                cursor.row--;
+                                            }
                                         }
                                         pos--;
                                         cursor.column = lineLength;
@@ -326,16 +334,20 @@ namespace MIV
                                     {
                                         cursor.column = 0;
                                     }
-                                    if (lastVisibleLine > NewLines(chars.ToArray()))
+                                    if (lastVisibleLine > NewLines(chars.ToArray()) && lastVisibleLine >= maxEditorLine)
                                     {
                                         lastVisibleLine--;
                                         firstvisibleline--;
                                         cursor.row++;
                                     }
+
                                     if(lastVisibleLine < maxEditorLine)
                                     { lastVisibleLine = maxEditorLine; }
                                     if(firstvisibleline<0)
                                     { firstvisibleline = 0; }
+                                    if (cursor.row > NewLines(chars.ToArray())-1)
+                                        {  cursor.row--; }
+
                                     printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor, controlbar, firstvisibleline, lastVisibleLine);
                                     break;
                                 }
