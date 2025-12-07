@@ -33,11 +33,15 @@ public class HelpCommand : AbstractCommand
                 Console.WriteLine();
             }
         }
-
+        
         currentPage++;
-        Console.WriteLine("Page " + currentPage.ToString() + " out of " + maxPage.ToString() + " Continue with enter, exit with esc");
-        if (!WaitForResponse()) { return; } //wait for enter or escape
-        Console.WriteLine();
+        if (currentPage < maxPage)
+        {
+            Console.WriteLine("Page " + currentPage.ToString() + " out of " + maxPage.ToString() + " Continue with enter, exit with esc");
+            if (!WaitForResponse()) { return; } //wait for enter or escape
+            Console.WriteLine();
+        }
+        
     }
 
     static internal bool WaitForResponse()

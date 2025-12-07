@@ -95,7 +95,7 @@ public class GivePermissionsCommand : AbstractCommand
                                             "  -h: help\n" +
                                             "  -r: grant read permission\n" +
                                             "  -w: grant write permission";
-    public override string Usage => "Usage: gperm / givepermissions <path> <user> [-r] [-w]";
+    public override string Usage => "Usage: gperm <path> <user> [-r] [-w]";
     public override IEnumerable<string> Parameters => new[] { "-h", "-r", "w"};
 
     public override void Execute(string[] args)
@@ -179,7 +179,7 @@ public class TakePermissionsCommand : AbstractCommand
                                             "  -h: help\n" +
                                             "  -r: remove read permission\n" +
                                             "  -w: remove write permission";
-    public override string Usage => "Usage: tperm / takepermissions <path> <user> [-r] [-w]";
+    public override string Usage => "Usage: tperm <path> <user> [-r] [-w]";
     public override IEnumerable<string> Parameters => new[] { "-h", "-r", "w"};
     public override void Execute(string[] args)
     {
@@ -420,7 +420,7 @@ public class PermissionsCommand : AbstractCommand
     public override string Description => "Description: Displays the owner, readers, and writers of a file or directory.\n" +
                                           "Available Arguments:\n" +
                                           "  -h: help";
-    public override string Usage => "Usage: perm / permissions <file name>";
+    public override string Usage => "Usage: perm <file name>";
                                     
     public override IEnumerable<string> Parameters => new[] { "-h" };
     public override void Execute(string[] args)
