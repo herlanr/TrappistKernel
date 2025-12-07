@@ -270,6 +270,10 @@ public class RmFileCommand : AbstractCommand
             Console.WriteLine(Description);
             return;
         }
+        for(int i = 2; i < args.Length; i++)
+        {
+            args[1] += " " + args[i];
+        }
         if (!File.Exists(fsManager.getFullPath(args[1])) && !Directory.Exists(fsManager.getFullPath(args[1])))
         {
             Console.WriteLine("File does not exist");
@@ -315,6 +319,10 @@ public class RmDirCommand : AbstractCommand
             Console.WriteLine(Usage);
             Console.WriteLine(Description);
             return;
+        }
+        for (int i = 2; i < args.Length; i++)
+        {
+            args[1] += " " + args[i];
         }
         if (!File.Exists(fsManager.getFullPath(args[1])) && !Directory.Exists(fsManager.getFullPath(args[1])))
         {

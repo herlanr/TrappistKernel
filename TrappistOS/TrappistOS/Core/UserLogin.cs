@@ -674,7 +674,7 @@ namespace TrappistOS
                 int parseHelperInt = 0;
                 if (int.TryParse(elements[0], out parseHelperInt))
                 {
-                    result.Add(new Tuple<string,int>(user, parseHelperInt));
+                    result.Add(new Tuple<string, int>(elements[1], parseHelperInt));
                 }
                 
             }
