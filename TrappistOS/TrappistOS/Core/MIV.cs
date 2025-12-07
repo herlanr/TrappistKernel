@@ -119,7 +119,7 @@ namespace MIV
                 {
                     throw new ArgumentOutOfRangeException($"Row below 0, recieved Value: {cursor.row}");
                 }
-                Console.Write($"pos: {pos} x: {cursor.column} y: {cursor.row} fvl:{firstVisibleLine} lvv: {lastVisibleLine} mvl: {maxEditorLine}");
+                //Console.Write($"pos: {pos} x: {cursor.column} y: {cursor.row} fvl:{firstVisibleLine} lvv: {lastVisibleLine} mvl: {maxEditorLine}");
                 if (editMode)
                 {
                     Console.Write(" " + (countNewLine + 1) + "," + countChars);
@@ -326,6 +326,16 @@ namespace MIV
                                     {
                                         cursor.column = 0;
                                     }
+                                    if (lastVisibleLine > NewLines(chars.ToArray()))
+                                    {
+                                        lastVisibleLine--;
+                                        firstvisibleline--;
+                                        cursor.row++;
+                                    }
+                                    if(lastVisibleLine < maxEditorLine)
+                                    { lastVisibleLine = maxEditorLine; }
+                                    if(firstvisibleline<0)
+                                    { firstvisibleline = 0; }
                                     printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor, controlbar, firstvisibleline, lastVisibleLine);
                                     break;
                                 }
