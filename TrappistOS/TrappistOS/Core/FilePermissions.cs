@@ -793,7 +793,7 @@ namespace TrappistOS
                     {
                         //put int list into string with , seperating them and a space at the end
                         int writer = writers[i];
-                        if (i > writers.Length - 1)
+                        if (i < writers.Length - 1)
                         {
                             toSave = toSave + Convert.ToString(writer) + ',';
                         }
@@ -822,7 +822,7 @@ namespace TrappistOS
             {
                 string newPermLine = "";
                 FileRights newFile = (FileRights)fileRightTable[path];
-                newPermLine += newFile.owner.ToString();
+                newPermLine += newFile.owner.ToString() + " ";
 
                 int[] readers = newFile.reader.ToArray();
                 int[] writers = newFile.writer.ToArray();
@@ -845,7 +845,7 @@ namespace TrappistOS
                 {
                     //put int list into string with , seperating them and a space at the end
                     int writer = writers[i];
-                    if (i > writers.Length - 1)
+                    if (i < writers.Length - 1)
                     {
                         newPermLine = newPermLine + Convert.ToString(writer) + ',';
                     }
@@ -854,7 +854,7 @@ namespace TrappistOS
                         newPermLine = newPermLine + Convert.ToString(writer) + ' ';
                     }
                 }
-                newPermLine += " " + path;
+                newPermLine += path;
                 File.AppendAllText(filepath, newPermLine);
                 return true;
             }

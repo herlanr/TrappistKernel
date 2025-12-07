@@ -61,13 +61,14 @@ public class SetOwnerCommand : AbstractCommand
             permManager.SetReader(fsManager.getFullPath(args[1]), userInfo.GetId(args[2]),true);
             permManager.SetWriter(fsManager.getFullPath(args[1]), userInfo.GetId(args[2]),true);
             Console.WriteLine("Successfully changed Owner to " + args[2]);
+            permManager.SavePermissions();
         }
         else
         {
             Console.WriteLine("Change aborted.");
         }
 
-        permManager.SavePermissions();
+        
 
     }
 
