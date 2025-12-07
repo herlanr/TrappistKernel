@@ -86,11 +86,32 @@ namespace TrappistOS
             }
         }
 
+        protected string InputValid(string input)
+        {
+            const string validLetters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ -/\\:1234567890.,";
+
+            foreach (char c in input)
+            {
+                // This is using String.Contains for .NET 2 compat.,
+                //   hence the requirement for ToString()
+                if (!validLetters.Contains(c.ToString()))
+                    return c.ToString();
+            }
+
+            return null;
+        }
 
         protected override void Run()
         {
+            
             var cmd = new CommandHistory(commandList);
             var input = cmd.ReadLine(userInfo.GetName(true), fsManager.getCurrentDir());
+            string invalidChar = InputValid(input);
+            if (invalidChar is not null)
+            {
+                Console.WriteLine($"{invalidChar} is not a valid character for the command line");
+                return;
+            }
 
             if (string.IsNullOrWhiteSpace(input))
             {

@@ -174,6 +174,11 @@ public class MivCommand : AbstractCommand
             Console.WriteLine("Cannot open a directory in MIV.");
             return;
         }
+        if (!File.Exists(filePath))
+        {
+            Console.WriteLine("File does not exist");
+            return;
+        }
         if (!permManager.IsWriter(filePath, userInfo.GetId()) && !userInfo.IsAdmin())
         {
             Console.WriteLine("You do not have permission to edit this file");
