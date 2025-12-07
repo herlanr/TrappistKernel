@@ -177,7 +177,7 @@ namespace TrappistOS
                         Console.WriteLine("Created: " + dirpath);
                     }
                 }
-                Console.WriteLine("getting all paths");
+                //Console.WriteLine("getting all paths");
                 string[] allpaths = fsManager.getAllPaths(dirpath);
                 foreach (string path in allpaths)
                 {
