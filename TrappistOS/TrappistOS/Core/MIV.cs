@@ -73,6 +73,7 @@ namespace MIV
                 }
                 if (pos < 0)
                 {
+                    //Console.WriteLine("pos is below 0:" + pos);
                     pos = 0;
                 }
                 for (int i = 0; i < chars.Length; i++)
@@ -113,7 +114,11 @@ namespace MIV
                         //Console.Write($"hier: {pos}, {writingpos}, {countNewLine}, {countChars}");
                         cursor.row = countNewLine - firstVisibleLine;
                         
-                        cursor.column = countChars% lineLength;
+                        cursor.column = countChars% (lineLength+1);
+                        if(countChars % (lineLength + 1) == 0 && countChars / (lineLength + 1) >= 1)
+                        {
+                            cursor.row++;
+                        }
                     }
                 }
 
@@ -143,6 +148,7 @@ namespace MIV
                     Console.Write(" " + (countNewLine + 1) + "," + countChars);
                 }
                 Console.SetCursorPosition(cursor.column, cursor.row);
+                Cosmos.HAL.Global.PIT.Wait((uint)50);
             }
             catch (Exception e)
             {
@@ -246,10 +252,6 @@ namespace MIV
                 {
                     try
                     {
-                        if(cursor.row == 0 && cursor.column == 0 && firstvisibleline == 0)
-                        {
-                            pos = 0;
-                        }
                         if (pos < 0)
                         {
                             throw new ArgumentOutOfRangeException("pos", null, "Pos is below 0");
@@ -621,25 +623,10 @@ namespace MIV
                                     }
                                     else
                                     {
-                                        pos = chars.Count - 2;
+                                        pos = chars.Count - 1;
                                         chars.Insert(pos, keyInfo.KeyChar);
                                     }
                                     pos++;
-                                    cursor.column++;
-                                    if((cursor.column-1)%(lineLength + 1) == lineLength)
-                                    {
-                                        cursor.column = 0;
-
-                                        if (cursor.row == maxEditorLine)
-                                        {
-                                            firstvisibleline++;
-                                            lastVisibleLine++;
-                                        }
-                                        else
-                                        {
-                                            cursor.row++;
-                                        }
-                                    }
                                     printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor, controlbar, firstvisibleline, lastVisibleLine);
                                     
                                     break;
