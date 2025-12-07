@@ -222,7 +222,7 @@ namespace MIV
                 {
                     try
                     {
-                        if(cursor.row == 0 && cursor.column == 0)
+                        if(cursor.row == 0 && cursor.column == 0 && firstvisibleline == 0)
                         {
                             pos = 0;
                         }
@@ -327,6 +327,7 @@ namespace MIV
                                         if(pos == 0 && chars[pos+1] == '\n')
                                         {
                                             cursor.row++;
+                                            
                                         }
                                         else if (pos == 0)
                                         {
@@ -357,19 +358,8 @@ namespace MIV
                                             editMode = false;
                                             cursor.column = 0;
                                         }
-                                        else
-                                        {
-                                            if (cursor.row == maxEditorLine)
-                                            {
-                                                firstvisibleline++;
-                                                lastVisibleLine++;
-                                            }
-                                            else
-                                            {
-                                                cursor.row++;
-                                            }
-                                        }
                                     }
+                                    pos++;
                                     printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor, controlbar, firstvisibleline, lastVisibleLine);
                                     break;
                                 }
