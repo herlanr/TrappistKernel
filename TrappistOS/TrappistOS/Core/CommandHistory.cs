@@ -50,16 +50,32 @@ namespace TrappistOS
             {
                 var key = Console.ReadKey(true);
 
-                if ((key.Modifiers & ConsoleModifiers.Control) != 0 && key.Key == ConsoleKey.C)
+                if ((key.Modifiers & ConsoleModifiers.Control) != 0)
                 {
-                    Kernel.AbortRequest = true;
-                    Console.WriteLine("^C");
+                    switch (key.Key)
+                    {
+                        case ConsoleKey.C:
+                            Kernel.AbortRequest = true;
+                            Console.WriteLine("^C");
+                            _buffer.Clear();
+                            _cursor = 0;
+                            _prevBufferLen = 0;
+                            return string.Empty;
 
-                    _buffer.Clear();
-                    _cursor = 0;
-                    _prevBufferLen = 0;
+                        case ConsoleKey.A:
+                            // Ctrl + A → Cursor an den Anfang
+                            _cursor = 0;
+                            Redraw();
+                            break;
 
-                    return string.Empty;
+                        case ConsoleKey.E:
+                            // Ctrl + E → Cursor ans Ende
+                            _cursor = _buffer.Length;
+                            Redraw();
+                            break;
+                    }
+
+                    continue;
                 }
 
                 switch (key.Key)

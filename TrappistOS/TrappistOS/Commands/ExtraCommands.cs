@@ -2,6 +2,7 @@ using TrappistOS;
 using System;
 using Sys = Cosmos.System;
 using System.Collections.Generic;
+using System.IO;
 
 public class FreeSpaceCommand : AbstractCommand
 {
@@ -158,23 +159,29 @@ public class MivCommand : AbstractCommand
             return;
         }
 
-        if (args.Length == 2)
+        string filePath = fsManager.getFullPath(args[1]);
+
+        if (System.IO.Directory.Exists(filePath))
         {
-            string filePath = fsManager.getFullPath(args[1]);
+            Console.WriteLine("Cannot open a directory in MIV.");
+            return;
+        }
 
-            if (!permManager.IsWriter(filePath, userInfo.GetId()) && !userInfo.IsAdmin())
-            {
-                Console.WriteLine("You do not have permission to edit this file");
-                return;
-            }
+        if (!permManager.IsWriter(filePath, userInfo.GetId()) && !userInfo.IsAdmin())
+        {
+            Console.WriteLine("You do not have permission to edit this file.");
+            return;
+        }
 
-            if (MIV.MIV.PrintMivCommands())
-            {
-                MIV.MIV.StartMIV(filePath);
-            }
+        Kernel.AbortRequest = false;
+
+        if (MIV.MIV.PrintMivCommands())
+        {
+            MIV.MIV.StartMIV(filePath);
         }
     }
 }
+
 public class SnakeCommand : AbstractCommand
 {
     public override string Name => "snake";
