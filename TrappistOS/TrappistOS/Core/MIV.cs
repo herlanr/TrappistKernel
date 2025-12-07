@@ -604,7 +604,7 @@ namespace MIV
                         cursor.column = 1;
                         cursor.row = maxlines;
                         editMode = false;
-                        controlbar = "i: Edit Mode; q: quite; wq: write and quit";
+                        controlbar = "i: Edit Mode; q: quit; wq: write and quit";
                         infoBar = ":";
                         printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor, controlbar, firstvisibleline, lastVisibleLine);
                         Console.WriteLine(ex.Message + "\nError Occured in edit Mode\nExiting Edit mode");
