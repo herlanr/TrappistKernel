@@ -18,19 +18,19 @@ public class TouchCommand : AbstractCommand
     }
 
     public override string Name => "touch";
-    public override string Description => "Creates a new file.";
-    public override string Usage => "Usage: touch [-o] <file name>\n" +
-                                    "Description: Creates a new file.\n" +
-                                    "Available Arguments:\n" +
-                                    "  -h: help\n" +
-                                    "  -o: give yourself complete ownership.\n" +
-                                    "      If not set, it will inherit the ownership of the current directory.";
+    public override string Description =>   "Description: Creates a new file.\n" +
+                                            "Available Arguments:\n" +
+                                            "  -h: help\n" +
+                                            "  -o: give yourself complete ownership.\n" +
+                                            "      If not set, it will inherit the ownership of the current directory.";
+    public override string Usage => "Usage: touch [-o] <file name>";
     public override IEnumerable<string> Parameters => new[] { "-h", "-o"};
     public override void Execute(string[] args)
     {
         if (args.Length < 2 || args[1] == "-h")
         {
             Console.WriteLine(Usage);
+            Console.WriteLine(Description);
             return;
         }
         if (!permManager.IsWriter(fsManager.getCurrentDir(), userInfo.GetId()))
@@ -65,13 +65,12 @@ public class MkdirCommand : AbstractCommand
     }
 
     public override string Name => "mkdir";
-    public override string Description => "Creates a new directory.";
-    public override string Usage => "Usage: mkdir [-o] <directory name>\n" +
-                                    "Description: Creates a new directory.\n" +
-                                    "Available Arguments:\n" +
-                                    "  -h: help\n" +
-                                    "  -o: give yourself complete ownership.\n" +
-                                    "      If not set, it will inherit the ownership of the current directory.";
+    public override string Description => "Description: Creates a new directory.\n" +
+                                            "Available Arguments:\n" +
+                                            "  -h: help\n" +
+                                            "  -o: give yourself complete ownership.\n" +
+                                            "      If not set, it will inherit the ownership of the current directory.";
+    public override string Usage => "Usage: mkdir [-o] <directory name>";
     public override IEnumerable<string> Parameters => new[] { "-h", "-o"};
 
     public override void Execute(string[] args)
@@ -79,6 +78,7 @@ public class MkdirCommand : AbstractCommand
         if (args.Length < 2 || args[1] == "-h")
         {
             Console.WriteLine(Usage);
+            Console.WriteLine(Description);
             return;
         }
 
@@ -116,11 +116,10 @@ public class LsCommand : AbstractCommand
     }
 
     public override string Name => "ls";
-    public override string Description => "List all the files in the current directory.";
-    public override string Usage => "Usage: ls\n" +
-                                    "Description: List all the files in a directory.\n" +
-                                    "Available Arguments:\n" +
-                                    "  -h: help";
+    public override string Description =>   "Description: List all the files in a directory.\n" +
+                                            "Available Arguments:\n" +
+                                            "  -h: help";
+    public override string Usage => "Usage: ls";
     public override IEnumerable<string> Parameters => new[] { "-h" };
     public override void Execute(string[] args)
     {
@@ -129,6 +128,7 @@ public class LsCommand : AbstractCommand
             if (args[1] == "-h")
             {
                 Console.WriteLine(Usage);
+                Console.WriteLine(Description);
                 return;
             }
         }
@@ -150,11 +150,10 @@ public class MvCommand : AbstractCommand
     }
 
     public override string Name => "mv";
-    public override string Description => "Move file or directory to a new location.";
-    public override string Usage => "Usage: mv <file path> <dest path>\n" +
-                                    "Description: Move file between directories.\n" +
-                                    "Available Arguments:\n" +
-                                    "  -h: help";
+    public override string Description =>   "Description: Move file between directories.\n" +
+                                            "Available Arguments:\n" +
+                                            "  -h: help";
+    public override string Usage => "Usage: mv <file path> <dest path>";
     public override IEnumerable<string> Parameters => new[] { "-h" };
 
     public override void Execute(string[] args)
@@ -162,6 +161,7 @@ public class MvCommand : AbstractCommand
         if (args.Length < 3 || args[1] == "-h")
         {
             Console.WriteLine(Usage);
+            Console.WriteLine(Description);
             return;
 
         }
@@ -206,17 +206,17 @@ public class CatCommand : AbstractCommand
     }
 
     public override string Name => "cat";
-    public override string Description => "Opens a text file, reads all the text in the file, and then closes the file.";
-    public override string Usage => "Usage: cat <file name>\n" +
-                                    "Description: Opens a text file, reads all the text in the file, and then closes the file.\n" +
-                                    "Available Arguments:\n" +
-                                    "  -h: help";
+    public override string Description =>   "Description: Opens a text file, reads all the text in the file, and then closes the file.\n" +
+                                            "Available Arguments:\n" +
+                                            "  -h: help";
+    public override string Usage => "Usage: cat <file name>";
     public override IEnumerable<string> Parameters => new[] { "-h" };
     public override void Execute(string[] args)
     {
         if (args.Length < 2 || args[1] == "-h")
         {
             Console.WriteLine(Usage);
+            Console.WriteLine(Description);
             return;
         }
 
@@ -257,17 +257,17 @@ public class RmFileCommand : AbstractCommand
     }
 
     public override string Name => "rmf";
-    public override string Description => "Deletes the specified file.";
-    public override string Usage => "Usage: rmf <file name>\n" +
-                                    "Description: Deletes the specified file.\n" +
-                                    "Available Arguments:\n" +
-                                    "  -h: help";
+    public override string Description =>   "Description: Deletes the specified file.\n" +
+                                            "Available Arguments:\n" +
+                                            "  -h: help";
+    public override string Usage => "Usage: rmf <file name>";
     public override IEnumerable<string> Parameters => new[] { "-h" };
     public override void Execute(string[] args)
     {
         if (args.Length < 2 || args[1] == "-h")
         {
             Console.WriteLine(Usage);
+            Console.WriteLine(Description);
             return;
         }
         if (!File.Exists(fsManager.getFullPath(args[1])) && !Directory.Exists(fsManager.getFullPath(args[1])))
@@ -303,17 +303,17 @@ public class RmDirCommand : AbstractCommand
     }
 
     public override string Name => "rmd";
-    public override string Description => "Deletes the specified directory.";
-    public override string Usage => "Usage: rmd <directory name>\n" +
-                                    "Description: Deletes the specified directory.\n" +
-                                    "Available Arguments:\n" +
-                                    "  -h: help";
+    public override string Description =>   "Description: Deletes the specified directory.\n" +
+                                            "Available Arguments:\n" +
+                                            "  -h: help";
+    public override string Usage => "Usage: rmd <directory name>";
     public override IEnumerable<string> Parameters => new[] { "-h" };
     public override void Execute(string[] args)
     {
         if (args.Length < 2 || args[1] == "-h")
         {
             Console.WriteLine(Usage);
+            Console.WriteLine(Description);
             return;
         }
         if (!File.Exists(fsManager.getFullPath(args[1])) && !Directory.Exists(fsManager.getFullPath(args[1])))
@@ -348,17 +348,17 @@ public class RenameCommand : AbstractCommand
     }
 
     public override string Name => "rename";
-    public override string Description => "Renames the selected directory or file.";
-    public override string Usage => "Usage: rename <directory or file> <new name>\n" +
-                                    "Description: Renames the selected directory or file.\n" +
-                                    "Available Arguments:\n" +
-                                    "  -h: help";
+    public override string Description =>   "Description: Renames the selected directory or file.\n" +
+                                            "Available Arguments:\n" +
+                                            "  -h: help";
+    public override string Usage => "Usage: rename <directory or file> <new name>";
     public override IEnumerable<string> Parameters => new[] { "-h" };
     public override void Execute(string[] args)
     {
         if (args.Length < 3 || args[1] == "-h")
         {
             Console.WriteLine(Usage);
+            Console.WriteLine(Description);
             return;
         }
         if (!File.Exists(fsManager.getFullPath(args[1])) && !Directory.Exists(fsManager.getFullPath(args[1])))
@@ -401,11 +401,10 @@ public class CdCommand : AbstractCommand
     }
 
     public override string Name => "cd";
-    public override string Description => "Changes your current directory to the specified one.";
-    public override string Usage => "Usage: cd <directory path>\n" +
-                                    "Description: Changes your current directory to the specified one.\n" +
-                                    "Available Arguments:\n" +
-                                    "  -h: help";
+    public override string Description =>   "Description: Changes your current directory to the specified one.\n" +
+                                            "Available Arguments:\n" +
+                                            "  -h: help";
+    public override string Usage => "Usage: cd <directory path>";
 
     public override IEnumerable<string> Parameters => new[] { "-h" };
 
@@ -414,6 +413,7 @@ public class CdCommand : AbstractCommand
         if (args.Length < 2 || args[1] == "-h")
         {
             Console.WriteLine(Usage);
+            Console.WriteLine(Description);
             return;
         }
 
@@ -454,8 +454,8 @@ public class PwdCommand : AbstractCommand
     }
 
     public override string Name => "pwd";
-    public override string Description => "Displays the current working directory.";
-    public override string Usage => "Usage: pwd\nDescription: Shows your current directory.";
+    public override string Description => "Description: Shows your current directory.";
+    public override string Usage => "Usage: pwd\n";
 
     public override IEnumerable<string> Parameters => new[] { "-h" };
 

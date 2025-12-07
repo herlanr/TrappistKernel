@@ -23,7 +23,7 @@ public class FreeSpaceCommand : AbstractCommand
         if (args.Length > 1 && args[1] == "-h")
         {
             Console.WriteLine(Usage);
-            Console.WriteLine("Description: " + Description);
+            Console.WriteLine(Description);
             return;
         }
 
@@ -34,8 +34,8 @@ public class FreeSpaceCommand : AbstractCommand
 public class ClearCommand : AbstractCommand
 {
     public override string Name => "clear";
-    public override string Description => "Clears the console screen.";
-    public override string Usage => "Usage: clear\nDescription: Clears the terminal screen.";
+    public override string Description => "Description: Clears the terminal screen.";
+    public override string Usage => "Usage: clear";
     public override IEnumerable<string> Parameters => new[] { "-h" };
 
     public override void Execute(string[] args)
@@ -54,8 +54,8 @@ public class ShutdownCommand : AbstractCommand
     }
 
     public override string Name => "shutdown";
-    public override string Description => "Shuts down the system.";
-    public override string Usage => "Usage: shutdown\nDescription: Saves permissions and powers off the system.";
+    public override string Description => "Description: Shuts down the system.";
+    public override string Usage => "Usage: shutdown";
     public override IEnumerable<string> Parameters => new[] { "-h" };
 
     public override void Execute(string[] args)
@@ -75,8 +75,8 @@ public class RebootCommand : AbstractCommand
     }
 
     public override string Name => "reboot";
-    public override string Description => "Reboots the system.";
-    public override string Usage => "Usage: reboot\nDescription: Saves permissions and restarts the system.";
+    public override string Description => "Description: Reboots the system.";
+    public override string Usage => "Usage: reboot";
     public override IEnumerable<string> Parameters => new[] { "-h" };
     public override void Execute(string[] args)
     {
@@ -88,8 +88,8 @@ public class RebootCommand : AbstractCommand
 public class ForceShutdownCommand : AbstractCommand
 {
     public override string Name => "force-shutdown";
-    public override string Description => "Forcefully shuts down the system without saving changes.";
-    public override string Usage => "Usage: force-shutdown\nDescription: Immediately powers off the system without saving changes.";
+    public override string Description => "Description: Forcefully shuts down the system without saving changes.";
+    public override string Usage => "Usage: force-shutdown";
     public override IEnumerable<string> Parameters => new[] { "-h" };
     public override void Execute(string[] args)
     {
@@ -114,8 +114,8 @@ public class ForceShutdownCommand : AbstractCommand
 public class ForceRebootCommand : AbstractCommand
 {
     public override string Name => "force-reboot";
-    public override string Description => "Forcefully reboots the system without saving changes.";
-    public override string Usage => "Usage: force-reboot\nDescription: Immediately restarts the system without saving changes.";
+    public override string Description => "Description: Forcefully reboots the system without saving changes.";
+    public override string Usage => "Usage: force-reboot";
     public override IEnumerable<string> Parameters => new[] { "-h" };
 
     public override void Execute(string[] args)
@@ -152,11 +152,10 @@ public class MivCommand : AbstractCommand
     }
 
     public override string Name => "miv";
-    public override string Description => "Opens the MIV editor to edit the specified file.";
+    public override string Description => "Description: Edit the specified file using MIV editor.\n" +
+                                          "Available Arguments:\n  -h: help";
     public override string Usage =>
-        "Usage: miv <file name>\n" +
-        "Description: Edit the specified file using MIV editor.\n" +
-        "Available Arguments:\n  -h: help";
+        "Usage: miv <file name>";
     public override IEnumerable<string> Parameters => new[] { "-h" };
 
     public override void Execute(string[] args)
@@ -164,6 +163,7 @@ public class MivCommand : AbstractCommand
         if (args.Length < 2 || args[1] == "-h")
         {
             Console.WriteLine(Usage);
+            Console.WriteLine(Description);
             return;
         }
 
@@ -193,10 +193,9 @@ public class MivCommand : AbstractCommand
 public class SnakeCommand : AbstractCommand
 {
     public override string Name => "snake";
-    public override string Description => "Starts the Snake game.";
+    public override string Description => "Description: Play the Snake game.";
     public override string Usage =>
-        "Usage: snake\n" +
-        "Description: Play the Snake game.";
+        "Usage: snake";
     public override IEnumerable<string> Parameters => new[] { "-h" };
 
     public override void Execute(string[] args)
