@@ -119,7 +119,7 @@ namespace MIV
                 {
                     throw new ArgumentOutOfRangeException($"Row below 0, recieved Value: {cursor.row}");
                 }
-                //Console.Write($"pos: {pos} x: {cursor.column} y: {cursor.row} fvl:{firstVisibleLine} lvv: {lastVisibleLine} mvl: {maxEditorLine}");
+                Console.Write($"pos: {pos} x: {cursor.column} y: {cursor.row} fvl:{firstVisibleLine} lvv: {lastVisibleLine} mvl: {maxEditorLine}");
                 if (editMode)
                 {
                     Console.Write(" " + (countNewLine + 1) + "," + countChars);
@@ -331,89 +331,129 @@ namespace MIV
                                 }
                             case ConsoleKey.RightArrow:
                                 {  //wenn wir auf newline stehen und nicht am ende, an den anfange der nächsten Zeile
-                                    
-                                    if (pos + 1 < chars.Count)
+                                    try
                                     {
-                                        if(pos == 0 && chars[pos+1] == '\n')
+                                        if (pos + 1 < chars.Count)
                                         {
-                                            cursor.row++;
-                                            
-                                        }
-                                        else if (pos == 0)
-                                        {
-                                            cursor.column++;
-                                        }
-                                        else if (chars[pos] == '\n' || ((chars.LastIndexOf('\n', pos - 1) != -1 && pos / lineLength-1 >= 1) || (pos - chars.LastIndexOf('\n', pos - 1)) / (lineLength-1)>= 1))
-                                        {
-                                            cursor.column = 0;
 
-                                            if (cursor.row == maxEditorLine)
+                                            int endRow = chars.IndexOf('\n', pos);
+                                            int startThisRow = chars.LastIndexOf('\n', pos) + 1;
+                                            int lenRow = endRow - startThisRow;
+                                            int amountRows = lenRow / lineLength;
+                                            if (pos == 0 && chars[pos + 1] == '\n')
                                             {
-                                                firstvisibleline++;
-                                                lastVisibleLine++;
+                                                cursor.row++;
+
+                                            }
+                                            else if (pos == 0)
+                                            {
+                                                cursor.column++;
+                                            }
+                                            else if (chars[pos] == '\n' || cursor.column >= lineLength)
+                                            {
+                                                cursor.column = 0;
+
+                                                if (cursor.row == maxEditorLine)
+                                                {
+                                                    firstvisibleline++;
+                                                    lastVisibleLine++;
+                                                }
+                                                else
+                                                {
+                                                    cursor.row++;
+                                                }
                                             }
                                             else
                                             {
-                                                cursor.row++;
+                                                cursor.column++;
+                                            }
+                                            if (cursor.column > lineLength + 1)
+                                            {
+                                                Console.WriteLine("Error in navigation");
+                                                Console.ReadKey();
+                                                editMode = false;
+                                                cursor.column = 0;
                                             }
                                         }
-                                        else
-                                        {
-                                            cursor.column++;
-                                        }
-                                        if(cursor.column > lineLength+1)
-                                        {
-                                            Console.WriteLine("Error in navigation");
-                                            Console.ReadKey();
-                                            editMode = false;
-                                            cursor.column = 0;
-                                        }
+                                        pos++;
+                                        printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor, controlbar, firstvisibleline, lastVisibleLine);
+                                        break;
                                     }
-                                    pos++;
-                                    printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor, controlbar, firstvisibleline, lastVisibleLine);
-                                    break;
+                                    catch (Exception e)
+                                    {
+                                        throw new Exception($"Error when trying to go right: {e.Message}\n", e);
+                                    }
                                 }
                             case ConsoleKey.LeftArrow:
                                 { //wenn vor uns ein newline ist, sind wir am anfang der Zeile und müssen ans ende der letzten Zeile
 
-
-                                    if (pos == 0)
-                                    {
-                                        cursor.column = 0;
-                                        cursor.row = 0;
-                                        firstvisibleline = 0;
-                                        lastVisibleLine = maxEditorLine;
-                                        printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor, controlbar, firstvisibleline, lastVisibleLine);
-                                        break;
-                                    }
-                                    if (pos == 1)
-                                    {
-                                        cursor.row = 0;
-                                        cursor.column = 0;
-                                        pos = 0;
-                                        printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor, controlbar, firstvisibleline, lastVisibleLine);
-                                        break;
-                                    }
-                                    if (pos - 1 > 0)
-                                    {
-                                        if (chars[pos - 1] != '\n' && cursor.column!=0 )
+                                    try { 
+                                        if (pos == 0)
                                         {
-                                            cursor.column--;
+                                            cursor.column = 0;
+                                            cursor.row = 0;
+                                            firstvisibleline = 0;
+                                            lastVisibleLine = maxEditorLine;
+                                            printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor, controlbar, firstvisibleline, lastVisibleLine);
+                                            break;
                                         }
-                                        else
+                                        if (pos == 1)
                                         {
-                                            if (chars[pos-1] == '\n')
+                                            cursor.row = 0;
+                                            cursor.column = 0;
+                                            pos = 0;
+                                            firstvisibleline = 0;
+                                            lastVisibleLine = maxEditorLine;
+                                            printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor, controlbar, firstvisibleline, lastVisibleLine);
+                                            break;
+                                        }
+                                        if (pos - 1 > 0)
+                                        {
+                                            if (chars[pos - 1] != '\n' && cursor.column!=0 )
                                             {
-                                                int previous = chars.LastIndexOf('\n', pos - 2);
-                                                //Console.WriteLine($"{pos} - {previous} - 2 = {pos - previous - 2}");
-                                                //Cosmos.HAL.Global.PIT.Wait((uint)5000);
-                                                cursor.column = pos - previous - 2; //length of this line
-                                                cursor.column = cursor.column % (lineLength + 1);
+                                                cursor.column--;
                                             }
                                             else
                                             {
-                                                cursor.column = lineLength;
+                                                if (chars[pos-1] == '\n')
+                                                {
+                                                    int previous = chars.LastIndexOf('\n', pos - 2);
+                                                    //Console.WriteLine($"{pos} - {previous} - 2 = {pos - previous - 2}");
+                                                    //Cosmos.HAL.Global.PIT.Wait((uint)5000);
+                                                    cursor.column = pos - previous - 2; //length of this line
+                                                    cursor.column = cursor.column % (lineLength + 1);
+                                                }
+                                                else
+                                                {
+                                                    cursor.column = lineLength;
+                                                }
+
+                                                if (cursor.row == 0)
+                                                {
+                                                    firstvisibleline--;
+                                                    lastVisibleLine--;
+                                                }
+                                                else
+                                                {
+                                                    cursor.row--;
+                                                }
                                             }
+                                            pos--;
+                                        }
+                                        printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor, controlbar, firstvisibleline, lastVisibleLine);
+                                        break;
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        throw new Exception($"Error when trying to go left: {e.Message}\n", e);
+                                    }
+                                }
+                            case ConsoleKey.UpArrow:
+                                {
+                                    try
+                                    {
+                                        if ((cursor.row != 0 || firstvisibleline>0) && (pos > chars.IndexOf('\n') && chars.IndexOf('\n') != -1 || chars.Count >= (lineLength + 1))) //check we aren't in top row
+                                        {
 
                                             if (cursor.row == 0)
                                             {
@@ -424,100 +464,92 @@ namespace MIV
                                             {
                                                 cursor.row--;
                                             }
-                                        }
-                                        pos--;
-                                    }
-                                    printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor, controlbar, firstvisibleline, lastVisibleLine);
-                                    break;
-                                }
 
-                            case ConsoleKey.UpArrow:
-                                {
-                                    if ((cursor.row != 0 || firstvisibleline>0) && (pos > chars.IndexOf('\n') && chars.IndexOf('\n') != -1 || chars.Count >= (lineLength + 1))) //check we aren't in top row
-                                    {
-
-                                        if (cursor.row == 0)
-                                        {
-                                            firstvisibleline--;
-                                            lastVisibleLine--;
-                                        }
-                                        else
-                                        {
-                                            cursor.row--;
-                                        }
-
-                                        if ((pos - chars.LastIndexOf('\n',pos-1) > lineLength) || (chars.LastIndexOf('\n', pos - 1) == -1) && (pos > lineLength))
-                                        {
-                                            pos -= lineLength + 1;
-                                        }
-                                        else
-                                        {
-                                            int currCol = cursor.column; //get current column
-                                            int startPrevLine = chars.LastIndexOf('\n', chars.LastIndexOf('\n', pos-1) - 1) + 1; //get start of previous line, by getting th newline before the previous newline
-                                            if (chars.LastIndexOf('\n', pos-1) - startPrevLine < currCol) //check if line is actually long enough
+                                            if ((pos - chars.LastIndexOf('\n',pos-1) > lineLength) || (chars.LastIndexOf('\n', pos - 1) == -1) && (pos > lineLength))
                                             {
-                                                currCol = chars.LastIndexOf('\n',pos-1) - startPrevLine; //got to end of line if not
+                                                pos -= lineLength + 1;
                                             }
-                                            int lengthLine = chars.IndexOf('\n', startPrevLine) - startPrevLine;
-                                            //Console.WriteLine($"{chars.LastIndexOf('\n', pos)} - {startPrevLine} - 1 = {chars.LastIndexOf('\n', pos) - startPrevLine -1}");
-                                            //Cosmos.HAL.Global.PIT.Wait((uint)5000);
-                                            currCol = currCol % (lineLength + 1);
-                                            cursor.column = currCol;
-                                            pos = startPrevLine + ((lengthLine/(lineLength)) * (lineLength+1)) + currCol;
+                                            else
+                                            {
+                                                int currCol = cursor.column; //get current column
+                                                int startPrevLine = chars.LastIndexOf('\n', chars.LastIndexOf('\n', pos-1) - 1) + 1; //get start of previous line, by getting th newline before the previous newline
+                                                if (chars.LastIndexOf('\n', pos-1) - startPrevLine < currCol) //check if line is actually long enough
+                                                {
+                                                    currCol = chars.LastIndexOf('\n',pos-1) - startPrevLine; //got to end of line if not
+                                                }
+                                                int lengthLine = chars.IndexOf('\n', startPrevLine) - startPrevLine;
+                                                //Console.WriteLine($"{chars.LastIndexOf('\n', pos)} - {startPrevLine} - 1 = {chars.LastIndexOf('\n', pos) - startPrevLine -1}");
+                                                //Cosmos.HAL.Global.PIT.Wait((uint)5000);
+                                                currCol = currCol % (lineLength + 1);
+                                                cursor.column = currCol;
+                                                pos = startPrevLine + ((lengthLine/(lineLength)) * (lineLength+1)) + currCol;
+                                            }
                                         }
+                                        printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor, controlbar, firstvisibleline, lastVisibleLine);
+                                        break;
                                     }
-                                    printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor, controlbar, firstvisibleline, lastVisibleLine);
-                                    break;
+                                    catch (Exception e)
+                                    {
+                                        throw new Exception($"Error when trying to go up: {e.Message}\n", e);
+                                    }
                                 }
 
                             case ConsoleKey.DownArrow:
                                 {
-                                    if (chars.IndexOf('\n', pos) < chars.LastIndexOf('\n') || chars.IndexOf('\n', pos) - (pos - cursor.column) > lineLength) //check we aren't in last line
+                                    try
                                     {
+                                        if (chars.IndexOf('\n', pos) < chars.LastIndexOf('\n') || chars.IndexOf('\n', pos) - (pos - cursor.column) > lineLength) //check we aren't in last line
+                                        {
 
-                                        if (cursor.row == maxEditorLine)
-                                        {
-                                            firstvisibleline++;
-                                            lastVisibleLine++;
-                                        }
-                                        else
-                                        {
-                                            cursor.row++;
-                                        }
-                                        
-                                        int endRow = chars.IndexOf('\n', pos);
-                                        int startThisRow = chars.LastIndexOf('\n', pos)+1;
-                                        int lenRow = endRow - startThisRow;
-                                        int amountRows = lenRow / lineLength;
-                                        if (chars[pos] != '\n' && pos < (startThisRow + (amountRows*lineLength)))
-                                        {
-                                            if ((pos < (startThisRow + ((amountRows-1) * lineLength)) || (pos-startThisRow)%lineLength < lenRow%lineLength))
+                                            if (cursor.row == maxEditorLine)
                                             {
-                                                pos = pos + lineLength;
+                                                firstvisibleline++;
+                                                lastVisibleLine++;
                                             }
                                             else
                                             {
-                                                cursor.column = lenRow % lineLength - 1;
-                                                pos = endRow;
+                                                cursor.row++;
                                             }
-                                        }
-                                        else
-                                        {
-                                            int currCol = cursor.column;
-                                            int startNextLine = endRow + 1; //get nextline beginning by character after end of this line
-                                            if (chars.IndexOf('\n', startNextLine) - startNextLine < currCol) //check next line is long enough
-                                            {
-                                                currCol = chars.IndexOf('\n', startNextLine) - startNextLine; //if not, set to end of next line
-                                            }
-                                            cursor.column = currCol;
-                                            //Console.WriteLine($"{currCol}");
-                                            //Cosmos.HAL.Global.PIT.Wait((uint)5000);
-                                            pos = startNextLine + currCol;
-                                        }
                                         
+                                            int endRow = chars.IndexOf('\n', pos);
+                                            int startThisRow = chars.LastIndexOf('\n', pos)+1;
+                                            int lenRow = endRow - startThisRow;
+                                            int amountRows = lenRow / lineLength;
+                                            if (chars[pos] != '\n' && pos < (startThisRow + (amountRows*lineLength)))
+                                            {
+                                                if ((pos < (startThisRow + ((amountRows-1) * lineLength)) || (pos-startThisRow)%lineLength < lenRow%lineLength))
+                                                {
+                                                    pos = pos + lineLength+1;
+                                                }
+                                                else
+                                                {
+                                                    cursor.column = lenRow % lineLength - 1;
+                                                    pos = endRow;
+                                                }
+                                            }
+                                            else
+                                            {
+                                                int currCol = cursor.column;
+                                                int startNextLine = endRow + 1; //get nextline beginning by character after end of this line
+                                                if (chars.IndexOf('\n', startNextLine) - startNextLine < currCol) //check next line is long enough
+                                                {
+                                                    currCol = chars.IndexOf('\n', startNextLine) - startNextLine; //if not, set to end of next line
+                                                }
+                                                cursor.column = currCol;
+                                                //Console.WriteLine($"{currCol}");
+                                                //Cosmos.HAL.Global.PIT.Wait((uint)5000);
+                                                pos = startNextLine + currCol;
+                                            }
+                                        
+                                        }
+                                        printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor, controlbar, firstvisibleline, lastVisibleLine);
+                                        break;
                                     }
-                                    printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor, controlbar, firstvisibleline, lastVisibleLine);
-                                    break;
+                                    catch (Exception e)
+                                    {
+                                        throw new Exception($"Error when trying to go down: {e.Message}\n", e);
+                                    }
+
                                 }
                                 /*
                             case ConsoleKey.End: //wird nicht erkannt
@@ -684,7 +716,7 @@ namespace MIV
                             }
                             else
                             {
-                                infoBar = "ERROR: No such command. Press any key to continue. (Command ex. \":help\")";
+                                infoBar = "ERROR: No such command. Press any key to continue.";
                                 printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor, controlbar, firstvisibleline, lastVisibleLine);
                                 Console.ReadKey(true);
 
@@ -746,6 +778,7 @@ namespace MIV
             }
             else if(input == "exit")
             {
+                Console.Clear();
                 Console.WriteLine("Exiting MIV...");
                 Console.WriteLine();
                 return false;
@@ -814,7 +847,7 @@ namespace MIV
                 string filetext = File.ReadAllText(file);
                 text = miv(filetext);
             }
-            catch(Exception ex) {Console.WriteLine($"{ex.Message}\nExiting MIV..."); return; }
+            catch(Exception ex) { Console.Clear(); Console.WriteLine($"{ex.Message}\nExiting MIV..."); return; }
             // Wenn Strg+C gedrückt wurde -> nichts speichern, nur Meldung
             if (Kernel.AbortRequest)
             {
