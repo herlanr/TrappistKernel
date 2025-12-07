@@ -65,13 +65,15 @@ namespace MIV
                 int countNewLine = 0;
                 int countChars = 0;
                 Console.Clear();
-
+                int writingpos = 0;
                 for (int i = 0; i < chars.Length; i++)
                 {
                     if (countNewLine >= lastVisibleLine)
                     {
                         break;
                     }
+
+                    writingpos++;
                     if (chars[i] == '\n')
                     {
                         if(countNewLine >= firstVisibleLine)
@@ -96,6 +98,13 @@ namespace MIV
                             }
                             countNewLine++;
                         }
+                    }
+                    if(writingpos == pos && editMode)
+                    {
+                        //Console.Write($"hier: {pos}, {writingpos}, {countNewLine}, {countChars}");
+                        cursor.row = countNewLine - firstVisibleLine;
+                        
+                        cursor.column = countChars% lineLength;
                     }
                 }
 
@@ -338,15 +347,15 @@ namespace MIV
                                     {
                                         lastVisibleLine--;
                                         firstvisibleline--;
-                                        cursor.row++;
                                     }
 
                                     if(lastVisibleLine < maxEditorLine)
                                     { lastVisibleLine = maxEditorLine; }
                                     if(firstvisibleline<0)
                                     { firstvisibleline = 0; }
-                                    if (cursor.row > NewLines(chars.ToArray())-1)
-                                        {  cursor.row--; }
+
+
+
 
                                     printMIVScreen(chars.ToArray(), pos, infoBar, editMode, cursor, controlbar, firstvisibleline, lastVisibleLine);
                                     break;
