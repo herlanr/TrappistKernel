@@ -63,6 +63,10 @@ namespace MIV
         {
             try
             {
+                if(lastVisibleLine-firstVisibleLine-1 < maxEditorLine)
+                {
+                    lastVisibleLine++;
+                }
                 int countNewLine = 0;
                 int countChars = 0;
                 Console.Clear();
